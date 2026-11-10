@@ -2,11 +2,13 @@ name = "masechet-shel-shabat"
 main = "worker.js"
 compatibility_date = "2024-05-24"
 
+# קבצי האתר (HTML / CSS / JS) מיובאים כמחרוזות — הם רצים בדפדפן, לא ב-Worker
 [[rules]]
 type = "Text"
-globs = ["**/*.html", "**/*.css", "v2/*.js"]
+globs = ["**/*.html", "**/*.css", "**/v2/*.js"]
 fallthrough = true
 
+# קבצים בינאריים (תמונות / אייקון) מיובאים כ-ArrayBuffer
 [[rules]]
 type = "Data"
 globs = ["**/*.png", "**/*.ico"]
