@@ -11,6 +11,7 @@ import v2SmtPng from './v2/smt.png';
 import v2ApiYemot from './v2/api-yemot.js';
 import v2ApiNedarim from './v2/api-nedarim.js';
 import v2ExamsManager from './v2/exams-manager.js';
+import v2LotteryManager from './v2/lottery-manager.js';
 import v2QuestionsManager from './v2/questions-manager.js';
 import v2HistoryManager from './v2/history-manager.js';
 import v2App from './v2/app.js';
@@ -43,6 +44,7 @@ const ROUTES = {
   '/masechet/api-yemot.js':         [v2ApiYemot,         JS],
   '/masechet/api-nedarim.js':       [v2ApiNedarim,       JS],
   '/masechet/exams-manager.js':     [v2ExamsManager,     JS],
+  '/masechet/lottery-manager.js':   [v2LotteryManager,   JS],
   '/masechet/questions-manager.js': [v2QuestionsManager, JS],
   '/masechet/history-manager.js':   [v2HistoryManager,   JS],
   '/masechet/app.js':               [v2App,              JS],
