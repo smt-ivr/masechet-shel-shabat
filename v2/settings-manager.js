@@ -25,10 +25,15 @@ const SettingsManager = {
                         <button id="refreshStatusBtn" class="btn btn-secondary btn-sm" style="height: 35px;"><i class="fa fa-refresh"></i> רענן בדיקת חיבור</button>
                     </div>
                     
-                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 25px; background: #eaf1ff; padding: 15px 20px; border-radius: 8px; border: 1px solid #cce0ff; transition: all 0.2s;">
-                        <input type="checkbox" id="autoSyncCheck" style="transform: scale(1.4); cursor: pointer;"> 
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 15px; background: #eaf1ff; padding: 15px 20px; border-radius: 8px; border: 1px solid #cce0ff; transition: all 0.2s;">
+                        <input type="checkbox" id="autoSyncCheck" style="transform: scale(1.4); cursor: pointer;">
                         <strong style="color: var(--primary-color); font-size: 1.05rem;">טען נתונים אוטומטית בפתיחת הדף</strong>
                     </label>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: #fffbea; padding: 12px 20px; border-radius: 8px; border: 1px solid #ffe8a1;">
+                        <strong style="font-size: 0.95rem; color: #8a6d00;">הודעת "הפיתוח הושלם" בראש העמוד</strong>
+                        <button id="restoreAnnouncementBtn" class="btn btn-secondary btn-sm" style="height: 35px;"><i class="fa fa-eye"></i> הצג שוב</button>
+                    </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div style="background: #fdfdfd; padding: 20px; border: 1px solid var(--border-light); border-radius: 8px;">
@@ -76,6 +81,11 @@ const SettingsManager = {
         document.getElementById('cancelSettingsBtn').addEventListener('click', () => this.closeModal());
         document.getElementById('saveSettingsBtn').addEventListener('click', () => this.saveData());
         document.getElementById('refreshStatusBtn').addEventListener('click', () => this.checkStatusLive());
+        const restoreBtn = document.getElementById('restoreAnnouncementBtn');
+        if (restoreBtn) restoreBtn.addEventListener('click', () => {
+            if (typeof window.showCompletionAnnouncement === 'function') window.showCompletionAnnouncement();
+            if (typeof showAlert === 'function') showAlert('הודעת "הפיתוח הושלם" תוצג שוב בראש העמוד.');
+        });
     },
 
     openModal() {

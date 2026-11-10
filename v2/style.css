@@ -307,3 +307,19 @@ tbody tr:hover { background-color: #f1f4fb; cursor: pointer; }
 @media (max-width: 992px) {
     .completion-announcement { font-size: 0.78rem; padding: 6px 12px; }
 }
+
+/* כפתור סגירת הודעת ההשלמה */
+.completion-close {
+    background: rgba(0,0,0,0.12);
+    border: none;
+    color: #3b2f00;
+    cursor: pointer;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.78rem;
+    margin-right: 2px;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+.completion-close:hover { background: rgba(0,0,0,0.28); }

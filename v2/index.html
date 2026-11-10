@@ -25,10 +25,11 @@
                 <img src="smt.png" alt="SMT Logo" draggable="false" style="height: 53px; object-fit: contain; pointer-events: none; user-select: none; position: absolute; left: 10px; top: 50%; transform: translateY(-48%); z-index: 1000;">
             </div>
         </div>
-        <div style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 0 20px; min-width: 0;">
+        <div id="completionAnnouncement" style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 0 20px; min-width: 0;">
             <div class="completion-announcement">
                 <i class="fa fa-check-circle"></i>
                 <span>הפיתוח של האתר החדש הושלם! אין צורך להשתמש יותר באתר הישן</span>
+                <button type="button" class="completion-close" onclick="dismissCompletionAnnouncement()" title="סגור ואל תציג שוב"><i class="fa fa-times"></i></button>
             </div>
         </div>
         <div class="header-left" style="display: flex; align-items: center; gap: 15px;">
@@ -43,6 +44,26 @@
             </button>
         </div>
     </header>
+    <script>
+        function dismissCompletionAnnouncement() {
+            try { localStorage.setItem('completionAnnouncementDismissed', 'true'); } catch (e) {}
+            var el = document.getElementById('completionAnnouncement');
+            if (el) el.style.display = 'none';
+        }
+        window.showCompletionAnnouncement = function () {
+            try { localStorage.removeItem('completionAnnouncementDismissed'); } catch (e) {}
+            var el = document.getElementById('completionAnnouncement');
+            if (el) el.style.display = 'flex';
+        };
+        (function () {
+            try {
+                if (localStorage.getItem('completionAnnouncementDismissed') === 'true') {
+                    var el = document.getElementById('completionAnnouncement');
+                    if (el) el.style.display = 'none';
+                }
+            } catch (e) {}
+        })();
+    </script>
 
     <main class="container-fluid">
         <div id="authScreens">
