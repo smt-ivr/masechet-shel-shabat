@@ -323,3 +323,43 @@ tbody tr:hover { background-color: #f1f4fb; cursor: pointer; }
     transition: background 0.15s;
 }
 .completion-close:hover { background: rgba(0,0,0,0.28); }
+
+/* ================= התאמה לטלפון (max-width:768px) — לא משפיע על עיצוב הדסקטופ ================= */
+@media (max-width: 768px) {
+    /* שחרור מעטפת הגובה הקבוע — גלילה טבעית בטלפון */
+    body { height: auto; min-height: 100vh; overflow: auto; }
+    .container-fluid { overflow: visible; padding: 10px 12px; }
+    #mainAppWrapper, #authScreens { overflow: visible; }
+    .app-view.active { overflow: visible; }
+    .table-container { overflow-x: auto; max-height: none !important; }
+
+    /* Header */
+    .top-bar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+    .top-bar h1 { font-size: 1.05rem; }
+    .header-right { gap: 10px !important; }
+    .header-right > div:nth-child(2) { display: none !important; } /* הסתרת תגית המפתח בטלפון */
+    #completionAnnouncement { flex: 1 1 100% !important; order: 5; padding: 2px 0 !important; }
+    .completion-announcement { font-size: 0.72rem; padding: 6px 10px; }
+    .header-left { gap: 8px !important; flex-wrap: wrap; justify-content: flex-start; }
+    #topBarUserDisplay { font-size: 0.78rem !important; }
+
+    /* ניווט */
+    .main-navigation { padding: 0 8px; flex-wrap: wrap; }
+    .main-nav-btn { font-size: 0.92rem; padding: 10px 4px; }
+
+    /* סרגל עליון — ערימה אנכית */
+    .dashboard-top-controls { height: auto !important; flex-direction: column; align-items: stretch !important; gap: 10px; padding: 12px !important; overflow: visible !important; }
+    .stats-cards { flex-wrap: wrap; height: auto; gap: 10px; }
+    .stat-card, .stat-card:last-child { width: auto !important; min-width: 0 !important; max-width: none !important; flex: 1 1 42%; height: auto; }
+    .actions-wrapper { flex-wrap: wrap; white-space: normal; margin-right: 0 !important; gap: 8px; }
+    .search-box, .search-box input { width: 100% !important; }
+
+    /* מודלים */
+    .modal-content { width: 95% !important; max-width: 100% !important; max-height: 92vh; }
+    .crm-modal { max-width: 100% !important; }
+    .crm-body { height: auto !important; max-height: 80vh; }
+    .split-layout { grid-template-columns: 1fr !important; gap: 12px; }
+    .summary-bar { flex-wrap: wrap; gap: 12px; }
+    .data-card-grid { grid-template-columns: 1fr !important; }
+    .settings-grid { grid-template-columns: 1fr !important; }
+}

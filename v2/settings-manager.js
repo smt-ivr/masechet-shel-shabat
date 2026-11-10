@@ -35,7 +35,7 @@ const SettingsManager = {
                         <button id="restoreAnnouncementBtn" class="btn btn-secondary btn-sm" style="height: 35px;"><i class="fa fa-eye"></i> הצג שוב</button>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="settings-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div style="background: #fdfdfd; padding: 20px; border: 1px solid var(--border-light); border-radius: 8px;">
                             <h4 style="margin-bottom: 20px; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; display: inline-block;"><i class="fa fa-phone-square"></i> מערכת טלפונית</h4>
                             <div class="form-group">
