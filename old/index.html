@@ -1,0 +1,2477 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+ <head>
+  <meta charset="utf-8"/>
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=24e0c58a-e665-44f6-ba79-713611abbc8a
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   מסכת של שבת
+  </title>
+  <link href="smt.png" rel="icon" type="image/png"/>
+  <link crossorigin="anonymous" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" referrerpolicy="no-referrer" rel="stylesheet" xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="/>
+  <style>
+   :root {
+            --font-family-main: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --color-primary: #007bff;
+            --color-primary-darker: #0056b3;
+            --color-primary-bg-light: #cfe2ff;
+            --color-secondary-action: #f8f9fa;
+            --color-secondary-action-border: #dee2e6;
+            --color-secondary-action-text: #212529;
+            --color-secondary-action-hover-bg: #e2e6ea;
+            --color-success: #198754;
+            --color-success-darker: #146c43;
+            --color-success-bg-light: #d1e7dd;
+            --color-danger: #dc3545;
+            --color-danger-darker: #b02a37;
+            --color-danger-bg-light: #f8d7da;
+            --color-warning: #ffc107;
+            --color-warning-darker: #d39e00;
+            --color-warning-text: #212529;
+            --color-info: #0dcaf0;
+            --color-info-darker: #0aa3c2;
+            --color-info-text: #000000;
+            --text-color-headings: #343a40;
+            --text-color-body: #495057;
+            --text-color-muted: #6c757d;
+            --text-color-on-primary: #ffffff;
+            --bg-main: #f8f9fa;
+            --bg-surface: #ffffff;
+            --border-color-light: #dee2e6;
+            --border-color-strong: #adb5bd;
+            --border-radius-base: 0.375rem;
+            --border-radius-lg: 0.5rem; 
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+            --original-table-header-bg: #f2f4f6;
+            --original-table-hover-bg: #e6f3fa;
+            --original-text-color-primary-for-table: #2c3e50;
+            --original-border-color-light-for-table: #e0e6ed;
+            --original-surface-color-for-table: #ffffff;
+            --original-secondary-color-light-bg-for-table: #e6ffed;
+            --original-danger-color-light-bg-for-table: #ffebee;
+            
+            /* MODIFIED: Logo size control */
+            --credit-logo-height: 65px; /* שנה ערך זה כדי להגדיל/להקטין את הלוגו */
+            --credit-font-family: "Tahoma", var(--font-family-main);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-family-main);
+            margin: 0;
+            background-color: var(--bg-main);
+            color: var(--text-color-body);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        body.no-scroll {
+            overflow: hidden !important;
+        }
+
+        .page-wrapper {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            max-width: 95%;
+            margin-left: auto;
+            margin-right: auto;
+            transition: opacity 0.3s ease-out, filter 0.3s ease-out;
+        }
+        .page-wrapper.initially-hidden {
+            opacity: 0;
+            filter: blur(5px); 
+            pointer-events: none; 
+        }
+        .page-wrapper.blurred-background {
+            opacity: 1;
+            filter: blur(10px);
+            pointer-events: none;
+            user-select: none;
+            overflow: hidden !important;
+        }
+        .page-wrapper.initially-hidden.blurred-background {
+            filter: blur(10px);
+        }
+        .page-wrapper.fully-visible {
+            opacity: 1;
+            filter: blur(0);
+            pointer-events: auto;
+            user-select: auto;
+        }
+
+        header.page-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color-light);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-content-main {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+        }
+        header.page-header h1 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            margin: 0;
+            color: var(--text-color-headings);
+            white-space: nowrap;
+        }
+        header.page-header h1 i {
+            color: var(--color-primary);
+        }
+        html[dir="rtl"] header.page-header h1 i {
+            margin-left: 0;
+            margin-right: 0.6rem;
+        }
+        html:not([dir="rtl"]) header.page-header h1 i {
+            margin-left: 0.6rem;
+            margin-right: 0;
+        }
+
+        .header-actions-cluster {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .header-content-utility {
+            display: flex;
+            gap: 1rem; /* Increased gap to give space for the logo */
+            flex-wrap: wrap;
+            align-items: center;
+            flex-shrink: 0;
+            margin-right: auto;
+        }
+
+        /* MODIFIED: Reverted credit area to be part of the flow */
+        .header-credit-area {
+            text-align: center;
+            background: none;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+            line-height: 1.2;
+        }
+        
+        .credit-logo-link {
+            display: block;
+            text-decoration: none;
+            transition: transform 0.2s ease-in-out;
+        }
+        .credit-logo-link:hover {
+            transform: scale(1.05);
+        }
+
+        .credit-logo {
+            height: var(--credit-logo-height);
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .credit-text {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-color-muted);
+            font-weight: 500;
+            text-align: center;
+            margin-top: 0.25rem;
+            font-family: var(--credit-font-family);
+        }
+
+        .button {
+            padding: 0.65rem 1.1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: var(--border-radius-base);
+            cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 0.4rem;
+            border: 1px solid transparent;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
+            box-shadow: var(--shadow-sm);
+        }
+        .button:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        .button:active:not(:disabled) {
+            transform: translateY(0px);
+            box-shadow: var(--shadow-sm);
+        }
+        .button:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .button i { font-size: 1em; }
+
+        .button-primary { background-color: var(--color-primary); border-color: var(--color-primary); color: var(--text-color-on-primary); }
+        .button-primary:hover:not(:disabled) { background-color: var(--color-primary-darker); border-color: var(--color-primary-darker); }
+        .button-secondary { background-color: var(--color-secondary-action); border: 1px solid var(--color-secondary-action-border); color: var(--color-secondary-action-text); box-shadow: none; }
+        .button-secondary:hover:not(:disabled) { background-color: var(--color-secondary-action-hover-bg); border-color: var(--color-secondary-action-border); color: var(--text-color-headings); box-shadow: var(--shadow-sm); }
+        #openSettingsBtn.button-icon-only { background-color: var(--color-secondary-action); border: 1px solid var(--color-secondary-action-border); color: var(--color-secondary-action-text); padding: 0.65rem; line-height: 1; box-shadow: none; }
+        #openSettingsBtn.button-icon-only:hover:not(:disabled) { background-color: var(--color-secondary-action-hover-bg); box-shadow: var(--shadow-sm); }
+        .button-success { background-color: var(--color-success); border-color: var(--color-success); color: var(--text-color-on-primary); }
+        .button-success:hover:not(:disabled) { background-color: var(--color-success-darker); border-color: var(--color-success-darker); }
+        .button-danger { background-color: var(--color-danger); border-color: var(--color-danger); color: var(--text-color-on-primary); }
+        .button-danger:hover:not(:disabled) { background-color: var(--color-danger-darker); border-color: var(--color-danger-darker); }
+        .button-lottery { background-color: var(--color-warning); border-color: var(--color-warning); color: var(--color-warning-text); }
+        .button-lottery:hover:not(:disabled) { background-color: var(--color-warning-darker); border-color: var(--color-warning-darker); }
+        .button-browse { background-color: var(--color-info); border-color: var(--color-info); color: var(--color-info-text); }
+        .button-browse:hover:not(:disabled) { background-color: var(--color-info-darker); border-color: var(--color-info-darker); }
+        .button-points-report { background-color: var(--color-success); border-color: var(--color-success); color: var(--text-color-on-primary); }
+        .button-points-report:hover:not(:disabled) { background-color: var(--color-success-darker); border-color: var(--color-success-darker); }
+
+
+        .stats-summary-container { display: none; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .stat-card { flex: 1; min-width: 240px; padding: 1.5rem; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-md); text-align: center; border: none; transition: transform 0.2s ease, box-shadow 0.2s ease; background-color: var(--bg-surface); }
+        .stat-card.total  { background-color: var(--color-primary-bg-light); }
+        .stat-card.passed { background-color: var(--color-success-bg-light); }
+        .stat-card.failed { background-color: var(--color-danger-bg-light); }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .stat-card i { font-size: 2rem; margin-bottom: 0.8rem; display: block; }
+        .stat-card .stat-value { font-size: 2.25rem; font-weight: 700; display: block; line-height: 1.1; margin-bottom: 0.3rem; }
+        .stat-card .stat-label { font-size: 0.9rem; color: var(--text-color-muted); line-height: 1.3; }
+        .stat-card.total i, .stat-card.total .stat-value { color: var(--color-primary); }
+        .stat-card.passed i, .stat-card.passed .stat-value { color: var(--color-success); }
+        .stat-card.failed i, .stat-card.failed .stat-value { color: var(--color-danger); }
+
+        .main-content-area { background-color: var(--bg-surface); padding: 1.5rem 0.6rem 1.5rem 1.2rem; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-md); margin-bottom: 2rem; }
+        #currentFileDisplay { margin-bottom: 1rem; padding: 0.75rem 1.25rem; background-color: var(--bg-main); color: var(--text-color-headings); border-radius: var(--border-radius-base); font-size: 1rem; border: 1px solid var(--border-color-light); display: none; text-align: center; font-weight: 500; }
+
+        .table-container { width: 100%; overflow-x: auto; margin-right: 8px; }
+        table.report-table { width: auto; min-width: 100%; border-collapse: collapse; margin: 0; font-size: 0.85rem; }
+        table.report-table th { background-color: var(--original-table-header-bg); color: var(--original-text-color-primary-for-table); font-weight: 600; position: sticky; top: 0; z-index: 1; padding: 4px 6px; text-align: right; border: 1px solid var(--original-border-color-light-for-table); }
+        table.report-table td { text-align: right; padding: 4px 6px; background-color: var(--original-surface-color-for-table); border: 1px solid var(--original-border-color-light-for-table); white-space: normal; word-wrap: break-word; overflow-wrap: break-word; }
+        table.report-table tr:hover td { background-color: var(--original-table-hover-bg); }
+        .score-passed { background-color: var(--original-secondary-color-light-bg-for-table) !important; }
+        .score-failed { background-color: var(--original-danger-color-light-bg-for-table) !important; }
+
+        .user-message { margin-top: 0; margin-bottom: 1.5rem; padding: 1rem 1.5rem; border-radius: var(--border-radius-base); border-width: 1px; border-style: solid; font-size: 0.95rem; align-items: center; gap: 0.75rem; box-shadow: var(--shadow-sm); }
+        .user-message i { font-size: 1.3em; }
+        .message-success { background-color: var(--color-success-bg-light); color: var(--color-success-darker); border-color: var(--color-success); }
+        .message-error   { background-color: var(--color-danger-bg-light); color: var(--color-danger-darker); border-color: var(--color-danger); }
+        .message-info    { background-color: var(--color-primary-bg-light); color: var(--color-primary-darker); border-color: var(--color-primary); }
+        .message-warning { background-color: #fff3cd; color: #664d03; border-color: var(--color-warning-darker); }
+
+
+        .special-error-message { border: 1px solid var(--color-danger); border-left: 5px solid var(--color-danger); border-radius: var(--border-radius-base); padding: 1.5rem 2rem; margin: 1.5rem auto; max-width: 600px; background-color: var(--bg-surface); box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 1.5rem; }
+        html[dir="rtl"] .special-error-message { border-left: 1px solid var(--color-danger); border-right: 5px solid var(--color-danger); }
+        .special-error-message .error-icon { font-size: 2.2rem; color: var(--color-danger); flex-shrink: 0; }
+        .special-error-message .error-text-content { flex-grow: 1; text-align: right; }
+        .special-error-message .main-text { font-size: 1.5rem; font-weight: 600; color: var(--color-danger-darker); display: block; margin-bottom: 0.25rem; }
+        .special-error-message .sub-text { font-size: 1.0rem; color: var(--text-color-body); display: block; }
+
+        .loader-container { display: none; justify-content: center; align-items: center; padding: 2rem; }
+        .loader { border: 5px solid var(--border-color-light); border-top: 5px solid var(--color-primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .modal-overlay { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(33, 37, 41, 0.65); justify-content: center; align-items: center; -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+        .modal-content { background-color: var(--bg-surface); padding: 2rem; border-radius: var(--border-radius-lg); box-shadow: var(--shadow-lg); width: 90%; position: relative; animation: slideDownModal 0.3s ease-out; }
+        #settingsModal .modal-content { max-width: 700px; display: flex; flex-direction: column; max-height: 90vh; }
+        #fileBrowserModal .modal-content { max-width: 750px; }
+        #lotteryModal .modal-content { max-width: 520px; }
+        #interfaceLockModal .modal-content {
+            max-width: 420px;
+            text-align: center;
+            padding-bottom: 6.5rem;
+        }
+        #interfaceLockModal .modal-content .lock-screen-main-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin: -0.8rem 0 1rem 0;
+            color: var(--text-color-headings);
+            white-space: nowrap;
+        }
+        #interfaceLockModal .modal-content .lock-screen-main-title i {
+            color: var(--color-primary);
+            margin-left: 0;
+            margin-right: 0.5rem;
+        }
+
+
+        @keyframes slideDownModal { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color-light); position: relative; flex-shrink: 0; }
+        .modal-header h2 { font-size: 1.4rem; margin: 0; font-weight: 600; color: var(--text-color-headings); }
+        .modal-header h2 i { font-size: 1.1em; color: var(--color-primary); }
+        html[dir="rtl"] .modal-header h2 i { margin-right: 0; margin-left: 0.6rem; }
+        html:not([dir="rtl"]) .modal-header h2 i { margin-right: 0.6rem; margin-left: 0; }
+        .modal-close-button { background: none; border: none; font-size: 2rem; font-weight: bold; color: var(--text-color-headings); cursor: pointer; padding: 0.5rem; line-height: 0.5; position: absolute; top: 0.5rem; z-index: 20; }
+        html[dir="rtl"] .modal-close-button { left: 0.5rem; right: auto; }
+        html:not([dir="rtl"]) .modal-close-button { right: 0.5rem; left: auto; }
+        .modal-close-button:hover { color: var(--color-danger); }
+        #settingsModal .modal-body-scrollable { overflow-y: auto; flex-grow: 1; min-height: 0; }
+        .form-group { margin-bottom: 1.25rem; }
+        .form-group label { display: block; font-weight: 500; font-size: 0.9rem; color: var(--text-color-muted); margin-bottom: 0.5rem;}
+        .form-group input[type="text"], .form-group input[type="password"], .form-group input[type="number"], .form-group input[type="checkbox"] { width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--border-color-strong); border-radius: var(--border-radius-base); font-size: 0.95rem; background-color: var(--bg-surface); color: var(--text-color-body); transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; }
+        .form-group input[type="checkbox"] { width: auto; padding: 0; margin-left: 8px; vertical-align: middle; height: 1em; width: 1em;}
+        .form-group label input[type="checkbox"] { margin-right: 0; margin-left: 8px; }
+        html[dir="rtl"] .form-group label input[type="checkbox"] { margin-left: 0; margin-right: 8px; }
+
+        .form-group input[type="text"]:focus, .form-group input[type="password"]:focus, .form-group input[type="number"]:focus { border-color: var(--color-primary); background-color: var(--bg-surface); outline: 0; box-shadow: 0 0 0 0.2rem var(--color-primary-bg-light); }
+        #settingsModal fieldset { border: 1px solid var(--border-color-light); padding: 1.25rem 1.5rem; margin-bottom: 1.75rem; border-radius: var(--border-radius-base); }
+        #settingsModal fieldset:last-of-type { margin-bottom: 1.25rem; }
+        #settingsModal legend { padding: 0 0.6rem; font-weight: 600; color: var(--color-primary); font-size: 1.05rem; }
+        .form-row { display: flex; gap: 1.75rem; align-items: flex-start; }
+        .form-row .form-group { flex: 1; margin-bottom: 0; }
+        .modal-actions { margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; padding-top: 1rem; border-top: 1px solid var(--border-color-light); }
+        .lottery-modal-actions { justify-content: center; display: flex; gap: 0.75rem; margin-top: 1.5rem; }
+        #lotteryResultContent p { margin: 0.6em 0; font-size: 1.05rem; }
+        #lotteryResultContent strong { color: var(--text-color-headings); }
+        #fileBrowserPathDisplay { margin-bottom: 1rem; font-weight: 500; font-size: 0.95em; color: var(--text-color-muted); padding: 0.6rem 0.8rem; background-color: var(--bg-main); border-radius: var(--border-radius-base); word-break: break-all; border: 1px solid var(--border-color-light); }
+        #fileBrowserList { max-height: 60vh; overflow-y: auto; border: 1px solid var(--border-color-light); padding: 0; background-color: var(--bg-surface); border-radius: var(--border-radius-base); }
+        #fileBrowserList ul { list-style: none; padding: 0; margin: 0; }
+        #fileBrowserList li { padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid var(--border-color-light); display: flex; align-items: center; gap: 12px; font-size: 0.95rem; line-height: 1.4; transition: background-color 0.15s ease; }
+        #fileBrowserList li:last-child { border-bottom: none; }
+        #fileBrowserList li:hover { background-color: var(--original-table-hover-bg); }
+        #fileBrowserList li i { color: var(--text-color-muted); width: 1.4em; text-align: center; font-size: 1.1em; flex-shrink: 0; }
+        #fileBrowserList li .fb-item-text { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-color-body); }
+        #fileBrowserList li .fb-item-date { font-size: 0.85em; color: var(--text-color-muted); margin-left: auto; white-space: nowrap; flex-shrink: 0; padding-left: 10px; }
+        #fileBrowserList li.file i { color: var(--color-primary); }
+        #fileBrowserList li.folder i { color: #fd7e14; }
+        #fileBrowserList li.up i { color: var(--text-color-muted); }
+        #fileBrowserMessage { margin-top: 1rem; font-size: 0.9rem; }
+
+        .lock-screen-credit {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            padding: 0.8rem 1rem;
+            font-family: var(--credit-font-family);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            box-shadow: none;
+        }
+
+        #resetSettingsFromLockBtn {
+            background-color: var(--color-warning);
+            border-color: var(--color-warning);
+            color: var(--color-warning-text);
+            margin-top: 0.5rem;
+        }
+        #resetSettingsFromLockBtn:hover:not(:disabled) {
+            background-color: var(--color-warning-darker);
+            border-color: var(--color-warning-darker);
+        }
+
+        /* Toast Notification Styles */
+        #toastNotification {
+            position: fixed;
+            padding: 1rem;
+            border-radius: var(--border-radius-base);
+            box-shadow: var(--shadow-lg);
+            z-index: 9999;
+            display: none;
+            max-width: 380px;
+            align-items: flex-start;
+            gap: 10px;
+            border: 1px solid; /* Base border, color from type class */
+        }
+
+        /* Default Position for "Other" Toasts (Bottom-Left) */
+        #toastNotification:not(.top-center-toast) {
+            bottom: 20px;
+            left: 20px;
+            right: auto;
+            border-right-width: 1px;
+            border-left-width: 5px;
+        }
+        html[dir="rtl"] #toastNotification:not(.top-center-toast) {
+            left: 20px;
+            right: auto;
+            border-left-width: 1px;
+            border-right-width: 5px;
+        }
+
+        /* Top-Center Position (for "Wrong Password" toast) */
+        #toastNotification.top-center-toast {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: auto;
+            right: auto;
+            border-left-width: 1px;
+            border-right-width: 1px;
+            border-top-width: 1px;
+            border-bottom-width: 1px;
+        }
+
+        /* Type specific styles */
+        #toastNotification.success {
+            background-color: var(--color-success-bg-light);
+            color: var(--color-success-darker);
+            border-color: var(--color-success);
+        }
+        #toastNotification.info {
+            background-color: var(--color-primary-bg-light);
+            color: var(--color-primary-darker);
+            border-color: var(--color-primary);
+        }
+        #toastNotification.warning {
+            background-color: #fff3cd;
+            color: #664d03;
+            border-color: var(--color-warning-darker);
+        }
+        #toastNotification.error { /* For wrong password toast & other errors */
+            background-color: var(--color-danger-bg-light);
+            color: var(--color-danger-darker);
+            border-color: var(--color-danger);
+        }
+
+        #toastMessage {
+            flex-grow: 1;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        #toastCloseBtn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: inherit;
+            cursor: pointer;
+            padding: 0 0.5rem;
+            line-height: 1;
+            opacity: 0.7;
+            align-self: flex-start;
+        }
+        #toastCloseBtn:hover {
+            opacity: 1;
+        }
+
+        #scrollToTopBtn {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 999;
+            border: none;
+            outline: none;
+            background-color: var(--color-primary);
+            color: white;
+            cursor: pointer;
+            padding: 10px 12px;
+            border-radius: var(--border-radius-base);
+            font-size: 1rem;
+            box-shadow: var(--shadow-md);
+            transition: background-color 0.3s, opacity 0.3s, visibility 0.3s;
+        }
+
+        #scrollToTopBtn:hover {
+            background-color: var(--color-primary-darker);
+        }
+
+        html[dir="rtl"] #scrollToTopBtn {
+            right: 20px;
+            left: auto;
+        }
+
+
+        @media (max-width: 992px) {
+             .stat-card { min-width: calc(33.333% - 1rem); }
+        }
+        @media (max-width: 768px) {
+            header.page-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .header-content-main {
+                order: 1;
+                flex-direction: column;
+                align-items: stretch;
+                margin-bottom: 1rem;
+                gap: 1rem;
+                width: 100%;
+            }
+            header.page-header h1 {
+                text-align: right;
+                margin-bottom: 0.5rem;
+            }
+            .header-actions-cluster {
+                 width: 100%;
+                 justify-content: flex-start;
+                 flex-direction: column;
+                 align-items: stretch;
+                 margin-bottom: 1rem;
+            }
+             .header-actions-cluster .button {
+                margin-bottom: 0.5rem;
+            }
+             .header-actions-cluster .button:last-child {
+                margin-bottom: 0;
+            }
+
+            .header-content-utility {
+                order: 2;
+                width: 100%;
+                justify-content: center; /* Center items on mobile */
+                flex-direction: row; /* Keep it as a row */
+                align-items: center;
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+            .header-content-utility .button {
+                 margin-bottom: 0;
+            }
+
+            .stats-summary-container { flex-direction: column; gap: 1rem; }
+            .stat-card { min-width: 100%; }
+            .form-row { flex-direction: column; gap: 0; }
+            .form-row .form-group { margin-bottom: 1.25rem; }
+        }
+
+    
+        .announcement-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--text-color-muted);
+        }
+        .checkbox-label input {
+            margin-inline-end: 0.5rem;
+        }
+
+
+        #announcementModal {
+            position: fixed; /* מקבע את האלמנט ביחס לחלון הדפדפן */
+            z-index: 5000;   /* מוודא שההודעה תהיה מעל כל התוכן האחר */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* רקע שחור חצי-שקוף */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .announcement-content {
+            background-color: var(--bg-surface);
+            padding: 2rem;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 90%;
+            max-width: 550px; /* רוחב מקסימלי להודעה */
+            text-align: center;
+        }
+
+        .announcement-body {
+            margin: 1.5rem 0;
+            line-height: 1.7;
+        }
+  
+/* Mini Blue Top-Right Tab */
+    .mini-top-link {
+        position: fixed;
+        top: 0;
+        right: 0;
+        z-index: 10000;
+        background-color: #007bff; /* כחול */
+        color: #ffffff !important;
+        padding: 4px 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 0 0 0 8px; /* עיגול רק בפינה הפנימית */
+        box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        transition: background-color 0.2s ease;
+        line-height: 1.5;
+        cursor: pointer;
+    }
+    .mini-top-link:hover {
+        background-color: #0056b3; /* כחול כהה יותר במעבר עכבר */
+    }
+    </style>
+ </head>
+ <body>
+<a href="javascript:void(0);" onclick="goToNewInterface()" class="mini-top-link">למעבר לממשק החדש "גירסת בטא" לחץ כאן &gt;</a>
+  
+  <script>
+    function goToNewInterface() {
+        window.location.href = 'v2';
+    }
+  </script>
+
+  <div id="announcementModal" style="display: none;">
+   <div class="announcement-content">
+    <h2>
+     <i class="fas fa-bullhorn">
+     </i>
+     הודעה חשובה מאת S.M.T
+    </h2>
+    <div class="announcement-body" id="announcementMessage">
+    </div>
+    <div class="announcement-actions">
+     <label class="checkbox-label">
+      <input id="dontShowAgainCheckbox" type="checkbox"/>
+      אל תציג הודעה זו שוב
+     </label>
+     <button class="button button-primary" id="closeAnnouncementBtn">
+      תודה, קראתי
+     </button>
+    </div>
+   </div>
+  </div>
+  <div class="page-wrapper initially-hidden">
+   <header class="page-header">
+    <div class="header-content-main">
+     <h1>
+      <i class="fas fa-book-open">
+      </i>
+      מסכת של שבת
+     </h1>
+     <div class="header-actions-cluster">
+      <button class="button button-browse" id="browsePastExamsBtn">
+       <i class="fas fa-history">
+       </i>
+       מבחנים קודמים
+      </button>
+      <button class="button button-points-report" id="pointsReportBtn" style="display: none;">
+       <i class="fas fa-chart-line">
+       </i>
+       דוח נקודות
+      </button>
+      <button class="button button-lottery" disabled="" id="runLotteryBtn">
+       <i class="fas fa-dice">
+       </i>
+       בצע הגרלה
+      </button>
+      <button class="button button-secondary" id="archiveCurrentTestBtn" style="display: none;">
+       <i class="fas fa-archive">
+       </i>
+       סגירת מבחן והעבר למבחנים קודמים
+      </button>
+     </div>
+    </div>
+    <!-- MODIFIED: Moved credit area inside the utility container -->
+    <div class="header-content-utility">
+     <button class="button button-primary" id="loadDataBtn">
+      <i class="fas fa-sync-alt">
+      </i>
+      רענן נתונים
+     </button>
+     <button class="button button-secondary button-icon-only" id="openSettingsBtn" title="הגדרות">
+      <i class="fas fa-cog">
+      </i>
+     </button>
+     <div class="header-credit-area">
+      <a class="credit-logo-link" href="index.html#" rel="noopener noreferrer" target="_blank">
+       <img alt="SMT Logo" class="credit-logo" src="smt.png"/>
+       <span class="credit-text">
+        שימי טרייטל - s6754091@gmail.com
+       </span>
+      </a>
+     </div>
+    </div>
+   </header>
+   <div id="currentFileDisplay" style="display: none;">
+    <span id="currentFilePath">
+     מציג מבחן: טוען...
+    </span>
+   </div>
+   <main class="main-content-area">
+    <div class="user-message" id="userMessageNode" style="display: none;">
+    </div>
+    <div class="stats-summary-container" id="statsSummaryContainer" style="display: none;">
+     <div class="stat-card total">
+      <i class="fas fa-users">
+      </i>
+      <span class="stat-value" id="statTotalParticipants">
+       -
+      </span>
+      <span class="stat-label">
+       סה"כ נבחנים
+      </span>
+     </div>
+     <div class="stat-card passed">
+      <i class="fas fa-user-check">
+      </i>
+      <span class="stat-value" id="statPassedCount">
+       -
+      </span>
+      <span class="stat-label" id="statPassedLabel">
+       עברו (80+)
+      </span>
+     </div>
+     <div class="stat-card failed">
+      <i class="fas fa-user-times">
+      </i>
+      <span class="stat-value" id="statFailedCount">
+       -
+      </span>
+      <span class="stat-label">
+       לא נכנסים להגרלה
+      </span>
+     </div>
+    </div>
+    <div class="loader-container" style="display: none;">
+     <div class="loader" id="loaderNode">
+     </div>
+    </div>
+    <div class="table-container" id="tableContainerNode">
+    </div>
+   </main>
+  </div>
+  <div class="modal-overlay" id="interfaceLockModal" style="display: none; z-index: 2000;">
+   <div class="modal-content">
+    <div class="modal-header">
+     <h2>
+      <i class="fas fa-book-open">
+      </i>
+      מסכת של שבת
+     </h2>
+    </div>
+    <h1 class="lock-screen-main-title">
+     <i class="fas fa-user-shield">
+     </i>
+     ממשק ניהול מבחנים
+    </h1>
+    <div style="padding: 1.5rem; padding-top: 0;">
+     <p>
+      אנא הזן את סיסמת הניהול כדי להיכנס
+     </p>
+     <div class="form-group">
+      <label for="lockScreenPassword" style="display:none;">
+       סיסמה:
+      </label>
+      <input id="lockScreenPassword" placeholder="הזן סיסמה" style="text-align: center; margin-bottom: 1rem;" type="password"/>
+      <button class="button button-primary" id="unlockInterfaceBtn" style="width: 100%;">
+       כניסה
+      </button>
+     </div>
+     <div class="user-message message-warning" id="lockScreenMessage" style="display: none; margin-top: 1rem; justify-content: center; flex-direction: column; text-align: center; align-items: center;">
+     </div>
+    </div>
+    <div class="lock-screen-credit">
+     <a class="credit-logo-link" href="index.html#" rel="noopener noreferrer" target="_blank">
+      <img alt="SMT Logo" class="credit-logo" src="smt.png"/>
+      <span class="credit-text">
+       שימי טרייטל - s6754091@gmail.com
+      </span>
+     </a>
+    </div>
+   </div>
+  </div>
+  <div class="modal-overlay" id="settingsModal" style="display: none;">
+   <div class="modal-content">
+    <div class="modal-header">
+     <h2>
+      <i class="fas fa-sliders-h">
+      </i>
+      הגדרות
+     </h2>
+     <button aria-label="Close" class="modal-close-button" id="closeSettingsModalBtn">
+      ×
+     </button>
+    </div>
+    <div class="modal-body-scrollable">
+     <fieldset>
+      <legend>
+       טוקן התחברות API
+       <span id="apiConnectionStatus" style="font-weight: bold; margin-right: 15px;">
+       </span>
+      </legend>
+      <div class="form-group">
+       <label for="modalApiToken">
+        טוקן התחברות (חובה):
+       </label>
+       <input id="modalApiToken" style="background-color: #fff;" type="text"/>
+      </div>
+     </fieldset>
+     <fieldset>
+      <legend>
+       חידוש טוקן אוטומטי (אופציונלי):
+       <button class="button button-success" id="generateTokenBtn" style="font-size: 0.7rem; padding: 0.2rem 0.5rem; margin-right: 10px;">
+        צור טוקן
+       </button>
+      </legend>
+      <div class="form-row">
+       <div class="form-group">
+        <label for="modalSystemNumber">
+         מספר מערכת:
+        </label>
+        <input id="modalSystemNumber" type="text"/>
+       </div>
+       <div class="form-group">
+        <label for="modalPassword">
+         סיסמה:
+        </label>
+        <input id="modalPassword" type="password"/>
+       </div>
+      </div>
+     </fieldset>
+     <fieldset>
+      <legend>
+       נתיבי קבצים (פורמט ivr2:/...)
+      </legend>
+      <div class="form-group">
+       <label for="modalYmgrPath">
+        קובץ מבחן ראשי (לטעינה אוטומטית ולרענון):
+       </label>
+       <input id="modalYmgrPath" type="text"/>
+      </div>
+      <div class="form-group">
+       <label for="modalBrowsePath">
+        תיקיית בסיס לדפדוף במבחנים קודמים:
+       </label>
+       <input id="modalBrowsePath" type="text"/>
+      </div>
+      <div class="form-group">
+       <label for="modalPointsReportPath">
+        נתיב קובץ דוח נקודות:
+       </label>
+       <input id="modalPointsReportPath" type="text"/>
+      </div>
+     </fieldset>
+     <fieldset>
+      <legend>
+       הגדרות תצוגה והגרלה
+      </legend>
+      <div class="form-group">
+       <label for="modalPassingScore">
+        ציון עובר:
+       </label>
+       <input id="modalPassingScore" max="1000" min="0" placeholder="ברירת מחדל: 80" type="number"/>
+      </div>
+     </fieldset>
+     <fieldset>
+      <legend>
+       אבטחה
+      </legend>
+      <div class="form-group">
+       <label for="modalEnableInterfaceLock" style="display: flex; align-items: center;">
+        <input id="modalEnableInterfaceLock" type="checkbox"/>
+        דרישת סיסמת מערכת בכניסה לממשק (באם מוגדר סיסמת מערכת)
+       </label>
+      </div>
+     </fieldset>
+    </div>
+    <div class="modal-actions">
+     <button class="button button-danger" id="resetSettingsBtn">
+      <i class="fas fa-undo">
+      </i>
+      אפס לברירת מחדל
+     </button>
+     <button class="button button-success" id="saveSettingsBtn">
+      <i class="fas fa-save">
+      </i>
+      שמור הגדרות
+     </button>
+    </div>
+   </div>
+  </div>
+  <div class="modal-overlay" id="lotteryModal" style="display: none;">
+   <div class="modal-content">
+    <div class="modal-header">
+     <h2>
+      <i class="fas fa-trophy">
+      </i>
+      תוצאות ההגרלה
+     </h2>
+     <button aria-label="Close" class="modal-close-button" id="closeLotteryModalBtnContent">
+      ×
+     </button>
+    </div>
+    <div id="lotteryResultContent" style="text-align: center; padding: 1rem 0; min-height: 140px;">
+    </div>
+    <div class="lottery-modal-actions">
+     <button class="button button-primary" id="drawWinnerBtn">
+     </button>
+    </div>
+   </div>
+  </div>
+  <div class="modal-overlay" id="fileBrowserModal" style="display: none;">
+   <div class="modal-content">
+    <div class="modal-header">
+     <h2>
+      <i class="fas fa-folder-open">
+      </i>
+      בחירת קובץ מבחן קודם
+     </h2>
+     <button aria-label="Close" class="modal-close-button" id="closeFileBrowserModalBtn">
+      ×
+     </button>
+    </div>
+    <div id="fileBrowserPathDisplay">
+     טוען נתיב...
+    </div>
+    <div id="fileBrowserList">
+    </div>
+    <div class="user-message" id="fileBrowserMessage" style="display: none; margin-top: 10px;">
+    </div>
+   </div>
+  </div>
+  <div id="toastNotification">
+   <span id="toastMessage">
+   </span>
+   <button aria-label="סגור" id="toastCloseBtn">
+    ×
+   </button>
+  </div>
+  <div class="modal-overlay" id="tokenErrorModal" style="display: none; z-index: 2010;">
+   <div class="modal-content" style="max-width: 500px;">
+    <div class="modal-header">
+     <h2>
+      <i class="fas fa-key-skeleton" style="color: var(--color-danger);">
+      </i>
+      שגיאה ביצירת טוקן התחברות
+     </h2>
+     <button aria-label="Close" class="modal-close-button" id="closeTokenErrorModalBtn">
+      ×
+     </button>
+    </div>
+    <div id="tokenErrorMessage" style="padding: 1rem 0; line-height: 1.7;">
+    </div>
+    <div class="modal-actions" style="justify-content: center;">
+     <button class="button button-secondary" id="copyTokenErrorBtn">
+      <i class="fas fa-copy">
+      </i>
+      העתק פרטי שגיאה
+     </button>
+    </div>
+   </div>
+  </div>
+  <button id="scrollToTopBtn" title="גולל למעלה">
+   <i class="fas fa-arrow-up">
+   </i>
+  </button>
+  <script>
+   // =========================================================================
+    // ============== בלוק קוד להטמעה - מערכת ההודעות (גרסה פרו) ==============
+    // =========================================================================
+    let currentAnnouncementKey = ''; 
+    const announcementModal = document.getElementById('announcementModal');
+    const closeAnnouncementBtn = document.getElementById('closeAnnouncementBtn');
+    const dontShowAgainCheckbox = document.getElementById('dontShowAgainCheckbox');
+
+    async function checkAndShowAnnouncement() {
+        try {
+            const response = await fetch('announcement.html');
+            if (!response.ok) { throw new Error('Could not load announcement file.'); }
+            const messageHtml = await response.text();
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = messageHtml;
+
+            const metaDiv = tempDiv.querySelector('#announcement-meta');
+            const version = metaDiv ? metaDiv.getAttribute('data-version') : null;
+            if (!version) {
+                console.error("Version not defined in announcement.html");
+                return;
+            }
+            
+            currentAnnouncementKey = `announcement_v${version}_read`;
+            const hasReadPermanently = localStorage.getItem(currentAnnouncementKey);
+
+            if (hasReadPermanently === 'true') { return; }
+
+            const versionSpan = tempDiv.querySelector('#announcement-version');
+            if (versionSpan) { versionSpan.textContent = version; }
+
+            const announcementMessageEl = document.getElementById('announcementMessage');
+            if (announcementMessageEl) { announcementMessageEl.innerHTML = tempDiv.innerHTML; }
+            if (announcementModal) announcementModal.style.display = 'flex';
+
+        } catch (error) {
+            console.error('Error fetching announcement:', error);
+        }
+    }
+
+    if (closeAnnouncementBtn) {
+        closeAnnouncementBtn.addEventListener('click', () => {
+            if (dontShowAgainCheckbox && dontShowAgainCheckbox.checked) {
+                if (currentAnnouncementKey) {
+                    localStorage.setItem(currentAnnouncementKey, 'true');
+                }
+            }
+            if(announcementModal) announcementModal.style.display = 'none';
+        });
+    }
+    // ======================== סוף הבלוק להטמעה ============================
+
+    const CREDIT_LINK_URL = 'smt.html'; // שנה כאן את הקישור הרצוי
+    
+    const SCORE_COLUMN_NAME = 'ציון';
+    const API_ENDPOINT_LOGIN = 'https://www.call2all.co.il/ym/api/Login'; // הנחה - ייתכן שיש צורך לעדכן כתובת זו
+    const TOKEN_STORAGE_KEY = 'ymgr_apiToken';
+
+    const API_ENDPOINT_RENDER_YMGR = 'https://www.call2all.co.il/ym/api/RenderYMGRFile';
+    const API_ENDPOINT_GET_DIR = 'https://www.call2all.co.il/ym/api/GetIVR2Dir';
+    const API_ENDPOINT_FILE_ACTION = 'https://www.call2all.co.il/ym/api/FileAction';
+    const API_ENDPOINT_UPDATE_EXTENSION = 'https://www.call2all.co.il/ym/api/UpdateExtension';
+
+    const DEFAULT_SYSTEM_NUMBER = '046222545';
+    const DEFAULT_YMGR_PATH = 'ivr2:/2/1/ExaminationLogOK.ymgr';
+    const DEFAULT_BROWSE_PATH = 'ivr2:/2/1/מבחנים-קודמים';
+    const DEFAULT_POINTS_REPORT_PATH = 'ivr2:/Points/Split/points_total.ymgr';
+    const DEFAULT_PASSING_SCORE = 80;
+    const DEFAULT_INTERFACE_LOCK_ENABLED = true;
+
+    const SYSTEM_NUMBER_STORAGE_KEY = 'ymgr_systemNumber';
+    const PASSWORD_STORAGE_KEY = 'ymgr_password';
+    const YMGR_PATH_STORAGE_KEY = 'ymgr_ymgrPath';
+    const BROWSE_PATH_STORAGE_KEY = 'ymgr_browsePath';
+    const POINTS_REPORT_PATH_STORAGE_KEY = 'ymgr_pointsReportPath';
+    const PASSING_SCORE_STORAGE_KEY = 'ymgr_passingScore';
+    const INTERFACE_LOCK_ENABLED_KEY = 'ymgr_interfaceLockEnabled';
+
+    const NAME_COLUMN_KEY = 'שם';
+    const PHONE_COLUMN_KEY = 'טלפון שנמסר ברישום';
+    const TRACK_COLUMN_KEY = 'מסלול';
+
+    const MAX_FAILED_LOGIN_ATTEMPTS = 10;
+
+    const settingsModal = document.getElementById('settingsModal');
+    const openSettingsBtn = document.getElementById('openSettingsBtn');
+    const closeSettingsModalBtn = document.getElementById('closeSettingsModalBtn');
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const resetSettingsBtn = document.getElementById('resetSettingsBtn');
+    const modalSystemNumberInput = document.getElementById('modalSystemNumber');
+    const modalPasswordInput = document.getElementById('modalPassword');
+    const modalYmgrPathInput = document.getElementById('modalYmgrPath');
+    const modalBrowsePathInput = document.getElementById('modalBrowsePath');
+    const modalPointsReportPathInput = document.getElementById('modalPointsReportPath');
+    const modalPassingScoreInput = document.getElementById('modalPassingScore');
+    const modalEnableInterfaceLockCheckbox = document.getElementById('modalEnableInterfaceLock');
+
+    const runLotteryBtn = document.getElementById('runLotteryBtn');
+    const lotteryModal = document.getElementById('lotteryModal');
+    const closeLotteryModalBtnContent = document.getElementById('closeLotteryModalBtnContent');
+    const lotteryResultContent = document.getElementById('lotteryResultContent');
+    const drawWinnerBtn = document.getElementById('drawWinnerBtn');
+
+    const browsePastExamsBtn = document.getElementById('browsePastExamsBtn');
+    const pointsReportBtn = document.getElementById('pointsReportBtn');
+    const fileBrowserModal = document.getElementById('fileBrowserModal');
+    const closeFileBrowserModalBtn = document.getElementById('closeFileBrowserModalBtn');
+    const fileBrowserPathDisplay = document.getElementById('fileBrowserPathDisplay');
+    const fileBrowserListDiv = document.getElementById('fileBrowserList');
+    const fileBrowserMessage = document.getElementById('fileBrowserMessage');
+
+    const userMessageDiv = document.getElementById('userMessageNode');
+    const tableContainer = document.getElementById('tableContainerNode');
+    const loadDataBtn = document.getElementById('loadDataBtn');
+    const loaderNode = document.getElementById('loaderNode');
+    const loaderContainerNode = document.querySelector('.loader-container');
+    const currentFileDisplayDiv = document.getElementById('currentFileDisplay');
+    const currentFilePathSpan = document.getElementById('currentFilePath');
+    const statTotalParticipantsEl = document.getElementById('statTotalParticipants');
+    const statPassedCountEl = document.getElementById('statPassedCount');
+    const statPassedLabelEl = document.getElementById('statPassedLabel');
+    const statFailedCountEl = document.getElementById('statFailedCount');
+    const statsSummaryDiv = document.getElementById('statsSummaryContainer');
+    const archiveCurrentTestBtn = document.getElementById('archiveCurrentTestBtn');
+
+    const interfaceLockModal = document.getElementById('interfaceLockModal');
+    const lockScreenPasswordInput = document.getElementById('lockScreenPassword');
+    const unlockInterfaceBtn = document.getElementById('unlockInterfaceBtn');
+    const lockScreenMessage = document.getElementById('lockScreenMessage');
+    const pageWrapper = document.querySelector('.page-wrapper');
+
+    const toastNotificationEl = document.getElementById('toastNotification');
+    const toastMessageEl = document.getElementById('toastMessage');
+    const toastCloseBtnEl = document.getElementById('toastCloseBtn');
+
+
+    let currentParticipantsData = [];
+    let globalPassingScore = DEFAULT_PASSING_SCORE;
+    let isFirstDrawInCurrentModalSession = true;
+    let currentBrowsePathForAPI = '';
+    let isDisplayingMainTest = true; 
+    let failedLoginAttempts = 0;
+    let currentReportType = 'direct';
+    let toastTimeout;
+    let isCurrentlyConnected = false;
+
+
+    
+    // --- Core Authentication Functions ---
+
+    
+    async function loginToApi() {
+        const systemNumber = localStorage.getItem(SYSTEM_NUMBER_STORAGE_KEY);
+        const password = localStorage.getItem(PASSWORD_STORAGE_KEY);
+
+        // MODIFIED: Does not show a modal here. Just returns null.
+        if (!systemNumber || !password) {
+            console.warn("Attempted to get new token, but no credentials are saved.");
+            return null;
+        }
+
+        const apiUrl = `${API_ENDPOINT_LOGIN}?username=${encodeURIComponent(systemNumber)}&password=${encodeURIComponent(password)}`;
+
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            if (data.responseStatus === 'OK' && data.token) {
+                localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
+                const tokenInput = document.getElementById('modalApiToken');
+                if(tokenInput) tokenInput.value = data.token;
+                console.log('Successfully logged in and received new token.');
+                showToastNotification('התחברות לשרת הצליחה, טוקן חדש נוצר ונשמר.', 'success', 3000);
+                return data.token;
+            } else {
+                throw new Error(data.message || 'Failed to get token from server.');
+            }
+        } catch (error) {
+            console.error('Error during loginToApi:', error);
+            localStorage.removeItem(TOKEN_STORAGE_KEY); // Remove invalid token
+            showTokenErrorModal(error.message);
+            return null;
+        }
+    }
+
+
+    
+    
+    
+async function apiFetch(url, options = {}) {
+    let token = localStorage.getItem(TOKEN_STORAGE_KEY);
+
+    if (!token) {
+        token = await loginToApi();
+        if (!token) throw new Error('Authentication failed. Could not retrieve a new token.');
+    }
+
+    const urlWithToken = new URL(url);
+    urlWithToken.searchParams.set('token', token);
+
+    const response = await fetch(urlWithToken.toString(), options);
+    const responseBody = await response.text();
+
+    let data;
+    try {
+        data = JSON.parse(responseBody);
+    } catch (e) {
+        if (!response.ok) {
+            throw new Error(responseBody || `שגיאת שרת ${response.status}`);
+        }
+        return new Response(responseBody, { status: response.status, statusText: response.statusText, headers: response.headers });
+    }
+
+    // *** התיקון המרכזי: תנאי פשוט ורחב יותר לזיהוי שגיאת טוקן ***
+    if (data && data.message && data.message.includes('IllegalStateException')) {
+        console.warn('זוהתה שגיאת טוקן (IllegalStateException). מנסה להתחבר מחדש...');
+        const newToken = await loginToApi();
+        if (!newToken) {
+            throw new Error('Authentication failed. Could not retrieve a new token.');
+        }
+        
+        console.log('מנסה שוב את הקריאה עם הטוקן החדש...');
+        const newUrlWithToken = new URL(url);
+        newUrlWithToken.searchParams.set('token', newToken);
+        const secondResponse = await fetch(newUrlWithToken.toString(), options);
+        
+        if (!secondResponse.ok) {
+            const secondBody = await secondResponse.text();
+            let secondErrorMsg = `הניסיון השני עם טוקן חדש נכשל (סטטוס: ${secondResponse.status})`;
+            try {
+                const secondData = JSON.parse(secondBody);
+                if(secondData.message) secondErrorMsg = secondData.message;
+            } catch(e) {
+                if(secondBody) secondErrorMsg = secondBody;
+            }
+            throw new Error(secondErrorMsg);
+        }
+        
+        return secondResponse;
+    }
+
+    if (!response.ok) {
+         throw new Error(data.message || `שגיאת שרת ${response.status}`);
+    }
+    
+    return new Response(responseBody, { status: response.status, statusText: response.statusText, headers: response.headers });
+}
+
+
+
+
+
+    // --- Toast Notification Logic ---
+    if (toastCloseBtnEl) {
+        toastCloseBtnEl.addEventListener('click', () => {
+            clearTimeout(toastTimeout);
+            if (toastNotificationEl) {
+                toastNotificationEl.style.display = 'none';
+                toastNotificationEl.classList.remove('top-center-toast'); 
+            }
+        });
+    }
+
+    function showToastNotification(message, type = 'error', duration = 0, position = 'default') { 
+        if (!toastNotificationEl || !toastMessageEl) {
+            console.warn('Toast elements not found for message:', message);
+            alert(`${type.toUpperCase()}: ${message}`);
+            return;
+        }
+
+        clearTimeout(toastTimeout);
+        toastMessageEl.textContent = message;
+
+        toastNotificationEl.classList.remove('success', 'info', 'warning', 'error', 'top-center-toast');
+
+        toastNotificationEl.classList.add(type);
+
+        if (position === 'top-center') {
+            toastNotificationEl.classList.add('top-center-toast');
+        }
+
+        toastNotificationEl.style.display = 'flex';
+
+        const hideToast = () => {
+            if (toastNotificationEl) {
+                toastNotificationEl.style.display = 'none';
+                toastNotificationEl.classList.remove('top-center-toast');
+            }
+        };
+
+        if (duration > 0) {
+            toastTimeout = setTimeout(hideToast, duration);
+        }
+    }
+
+
+    
+    const tokenErrorModal = document.getElementById('tokenErrorModal');
+    const closeTokenErrorModalBtn = document.getElementById('closeTokenErrorModalBtn');
+    const copyTokenErrorBtn = document.getElementById('copyTokenErrorBtn');
+    const tokenErrorMessageDiv = document.getElementById('tokenErrorMessage');
+
+    let fullErrorToCopy = '';
+
+    function showTokenErrorModal(serverMessage) {
+        if (!tokenErrorModal || !tokenErrorMessageDiv) return;
+
+        let conditionalMessage = '';
+        if (serverMessage && serverMessage.toLowerCase().includes('user name or password do not match')) {
+            conditionalMessage = `<p style="color: var(--color-danger-darker); font-weight: bold;">הסיסמה שגויה, יש לעדכן פרטי התחברות בהגדרות.</p>`;
+        }
+        
+        const staticMessage = `<p>ניתן לבקש טוקן התחברות מ-S.M.T.</p>`;
+        const serverResponseBlock = `<div style="margin-top: 1rem; font-size: 0.85rem;">
+            <strong style="display: block; margin-bottom: 0.25rem;">תשובת שרת מלאה:</strong>
+            <pre style="background-color: var(--bg-main); padding: 0.5rem; border-radius: var(--border-radius-base); white-space: pre-wrap; word-break: break-all; text-align: left; direction: ltr;">${serverMessage || 'אין'}</pre>
+        </div>`;
+        
+        tokenErrorMessageDiv.innerHTML = conditionalMessage + staticMessage + serverResponseBlock;
+        
+        fullErrorToCopy = `שגיאה ביצירת טוקן התחברות.\n`;
+        if (conditionalMessage) fullErrorToCopy += `הסיסמה שגויה, יש לעדכן פרטי התחברות בהגדרות.\n`;
+        fullErrorToCopy += `ניתן לבקש טוקן התחברות מ-S.M.T.\n\nתשובת שרת מלאה:\n${serverMessage || 'אין'}`;
+
+        tokenErrorModal.style.display = 'flex';
+    }
+
+    if (closeTokenErrorModalBtn) {
+        closeTokenErrorModalBtn.addEventListener('click', () => {
+            if (tokenErrorModal) tokenErrorModal.style.display = 'none';
+        });
+    }
+
+    if (copyTokenErrorBtn) {
+        copyTokenErrorBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(fullErrorToCopy).then(() => {
+                showToastNotification('הודעת השגיאה הועתקה!', 'success', 3000);
+            }, (err) => {
+                showToastNotification('ההעתקה נכשלה.', 'error', 3000);
+                console.error('Copy failed: ', err);
+            });
+        });
+    }
+
+
+
+    async function generateTokenFromCredentials(systemNumber, password) {
+        if (!systemNumber || !password) {
+            showToastNotification('יש למלא מספר מערכת וסיסמה.', 'error', 4000);
+            return null;
+        }
+        const apiUrl = `${API_ENDPOINT_LOGIN}?username=${encodeURIComponent(systemNumber)}&password=${encodeURIComponent(password)}`;
+        try {
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            if (data.responseStatus === 'OK' && data.token) {
+                return data.token;
+            } else {
+                throw new Error(data.message || 'Failed to get token from server.');
+            }
+        } catch (error) {
+            showTokenErrorModal(error.message);
+            return null;
+        }
+    }
+    
+
+        // --- Event Listeners ---
+
+    const generateTokenBtn = document.getElementById('generateTokenBtn');
+    if (generateTokenBtn) {
+        generateTokenBtn.addEventListener('click', async () => {
+            const systemNumber = modalSystemNumberInput.value.trim();
+            const password = modalPasswordInput.value;
+            
+            const newToken = await generateTokenFromCredentials(systemNumber, password);
+
+            if (newToken) {
+                const tokenInput = document.getElementById('modalApiToken');
+                if (tokenInput) {
+                    tokenInput.value = newToken;
+                }
+                showToastNotification('טוקן חדש נוצר בהצלחה! שומר הגדרות...', 'success', 3000);
+                // Automatically trigger the save button to save all settings
+                if (saveSettingsBtn) {
+                    saveSettingsBtn.click();
+                }
+            }
+        });
+    }
+
+    
+    openSettingsBtn.addEventListener('click', () => {
+        // Populate the fields
+        modalSystemNumberInput.value = localStorage.getItem(SYSTEM_NUMBER_STORAGE_KEY) || DEFAULT_SYSTEM_NUMBER;
+        modalPasswordInput.value = localStorage.getItem(PASSWORD_STORAGE_KEY) || '';
+        modalYmgrPathInput.value = localStorage.getItem(YMGR_PATH_STORAGE_KEY) || DEFAULT_YMGR_PATH;
+        modalBrowsePathInput.value = localStorage.getItem(BROWSE_PATH_STORAGE_KEY) || DEFAULT_BROWSE_PATH;
+        modalPointsReportPathInput.value = localStorage.getItem(POINTS_REPORT_PATH_STORAGE_KEY) || DEFAULT_POINTS_REPORT_PATH;
+        modalPassingScoreInput.value = localStorage.getItem(PASSING_SCORE_STORAGE_KEY) || DEFAULT_PASSING_SCORE;
+        const tokenInput = document.getElementById('modalApiToken');
+        if(tokenInput) tokenInput.value = localStorage.getItem(TOKEN_STORAGE_KEY) || '';
+        const interfaceLockEnabled = localStorage.getItem(INTERFACE_LOCK_ENABLED_KEY);
+        modalEnableInterfaceLockCheckbox.checked = (interfaceLockEnabled === null) ? DEFAULT_INTERFACE_LOCK_ENABLED : (interfaceLockEnabled === 'true');
+
+        // Instantly update status based on the global variable
+        const statusEl = document.getElementById('apiConnectionStatus');
+        const generateBtn = document.getElementById('generateTokenBtn');
+
+        if (statusEl) {
+            if (isCurrentlyConnected) {
+                statusEl.textContent = 'מחובר לשרת';
+                statusEl.style.color = 'var(--color-success-darker)';
+                if (generateBtn) generateBtn.disabled = true;
+            } else {
+                statusEl.textContent = 'לא מחובר';
+                statusEl.style.color = 'var(--color-danger-darker)';
+                if (generateBtn) generateBtn.disabled = false;
+            }
+        }
+        
+        settingsModal.style.display = 'flex';
+    });
+
+
+    closeSettingsModalBtn.addEventListener('click', () => settingsModal.style.display = 'none');
+    closeLotteryModalBtnContent.addEventListener('click', () => lotteryModal.style.display = 'none');
+    closeFileBrowserModalBtn.addEventListener('click', () => fileBrowserModal.style.display = 'none');
+
+    window.addEventListener('click', function(event) {
+        if (event.target == settingsModal) { settingsModal.style.display = 'none'; }
+        if (event.target == lotteryModal) { lotteryModal.style.display = 'none'; }
+        if (event.target == fileBrowserModal) { fileBrowserModal.style.display = 'none'; }
+    });
+
+    
+    
+    saveSettingsBtn.addEventListener('click', async () => {
+        const systemNumber = modalSystemNumberInput.value.trim();
+        const password = modalPasswordInput.value;
+        const ymgrPath = ensureIvr2Prefix(modalYmgrPathInput.value.trim());
+        const browsePath = ensureIvr2Prefix(modalBrowsePathInput.value.trim());
+        const pointsReportPath = ensureIvr2Prefix(modalPointsReportPathInput.value.trim());
+        const passingScoreRaw = modalPassingScoreInput.value.trim();
+        const manualToken = document.getElementById('modalApiToken').value.trim();
+
+        // **MODIFIED VALIDATION: Token is now the mandatory field.**
+        if (!manualToken) {
+            showToastNotification('שדה "טוקן התחברות" הוא שדה חובה. נסה ללחוץ על צור טוקן', 'error', 5000);
+            return;
+        }
+
+        let passingScore = parseInt(passingScoreRaw, 10);
+        if (passingScoreRaw === '' || isNaN(passingScore) || passingScore < 0) {
+            showToastNotification('ציון עובר אינו תקין. ברירת המחדל (80) תשמש.', 'warning', 5000);
+            passingScore = DEFAULT_PASSING_SCORE;
+            modalPassingScoreInput.value = DEFAULT_PASSING_SCORE;
+        }
+
+        // Save all fields, including the optional username/password for token renewal
+        localStorage.setItem(SYSTEM_NUMBER_STORAGE_KEY, systemNumber);
+        localStorage.setItem(PASSWORD_STORAGE_KEY, password);
+        localStorage.setItem(YMGR_PATH_STORAGE_KEY, ymgrPath);
+        localStorage.setItem(BROWSE_PATH_STORAGE_KEY, browsePath);
+        localStorage.setItem(POINTS_REPORT_PATH_STORAGE_KEY, pointsReportPath);
+        localStorage.setItem(PASSING_SCORE_STORAGE_KEY, passingScore.toString());
+        localStorage.setItem(INTERFACE_LOCK_ENABLED_KEY, modalEnableInterfaceLockCheckbox.checked.toString());
+        
+        // **Token is saved directly. No automatic login on save.**
+        localStorage.setItem(TOKEN_STORAGE_KEY, manualToken);
+        showToastNotification('ההגדרות נשמרו בהצלחה!', 'success', 3000);
+
+        modalYmgrPathInput.value = ymgrPath;
+        modalBrowsePathInput.value = browsePath;
+        modalPointsReportPathInput.value = pointsReportPath;
+        globalPassingScore = passingScore;
+        settingsModal.style.display = 'none';
+
+        // Refresh the main view data with the new settings
+        await fetchDataFromApi(ymgrPath, { type: 'direct' });
+    });
+
+
+
+    
+    function performResetSettingsActions() {
+        localStorage.removeItem(SYSTEM_NUMBER_STORAGE_KEY);
+        localStorage.removeItem(PASSWORD_STORAGE_KEY);
+        localStorage.removeItem(YMGR_PATH_STORAGE_KEY);
+        localStorage.removeItem(BROWSE_PATH_STORAGE_KEY);
+        localStorage.removeItem(POINTS_REPORT_PATH_STORAGE_KEY);
+        localStorage.removeItem(PASSING_SCORE_STORAGE_KEY);
+        localStorage.removeItem(INTERFACE_LOCK_ENABLED_KEY);
+        localStorage.removeItem(TOKEN_STORAGE_KEY); // Also clear the token
+
+        modalSystemNumberInput.value = DEFAULT_SYSTEM_NUMBER;
+        modalPasswordInput.value = '';
+        modalYmgrPathInput.value = DEFAULT_YMGR_PATH;
+        modalBrowsePathInput.value = DEFAULT_BROWSE_PATH;
+        modalPointsReportPathInput.value = DEFAULT_POINTS_REPORT_PATH;
+        modalPassingScoreInput.value = DEFAULT_PASSING_SCORE;
+        modalEnableInterfaceLockCheckbox.checked = DEFAULT_INTERFACE_LOCK_ENABLED;
+        const tokenInput = document.getElementById('modalApiToken');
+        if(tokenInput) tokenInput.value = '';
+        globalPassingScore = DEFAULT_PASSING_SCORE;
+
+        location.reload();
+        currentParticipantsData = [];
+        if(tableContainer) tableContainer.innerHTML = '';
+        if (currentFileDisplayDiv) currentFileDisplayDiv.style.display = 'none';
+        calculateAndDisplayStats([], globalPassingScore);
+        if (statsSummaryDiv) statsSummaryDiv.style.display = 'none';
+
+        updateButtonStatesAndActions();
+
+        if (pageWrapper) {
+            pageWrapper.classList.remove('initially-hidden');
+            pageWrapper.classList.remove('blurred-background');
+            document.body.classList.remove('no-scroll');
+            pageWrapper.classList.add('fully-visible');
+        }
+        if (interfaceLockModal) interfaceLockModal.style.display = 'none';
+        failedLoginAttempts = 0;
+        if(lockScreenMessage) {
+            lockScreenMessage.innerHTML = '';
+            lockScreenMessage.style.display = 'none';
+        }
+    }
+
+
+    resetSettingsBtn.addEventListener('click', () => {
+        if (confirm('האם אתה בטוח שברצונך לאפס את כל ההגדרות לברירת המחדל?')) {
+            performResetSettingsActions();
+        }
+    });
+
+    runLotteryBtn.addEventListener('click', () => {
+        if (currentParticipantsData.length > 0) {
+            lotteryModal.style.display = 'flex';
+            isFirstDrawInCurrentModalSession = true;
+            lotteryResultContent.innerHTML = '<p>לחץ על "ביצוע ההגרלה" כדי לבחור זוכה.</p>';
+            drawWinnerBtn.innerHTML = '<i class="fas fa-dice"></i> ביצוע ההגרלה';
+        }
+    });
+
+    drawWinnerBtn.addEventListener('click', () => {
+        if (currentParticipantsData.length === 0) {
+            lotteryResultContent.innerHTML = '<p>אין נתונים זמינים להגרלה. נא לטעון נתונים תחילה.</p>';
+            return;
+        }
+
+        const randomIndex = Math.floor(Math.random() * currentParticipantsData.length);
+        const winner = currentParticipantsData[randomIndex];
+
+        const name = winner[NAME_COLUMN_KEY] || 'לא זמין';
+        const phone = winner[PHONE_COLUMN_KEY] || 'לא זמין';
+        const track = winner[TRACK_COLUMN_KEY] || 'לא זמין';
+        const scoreStr = winner[SCORE_COLUMN_NAME];
+        let scoreDisplay = 'לא זמין';
+        let scoreValue = NaN;
+
+        if (scoreStr !== undefined && scoreStr !== null) {
+            const scoreMatch = String(scoreStr).match(/-?\d+(\.\d+)?/);
+            if (scoreMatch) {
+                scoreValue = parseFloat(scoreMatch[0]);
+                scoreDisplay = scoreValue.toString();
+            }
+        }
+
+        let statusTextOnly = '';
+        let statusStyle = 'color: var(--text-color-muted); font-weight: normal;';
+
+        if (!isNaN(scoreValue)) {
+            if (scoreValue >= globalPassingScore) {
+                statusTextOnly = `עבר את הציון ${globalPassingScore}+`;
+                statusStyle = 'color: var(--color-success-darker); font-weight: bold;';
+            } else {
+                statusTextOnly = `לא עבר את הציון ${globalPassingScore}+`;
+                statusStyle = 'color: var(--color-danger-darker); font-weight: bold;';
+            }
+        } else {
+            statusTextOnly = 'סטטוס ציון לא ידוע';
+        }
+
+
+        lotteryResultContent.innerHTML = `
+            <div style="font-size: 1.2rem; line-height: 1.8;">
+                <p><strong>שם הזוכה:</strong> ${name}</p>
+                <p><strong>טלפון:</strong> ${phone}</p>
+                <p><strong>מסלול:</strong> ${track}</p>
+                <p><strong>ציון:</strong> ${scoreDisplay} <span style="${statusStyle}">(${statusTextOnly})</span></p>
+            </div>
+        `;
+
+        if (isFirstDrawInCurrentModalSession) {
+            drawWinnerBtn.innerHTML = '<i class="fas fa-dice"></i> איפוס והגרל שוב';
+            isFirstDrawInCurrentModalSession = false;
+        }
+    });
+
+    browsePastExamsBtn.addEventListener('click', () => {
+        const browsePathFull = ensureIvr2Prefix(localStorage.getItem(BROWSE_PATH_STORAGE_KEY) || DEFAULT_BROWSE_PATH);
+        if (!browsePathFull) {
+             showToastNotification("נתיב הבסיס לחיפוש מבחנים קודמים אינו מוגדר בהגדרות.", 'error', 5000);
+            return;
+        }
+        currentBrowsePathForAPI = getRelativePath(browsePathFull);
+        fileBrowserModal.style.display = 'flex';
+        fileBrowserMessage.style.display = 'none';
+        fetchDirectoryContents(currentBrowsePathForAPI);
+    });
+
+    if (pointsReportBtn) {
+        pointsReportBtn.addEventListener('click', () => {
+            const settings = loadEffectiveSettings();
+            // MODIFIED: Checks for token instead of password
+            if (settings && settings.token) {
+                const pointsPath = localStorage.getItem(POINTS_REPORT_PATH_STORAGE_KEY) || DEFAULT_POINTS_REPORT_PATH;
+                fetchDataFromApi(ensureIvr2Prefix(pointsPath), {
+                    type: 'points_report',
+                    fileNameForDisplay: 'דוח נקודות'
+                });
+            } else {
+                showToastNotification('נדרש טוקן API תקף כדי להציג את דוח הנקודות.', 'error', 4000);
+            }
+        });
+    }
+
+    archiveCurrentTestBtn.addEventListener('click', handleArchiveCurrentTest);
+
+    loadDataBtn.addEventListener('click', () => {
+        const mainTestPathFromSettings = localStorage.getItem(YMGR_PATH_STORAGE_KEY) || DEFAULT_YMGR_PATH;
+        fetchDataFromApi(mainTestPathFromSettings, { type: 'direct' });
+    });
+
+    if (unlockInterfaceBtn) {
+        unlockInterfaceBtn.addEventListener('click', () => {
+            const enteredPassword = lockScreenPasswordInput.value;
+            const storedPassword = localStorage.getItem(PASSWORD_STORAGE_KEY);
+
+            if (enteredPassword === storedPassword) {
+                clearTimeout(toastTimeout);
+                if (toastNotificationEl && toastNotificationEl.style.display === 'flex') {
+                    toastNotificationEl.style.display = 'none';
+                    toastNotificationEl.classList.remove('top-center-toast');
+                }
+
+                if (interfaceLockModal) interfaceLockModal.style.display = 'none';
+                if (pageWrapper) {
+                    pageWrapper.classList.remove('blurred-background');
+                    document.body.classList.remove('no-scroll');
+                    pageWrapper.classList.add('fully-visible');
+                }
+                failedLoginAttempts = 0;
+                if(lockScreenMessage) {
+                    lockScreenMessage.innerHTML = '';
+                    lockScreenMessage.style.display = 'none';
+                }
+                checkAndShowAnnouncement();
+            } else { // Incorrect password
+                failedLoginAttempts++;
+                if (lockScreenPasswordInput) lockScreenPasswordInput.value = '';
+
+                showToastNotification("סיסמה שגויה", 'error', 5000, 'top-center');
+
+                if (failedLoginAttempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+                    if (lockScreenMessage) {
+                        lockScreenMessage.innerHTML = '';
+
+                        const questionText = "האם שכחת את הסיסמא?";
+                        const questionNode = document.createElement('p');
+                        questionNode.textContent = questionText;
+                        questionNode.style.marginBottom = '0.5rem';
+                        lockScreenMessage.appendChild(questionNode);
+
+                        const resetButton = document.createElement('button');
+                        resetButton.id = 'resetSettingsFromLockBtn';
+                        resetButton.className = 'button button-warning';
+                        resetButton.textContent = 'לאיפוס הגדרות שמורות';
+
+                        resetButton.onclick = () => {
+                            if (confirm('אזהרה: פעולה זו תמחק את כל ההגדרות השמורות (סיסמה, נתיבים וכו\'). האם להמשיך?')) {
+                                performResetSettingsActions();
+                            }
+                        };
+                        lockScreenMessage.appendChild(resetButton);
+
+                        lockScreenMessage.className = 'user-message message-warning';
+                        lockScreenMessage.style.display = 'flex';
+                        lockScreenMessage.style.flexDirection = 'column';
+                        lockScreenMessage.style.textAlign = 'center';
+                        lockScreenMessage.style.alignItems = 'center';
+                    }
+                } else {
+                    if (lockScreenMessage) {
+                        lockScreenMessage.innerHTML = '';
+                        lockScreenMessage.style.display = 'none';
+                    }
+                }
+                if (lockScreenPasswordInput) lockScreenPasswordInput.focus();
+            }
+        });
+    }
+    if (lockScreenPasswordInput) {
+        lockScreenPasswordInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                if (unlockInterfaceBtn) unlockInterfaceBtn.click();
+            }
+        });
+    }
+
+
+    // --- Core Functions ---
+
+    function updateButtonStatesAndActions() {
+        const settings = loadEffectiveSettings();
+
+        // MODIFIED: Logic now depends on token presence, not password.
+        if (!settings || !settings.token) {
+            if (runLotteryBtn) runLotteryBtn.style.display = 'none';
+            if (browsePastExamsBtn) browsePastExamsBtn.style.display = 'none';
+            if (pointsReportBtn) pointsReportBtn.style.display = 'none';
+            if (archiveCurrentTestBtn) archiveCurrentTestBtn.style.display = 'none';
+            if (loadDataBtn) loadDataBtn.style.display = 'none';
+            if (openSettingsBtn) openSettingsBtn.style.display = 'inline-flex';
+            return;
+        }
+
+        if (browsePastExamsBtn) browsePastExamsBtn.style.display = 'inline-flex';
+        if (pointsReportBtn) pointsReportBtn.style.display = 'inline-flex';
+        if (loadDataBtn) loadDataBtn.style.display = 'inline-flex';
+        if (openSettingsBtn) openSettingsBtn.style.display = 'inline-flex';
+
+
+        if (isDisplayingMainTest) {
+            const canArchive = currentParticipantsData && currentParticipantsData.length > 0;
+            if (archiveCurrentTestBtn) {
+                archiveCurrentTestBtn.style.display = canArchive ? 'inline-flex' : 'none';
+                archiveCurrentTestBtn.disabled = !canArchive;
+            }
+            if (loadDataBtn) {
+                loadDataBtn.innerHTML = '<i class="fas fa-sync-alt"></i>רענן נתונים';
+            }
+        } else {
+            if (archiveCurrentTestBtn) {
+                archiveCurrentTestBtn.style.display = 'none';
+            }
+            if (loadDataBtn) {
+                loadDataBtn.innerHTML = '<i class="fas fa-home"></i> חזרה למבחן ראשי';
+            }
+        }
+
+        const canRunLottery = currentParticipantsData && currentParticipantsData.length > 0 && currentReportType !== 'points_report';
+        if (runLotteryBtn) {
+            runLotteryBtn.style.display = canRunLottery ? 'inline-flex' : 'none';
+            runLotteryBtn.disabled = !canRunLottery;
+        }
+    }
+
+
+    function ensureIvr2Prefix(path) {
+        if (!path) return '';
+        path = path.trim();
+        if (path.toLowerCase().startsWith('ivr2:/')) {
+            return path;
+        } else {
+            return 'ivr2:' + (path.startsWith('/') ? path : '/' + path);
+        }
+    }
+
+    function getRelativePath(fullPath) {
+        if (!fullPath || !fullPath.toLowerCase().startsWith('ivr2:')) {
+            return '/';
+        }
+        let relative = fullPath.substring(5);
+        if (!relative.startsWith('/')) {
+            relative = '/' + relative;
+        }
+        return relative;
+    }
+
+
+    function extractFileNameForDisplay(fullPath) {
+        if (typeof fullPath === 'string') {
+            let fileName = fullPath.substring(fullPath.lastIndexOf('/') + 1);
+            if (fileName.toLowerCase().endsWith('.ymgr')) {
+                fileName = fileName.substring(0, fileName.length - 5);
+            }
+            return fileName;
+        }
+        return "קובץ לא ידוע";
+    }
+
+
+    function loadEffectiveSettings() {
+        const systemNumber = localStorage.getItem(SYSTEM_NUMBER_STORAGE_KEY) || DEFAULT_SYSTEM_NUMBER;
+        const password = localStorage.getItem(PASSWORD_STORAGE_KEY);
+        const ymgrPath = localStorage.getItem(YMGR_PATH_STORAGE_KEY) || DEFAULT_YMGR_PATH;
+        const browsePath = localStorage.getItem(BROWSE_PATH_STORAGE_KEY) || DEFAULT_BROWSE_PATH;
+        const passingScoreStr = localStorage.getItem(PASSING_SCORE_STORAGE_KEY);
+        const token = localStorage.getItem(TOKEN_STORAGE_KEY); // Added token retrieval
+
+        globalPassingScore = passingScoreStr ? parseInt(passingScoreStr, 10) : DEFAULT_PASSING_SCORE;
+        if (isNaN(globalPassingScore) || globalPassingScore < 0) {
+             globalPassingScore = DEFAULT_PASSING_SCORE;
+        }
+
+        // The function now returns all relevant settings, including the token.
+        // The check for what is valid happens where the function is called.
+        return { systemNumber, password, ymgrPath, browsePath, passingScore: globalPassingScore, token };
+    }
+
+    function displayUserMessage(message, type = 'info', area = userMessageDiv) {
+        if (!area) return;
+        let msgTextEl;
+        let msgIconEl;
+
+        area.innerHTML = '';
+        msgIconEl = document.createElement('i');
+        msgIconEl.className = 'fas';
+        area.appendChild(msgIconEl);
+
+        msgTextEl = document.createTextNode(' ' + message);
+        area.appendChild(msgTextEl);
+
+        area.className = 'user-message';
+        area.classList.add(`message-${type}`);
+        if(msgIconEl) {
+             msgIconEl.className = `fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-triangle' : type === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle'}`;
+        }
+        area.style.display = 'flex';
+    }
+
+
+    function hideUserMessage(area = userMessageDiv) {
+        if(area) area.style.display = 'none';
+    }
+
+    function displaySpecialErrorMessage(mainText, subText) {
+        hideUserMessage();
+        if(statsSummaryDiv) statsSummaryDiv.style.display = 'none';
+        tableContainer.innerHTML = `
+            <div class="special-error-message">
+                <i class="fas fa-exclamation-triangle error-icon"></i>
+                <div class="error-text-content">
+                    <span class="main-text">${mainText}</span>
+                    <span class="sub-text">${subText}</span>
+                </div>
+            </div>
+        `;
+    }
+
+
+    function calculateAndDisplayStats(dataArray, passingScoreToUse) {
+        if (!dataArray) dataArray = [];
+
+        const totalParticipants = dataArray.length;
+        let passedCount = 0;
+
+        dataArray.forEach(item => {
+            const scoreStr = item[SCORE_COLUMN_NAME];
+            if (scoreStr !== undefined && scoreStr !== null) {
+                const scoreMatch = String(scoreStr).match(/-?\d+(\.\d+)?/);
+                if (scoreMatch) {
+                    const score = parseFloat(scoreMatch[0]);
+                    if (!isNaN(score) && score >= passingScoreToUse) {
+                        passedCount++;
+                    }
+                }
+            }
+        });
+        const failedCount = totalParticipants - passedCount;
+
+        if (statTotalParticipantsEl) statTotalParticipantsEl.textContent = totalParticipants;
+        if (statPassedCountEl) statPassedCountEl.textContent = passedCount;
+        if (statFailedCountEl) statFailedCountEl.textContent = failedCount;
+        if (statPassedLabelEl) statPassedLabelEl.textContent = `עברו את הציון ${passingScoreToUse} ונכנסים להגרלה`;
+    }
+
+
+    
+    
+    async function fetchDataFromApi(filePath = null, sourceInfo = { type: 'direct', fileNameForDisplay: null }) {
+        currentReportType = sourceInfo.type;
+        isCurrentlyConnected = false; // Reset connection status on every attempt
+
+        hideUserMessage();
+        tableContainer.innerHTML = '';
+        if(currentFileDisplayDiv) currentFileDisplayDiv.style.display = 'none';
+        currentParticipantsData = [];
+        calculateAndDisplayStats([], globalPassingScore);
+        if(statsSummaryDiv && statsSummaryDiv.style.display !== 'none') {
+            statsSummaryDiv.style.display = 'none';
+        }
+
+                let settings = loadEffectiveSettings();
+        if (!settings.token) {
+            // NEW LOGIC: Try to log in automatically if credentials exist
+            if (settings.systemNumber && settings.password) {
+                showToastNotification('לא נמצא טוקן שמור, מנסה להתחבר אוטומטית...', 'info', 3000);
+                const newToken = await loginToApi();
+                if (newToken) {
+                    // Refresh settings to include the new token
+                    settings = loadEffectiveSettings();
+                } else {
+                    // loginToApi already shows a detailed error modal, but we'll stop execution here.
+                    updateButtonStatesAndActions();
+                    displaySpecialErrorMessage('יצירת טוקן התחברות נכשלה', "לא ניתן היה ליצור טוקן התחברות חדש. אנא בדוק את פרטי ההתחברות בהגדרות או הזן טוקן ידנית. ניתן לבקש טוקן מ-S.M.T.");
+                    return;
+                }
+            } else {
+                // Original logic: No token AND no credentials
+                updateButtonStatesAndActions();
+                displaySpecialErrorMessage('נדרשת התחברות', "לא נמצא טוקן התחברות. אנא לחץ על כפתור 'הגדרות' והזן טוקן API תקף.");
+                return;
+            }
+        }
+
+        const ymgrToLoad = ensureIvr2Prefix(filePath || settings.ymgrPath);
+        const mainTestPathFromSettings = settings.ymgrPath;
+
+        isDisplayingMainTest = (currentReportType === 'direct' &&
+                               ymgrToLoad.toLowerCase() === mainTestPathFromSettings.toLowerCase());
+
+        let titleTextForDisplay;
+        if (sourceInfo.fileNameForDisplay) {
+            titleTextForDisplay = `מציג: ${sourceInfo.fileNameForDisplay}`;
+        } else if (isDisplayingMainTest) {
+            titleTextForDisplay = "מציג מבחן ראשי";
+        } else if (sourceInfo.type === 'archive' && sourceInfo.folderName) {
+            titleTextForDisplay = `מציג מבחן: ${sourceInfo.folderName}`;
+        } else {
+            const fileName = extractFileNameForDisplay(ymgrToLoad);
+            titleTextForDisplay = `מציג מבחן: ${fileName}`;
+        }
+
+        if (!ymgrToLoad || !/^ivr2:\/.+/.test(ymgrToLoad)) {
+            displaySpecialErrorMessage("נתיב קובץ המבחן אינו תקין", "הנתיב חייב להתחיל ב-'ivr2:/'. אנא בדוק את ההגדרות.");
+            return;
+        }
+
+        if(loaderNode) loaderNode.style.display = 'block';
+        if(loaderContainerNode) loaderContainerNode.style.display = 'flex';
+        if (runLotteryBtn) runLotteryBtn.style.display = 'none';
+        if (archiveCurrentTestBtn) archiveCurrentTestBtn.style.display = 'none';
+
+        const apiUrl = `${API_ENDPOINT_RENDER_YMGR}?wath=${encodeURIComponent(ymgrToLoad)}&convertType=json`;
+
+        try {
+            const response = await apiFetch(apiUrl);
+            
+            if (!response.ok) {
+                let detailedErrorMsg = `שגיאת שרת: ${response.status} ${response.statusText}`;
+                 try {
+                    const errorData = await response.json();
+                    if(errorData && errorData.message) detailedErrorMsg = errorData.message;
+                 } catch(e){}
+                throw new Error(detailedErrorMsg);
+            }
+
+            const responseData = await response.json();
+
+            if (responseData.responseStatus && responseData.responseStatus !== 'OK') {
+                 throw new Error(responseData.message || `שגיאה לא מזוהה מהשרת (סטטוס: ${responseData.responseStatus})`);
+            } else if (responseData.data && Array.isArray(responseData.data)) {
+                // SUCCESS! Set connection status to true
+                isCurrentlyConnected = true;
+
+                if(currentFilePathSpan) currentFilePathSpan.textContent = titleTextForDisplay;
+                if(currentFileDisplayDiv) currentFileDisplayDiv.style.display = 'block';
+
+                currentParticipantsData = responseData.data;
+                displayTable(responseData.data, globalPassingScore);
+                calculateAndDisplayStats(responseData.data, globalPassingScore);
+
+                if (currentReportType !== 'points_report' && responseData.data.length > 0) {
+                    if(statsSummaryDiv) statsSummaryDiv.style.display = 'flex';
+                } else {
+                    if(statsSummaryDiv) statsSummaryDiv.style.display = 'none';
+                }
+
+                if (responseData.data.length === 0) {
+                    const nameForInfoMsg = titleTextForDisplay.replace(/^מציג (מבחן ראשי|מבחן: |: )/, "").trim();
+                    displayUserMessage(`הקובץ '${extractFileNameForDisplay(ymgrToLoad)}' נטען אך הוא ריק מנתונים.`, 'info');
+                }
+            } else {
+                 isCurrentlyConnected = false; // Explicitly false if response is not as expected
+                 showToastNotification('תשובת שרת לא תקינה או ללא נתונים במערך data.', 'error', 0);
+                 displayTable([], globalPassingScore);
+                 if(statsSummaryDiv) statsSummaryDiv.style.display = 'none';
+            }
+
+        } catch (error) {
+            // --- START OF MODIFIED BLOCK ---
+            console.error('API Call Error:', error);
+            const isAuthError = error.message.includes('Authentication failed') || error.message.includes('IllegalStateException');
+            const isFileNotFoundError = error.message.includes('Error retrieving file path information');
+
+            if (isFileNotFoundError) {
+                // הגיון חדש: הקובץ לא נמצא, אבל החיבור תקין
+                isCurrentlyConnected = true; // The connection is OK, the file is just missing.
+                displaySpecialErrorMessage('אין כעת מבחן פעיל במערכת', 'או שהנתיב שהוגדר שגוי.');
+            } else if (isAuthError) {
+                // הגיון קיים לשגיאות טוקן
+                isCurrentlyConnected = false;
+                displaySpecialErrorMessage('שגיאת התחברות עם הטוקן', "ניתן לבקש מ-S.M.T טוקן חדש או להגדיר פרטי התחברות (מספר מערכת וסיסמה) כדי לאפשר חידוש אוטומטי.");
+            } else {
+                // הגיון קיים לשאר השגיאות
+                isCurrentlyConnected = false;
+                displaySpecialErrorMessage(`כשל בטעינת נתונים`, `אירעה שגיאה בתקשורת עם השרת: ${error.message}`);
+            }
+            if(statsSummaryDiv) statsSummaryDiv.style.display = 'none';
+            // --- END OF MODIFIED BLOCK ---
+        } finally {
+            if(loaderNode) loaderNode.style.display = 'none';
+            if(loaderContainerNode) loaderContainerNode.style.display = 'none';
+            updateButtonStatesAndActions(); 
+        }
+    }
+
+
+
+
+    function displayTable(dataArray, passingScoreToUse) {
+        tableContainer.innerHTML = '';
+
+        if (!dataArray || dataArray.length === 0) {
+            return;
+        }
+
+        const table = document.createElement('table');
+        table.className = 'report-table';
+        const thead = document.createElement('thead');
+        const tbody = document.createElement('tbody');
+
+        const headers = dataArray.length > 0 ? Object.keys(dataArray[0]) : [];
+        if (headers.length === 0 && dataArray.length > 0) {
+             console.warn("First row of data is empty or malformed, cannot determine headers.");
+             showToastNotification('שגיאה בעיבוד הנתונים (כותרות חסרות).', 'error', 0);
+             return;
+        }
+
+
+        const headerRow = document.createElement('tr');
+        headers.forEach(headerText => {
+            const th = document.createElement('th');
+            th.textContent = headerText;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        dataArray.forEach(rowData => {
+            const tr = document.createElement('tr');
+            headers.forEach(header => {
+                const td = document.createElement('td');
+                td.textContent = (rowData[header] !== undefined && rowData[header] !== null) ? String(rowData[header]) : '';
+
+                if (header === SCORE_COLUMN_NAME) {
+                    const scoreStr = rowData[header];
+                    if (scoreStr !== undefined && scoreStr !== null) {
+                        const scoreMatch = String(scoreStr).match(/-?\d+(\.\d+)?/);
+                        if (scoreMatch) {
+                            const score = parseFloat(scoreMatch[0]);
+                            if (!isNaN(score)) {
+                                if (score >= passingScoreToUse) {
+                                    td.classList.add('score-passed');
+                                } else {
+                                    td.classList.add('score-failed');
+                                }
+                            }
+                        }
+                    }
+                }
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        tableContainer.appendChild(table);
+    }
+
+    
+    async function fetchDirectoryContents(relativeApiPath) {
+        if(fileBrowserPathDisplay) fileBrowserPathDisplay.textContent = `טוען נתיב: ivr2:${relativeApiPath}...`;
+        if(fileBrowserListDiv) fileBrowserListDiv.innerHTML = `<div style="padding:1rem; text-align:center;"><i class="fas fa-spinner fa-spin"></i> טוען רשימת קבצים...</div>`;
+
+        const settings = loadEffectiveSettings();
+        // MODIFIED: Checks for token instead of password
+        if (!settings || !settings.token) {
+            showToastNotification('שגיאה: נדרש טוקן API תקף.', 'error', 0, 'top-center');
+            if(fileBrowserListDiv) fileBrowserListDiv.innerHTML = '';
+            return;
+        }
+        
+        const encodedApiPath = encodeURIComponent(relativeApiPath);
+        const apiUrl = `${API_ENDPOINT_GET_DIR}?path=${encodedApiPath}&orderBy=mtime&orderDir=desc`;
+
+        try {
+            const response = await apiFetch(apiUrl);
+            if (!response.ok) {
+                let errorText = `שגיאה ${response.status} בקבלת תוכן תיקייה.`;
+                try { const errorData = await response.json(); if (errorData?.message) errorText += ` ${errorData.message}`; } catch (e) { /* ignore */ }
+                throw new Error(errorText);
+            }
+
+            const data = await response.json();
+
+            if (data.responseStatus === 'OK') {
+                currentBrowsePathForAPI = relativeApiPath;
+                if(fileBrowserPathDisplay) fileBrowserPathDisplay.textContent = `נתיב נוכחי: ivr2:${relativeApiPath}`;
+                renderFileList(data.dirs || [], data.files || [], relativeApiPath, data.parentPath);
+                 if ((data.dirs || []).length === 0 && (data.files || []).filter(f => f.name && f.name.toLowerCase().endsWith('.ymgr')).length === 0) {
+                    fileBrowserMessage.textContent = 'לא נמצאו תיקיות או קבצי YMGR בנתיב זה.';
+                    fileBrowserMessage.className = 'user-message message-info';
+                    fileBrowserMessage.style.display = 'block';
+                } else {
+                    fileBrowserMessage.style.display = 'none';
+                }
+            } else {
+                throw new Error(`שגיאת API: ${data.message || data.responseStatus}`);
+            }
+        } catch (error) {
+            console.error("שגיאה בטעינת תוכן תיקייה:", error);
+            showToastNotification(error.message || 'אירעה שגיאה לא צפויה.', 'error', 0, 'top-center');
+            if(fileBrowserListDiv) fileBrowserListDiv.innerHTML = '';
+            if(fileBrowserPathDisplay) fileBrowserPathDisplay.textContent = `שגיאה בטעינת נתיב: ivr2:${relativeApiPath}`;
+        }
+    }
+
+
+
+    function renderFileList(dirs, files, currentDisplayedRelativePath, parentRelativeApiPath) {
+        if(!fileBrowserListDiv) return;
+        fileBrowserListDiv.innerHTML = '';
+        const list = document.createElement('ul');
+
+        const baseBrowsePathSettingRelative = getRelativePath(localStorage.getItem(BROWSE_PATH_STORAGE_KEY) || DEFAULT_BROWSE_PATH);
+
+        if (currentDisplayedRelativePath && currentDisplayedRelativePath !== '/' &&
+            currentDisplayedRelativePath.toLowerCase() !== baseBrowsePathSettingRelative.toLowerCase() &&
+            parentRelativeApiPath && parentRelativeApiPath.toLowerCase().startsWith(baseBrowsePathSettingRelative.toLowerCase()) &&
+            currentDisplayedRelativePath.toLowerCase() !== parentRelativeApiPath.toLowerCase() ) {
+            const upItem = document.createElement('li');
+            upItem.classList.add('up');
+            upItem.innerHTML = `<i class="fas fa-arrow-up"></i><span class="fb-item-text"> ../ (תיקיית אב)</span>`;
+            upItem.onclick = () => fetchDirectoryContents(parentRelativeApiPath);
+            list.appendChild(upItem);
+        }
+
+
+        dirs.forEach(dir => {
+            const dirItem = document.createElement('li');
+            dirItem.classList.add('folder');
+            dirItem.innerHTML = `<i class="fas fa-folder"></i><span class="fb-item-text">${dir.name}</span>`;
+            dirItem.onclick = () => fetchDirectoryContents(getRelativePath(dir.what));
+            list.appendChild(dirItem);
+        });
+
+        const ymgrFiles = files.filter(file => file.name && file.name.toLowerCase().endsWith('.ymgr'));
+        ymgrFiles.forEach(file => {
+            const fileItem = document.createElement('li');
+            fileItem.classList.add('file');
+            const fullFilePathToLoad = ensureIvr2Prefix(file.what);
+
+            let containingFolderName = '';
+            if (currentDisplayedRelativePath && currentDisplayedRelativePath !== '/') {
+                 const pathParts = currentDisplayedRelativePath.split('/').filter(p => p);
+                 containingFolderName = pathParts.pop() || '';
+            }
+
+
+            fileItem.innerHTML = `<i class="fas fa-file-alt"></i><span class="fb-item-text">${file.name}</span> ${file.mtime ? `<span class="fb-item-date">(${file.mtime})</span>` : ''}`;
+            fileItem.onclick = () => {
+                if(fileBrowserModal) fileBrowserModal.style.display = 'none';
+                fetchDataFromApi(fullFilePathToLoad, {
+                    type: 'archive',
+                    folderName: containingFolderName || extractFileNameForDisplay(fullFilePathToLoad),
+                    filePathInArchive: fullFilePathToLoad
+                });
+            };
+            list.appendChild(fileItem);
+        });
+
+        fileBrowserListDiv.appendChild(list);
+    }
+
+    
+    async function suggestNextArchiveFolderName(basePath) {
+        const relativeBasePath = getRelativePath(basePath);
+        const apiUrl = `${API_ENDPOINT_GET_DIR}?path=${encodeURIComponent(relativeBasePath)}&orderBy=name&orderDir=asc`;
+        let maxNum = 0;
+        try {
+            const response = await apiFetch(apiUrl);
+            if (!response.ok) {
+                console.error(`Error fetching directories for suggestion (HTTP ${response.status}): ${response.statusText}`);
+                return (maxNum + 1).toString().padStart(2, '0');
+            }
+            const data = await response.json();
+            if (data.responseStatus === 'OK' && data.dirs && Array.isArray(data.dirs)) {
+                data.dirs.forEach(dir => {
+                    if (dir && typeof dir.name === 'string') {
+                        const match = dir.name.match(/^(\d+)/);
+                        if (match) {
+                            const num = parseInt(match[1], 10);
+                            if (!isNaN(num) && num > maxNum) {
+                                maxNum = num;
+                            }
+                        }
+                    }
+                });
+            } else if (data.responseStatus !== 'OK') {
+                console.error("Error in API response when fetching directories for suggestion:", data.message || data.responseStatus);
+            }
+        } catch (error) {
+            console.error("Exception when fetching directories for suggestion:", error);
+        }
+        return (maxNum + 1).toString().padStart(2, '0');
+    }
+
+
+
+    
+    async function handleArchiveCurrentTest() {
+        const settings = loadEffectiveSettings();
+        // MODIFIED: Checks for token instead of password
+        if (!settings || !settings.token) {
+            showToastNotification('נדרש טוקן API תקף כדי לארכב את המבחן.', 'error', 0);
+            return;
+        }
+        if (!isDisplayingMainTest || !currentParticipantsData || currentParticipantsData.length === 0) {
+            showToastNotification('ניתן לארכב רק את המבחן הראשי הפעיל, ולאחר שנטענו בו נתונים.', 'info', 0);
+            return;
+        }
+
+        const archiveBaseBrowsePath = localStorage.getItem(BROWSE_PATH_STORAGE_KEY) || DEFAULT_BROWSE_PATH;
+        if (!archiveBaseBrowsePath) {
+            showToastNotification('נתיב הבסיס לארכיון ("מבחנים קודמים") אינו מוגדר בהגדרות.', 'error', 0);
+            return;
+        }
+
+        if(toastNotificationEl && toastNotificationEl.style.display !== 'none') toastNotificationEl.style.display = 'none';
+
+        showToastNotification("מעבד בקשה לארכיון...", "info", 2000);
+        const suggestedPrefix = await suggestNextArchiveFolderName(archiveBaseBrowsePath);
+        const todayDate = new Date().toLocaleDateString('fr-CA');
+
+        const folderNameSuffix = prompt(`המספר הסידורי האוטומטי שנוצר עבור התיקייה הוא: "${suggestedPrefix}".\nאנא הזן את פרשת המבחן (למשל: 'שמות').\nהשאר ריק לשימוש בשם: 'מבחן-${todayDate}'.`, ``);
+
+        if (folderNameSuffix === null) {
+            showToastNotification("יצירת שם תיקייה לארכיון בוטלה על ידך.", 'info', 5000);
+            if(archiveCurrentTestBtn) archiveCurrentTestBtn.disabled = false;
+            updateButtonStatesAndActions();
+            return;
+        }
+
+        const finalFolderNamePart = folderNameSuffix.trim() === "" ? `מבחן-${todayDate}` : folderNameSuffix.trim().replace(/[\\/?%*:|"<>.]/g, '-');
+        const sanitizedFolderName = `${suggestedPrefix} ${finalFolderNamePart}`;
+
+        const normalizedArchiveBasePath = archiveBaseBrowsePath.endsWith('/') ? archiveBaseBrowsePath.slice(0, -1) : archiveBaseBrowsePath;
+        const targetDirectoryPath = ensureIvr2Prefix(`${normalizedArchiveBasePath}/${sanitizedFolderName}`);
+
+        const mainYmgrPathFromSettings = settings.ymgrPath;
+        const mainYmgrDirRelative = getRelativePath(mainYmgrPathFromSettings).substring(0, getRelativePath(mainYmgrPathFromSettings).lastIndexOf('/'));
+        const mainYmgrDirAbsolute = ensureIvr2Prefix(mainYmgrDirRelative);
+
+        const wavFilesPaths = [];
+        for (let i = 1; i <= 9; i++) {
+            wavFilesPaths.push(ensureIvr2Prefix(`${mainYmgrDirAbsolute === 'ivr2:/' ? '' : mainYmgrDirAbsolute}/00${i}.wav`.replace(/\/\//g,'/')));
+        }
+        wavFilesPaths.push(ensureIvr2Prefix(`${mainYmgrDirAbsolute === 'ivr2:/' ? '' : mainYmgrDirAbsolute}/010.wav`.replace(/\/\//g,'/')));
+
+        const examinationIniNameToMove = "examination.ini";
+        const sourceExaminationIniPath = ensureIvr2Prefix(`${mainYmgrDirAbsolute === 'ivr2:/' ? '' : mainYmgrDirAbsolute}/${examinationIniNameToMove}`.replace(/\/\//g,'/'));
+
+        const filesToMoveInitially = [
+            mainYmgrPathFromSettings,
+            ...wavFilesPaths,
+            sourceExaminationIniPath
+        ];
+
+        const uniqueFilesToMove = [...new Set(filesToMoveInitially.map(p => p.replace(/ivr2:\/\//gi, 'ivr2:/')))];
+        const iniFileNameToCopy = "ExaminationLogOK.ini";
+        const fileNamesOnlyForConfirm = uniqueFilesToMove.map(f => '  - ' + f.substring(f.lastIndexOf('/') + 1)).join('\n');
+
+        if (!confirm(`האם אתה בטוח שברצונך לסגור את המבחן ולבצע את הפעולות הבאות?\n\nקבצים להעברה:\n${fileNamesOnlyForConfirm}\n\nקובץ להעתקה:\n  - ${iniFileNameToCopy}\n\nלתיקייה חדשה בשם "${sanitizedFolderName}"\nבנתיב: "${targetDirectoryPath}"\n\nשים לב: פעולת "העברה" תסיר את הקבצים מנתיבם הנוכחי.`)) {
+            showToastNotification('תהליך הארכוב בוטל על ידך (באישור הסופי).', 'info', 5000);
+            if(archiveCurrentTestBtn) archiveCurrentTestBtn.disabled = false;
+            updateButtonStatesAndActions();
+            return;
+        }
+
+        if(archiveCurrentTestBtn) archiveCurrentTestBtn.disabled = true;
+        const attemptedMoves = [];
+        const attemptedCopies = [];
+        let dirCreationSuccess = false;
+        let finalToastMessage = "";
+
+        showToastNotification(`יוצר תיקייה "${sanitizedFolderName}" בארכיון...`, 'info', 3000);
+        const createDirApiUrl = `${API_ENDPOINT_UPDATE_EXTENSION}?path=${encodeURIComponent(targetDirectoryPath)}`;
+        try {
+            const dirResponse = await apiFetch(createDirApiUrl);
+            const dirResponseData = await dirResponse.json();
+            if (!dirResponse.ok || (dirResponseData.responseStatus && dirResponseData.responseStatus !== 'OK' && dirResponseData.responseStatus !== 'Success' && dirResponseData.ReturnValue !== 'True' && dirResponseData.success !== true)) {
+                let dirErrorMsg = dirResponseData.message || dirResponseData.description || `שגיאה ${dirResponse.status} ביצירת התיקייה.`;
+                if(dirResponseData.error) dirErrorMsg += ` (${dirResponseData.error})`;
+                console.warn("Create directory API response:", dirResponseData);
+                throw new Error(dirErrorMsg);
+            }
+            dirCreationSuccess = true;
+             showToastNotification(`תיקייה "${sanitizedFolderName}" נוצרה. מתחיל העברת קבצים...`, 'info', 3000);
+        } catch (error) {
+            console.error("Error creating directory:", error);
+            const createDirErr = `שגיאה ביצירת התיקייה "${targetDirectoryPath}": ${error.message}.`;
+            finalToastMessage = `הארכוב נכשל: ${createDirErr} הפעולה בוטלה.`;
+        }
+
+        if(dirCreationSuccess){
+            for (const sourceFilePath of uniqueFilesToMove) {
+                const fileName = sourceFilePath.substring(sourceFilePath.lastIndexOf('/') + 1);
+                if (!fileName) {
+                    attemptedMoves.push({ name: sourceFilePath, success: false, error: "נתיב מקור לא תקין" });
+                    continue;
+                }
+                const targetFilePath = targetDirectoryPath.endsWith('/') ? `${targetDirectoryPath}${fileName}` : `${targetDirectoryPath}/${fileName}`;
+                showToastNotification(`מעביר את ${fileName}...`, 'info', 2000);
+                const moveFileApiUrl = `${API_ENDPOINT_FILE_ACTION}?action=move&what=${encodeURIComponent(sourceFilePath)}&target=${encodeURIComponent(targetFilePath)}`;
+                try {
+                    const moveResponse = await apiFetch(moveFileApiUrl);
+                    const moveResponseData = await moveResponse.json();
+                    if (moveResponse.ok && moveResponseData.success === true) {
+                        attemptedMoves.push({ name: fileName, success: true });
+                    } else {
+                        let fileErrorMsg = moveResponseData?.message || `שגיאה ${moveResponse.status}`;
+                        if (moveResponseData?.reports?.[0]?.message) fileErrorMsg = moveResponseData.reports[0].message;
+                        attemptedMoves.push({ name: fileName, success: false, error: fileErrorMsg });
+                    }
+                } catch (error) {
+                    attemptedMoves.push({ name: fileName, success: false, error: `שגיאת תקשורת: ${error.message}` });
+                }
+            }
+
+            showToastNotification(`מעתיק את ${iniFileNameToCopy}...`, 'info', 2000);
+            const sourceIniToCopy = ensureIvr2Prefix(`${mainYmgrDirAbsolute === 'ivr2:/' ? '' : mainYmgrDirAbsolute}/${iniFileNameToCopy}`.replace(/\/\//g,'/'));
+            const targetIniPathForCopy = targetDirectoryPath.endsWith('/') ? `${targetDirectoryPath}${iniFileNameToCopy}` : `${targetDirectoryPath}/${iniFileNameToCopy}`;
+
+            const copyIniApiUrl = `${API_ENDPOINT_FILE_ACTION}?action=copy&what=${encodeURIComponent(sourceIniToCopy)}&target=${encodeURIComponent(targetIniPathForCopy)}`;
+            try {
+                const copyResponse = await apiFetch(copyIniApiUrl);
+                const copyResponseData = await copyResponse.json();
+                if (copyResponse.ok && copyResponseData.success === true) {
+                    attemptedCopies.push({ name: iniFileNameToCopy, success: true });
+                } else {
+                    let iniCopyErrorMsg = copyResponseData?.message || `שגיאה ${copyResponse.status}`;
+                    if (copyResponseData?.reports?.[0]?.message) iniCopyErrorMsg = copyResponseData.reports[0].message;
+                    attemptedCopies.push({ name: iniFileNameToCopy, success: false, error: iniCopyErrorMsg });
+                }
+            } catch (error) {
+                attemptedCopies.push({ name: iniFileNameToCopy, success: false, error: `שגיאת תקשורת: ${error.message}` });
+            }
+        }
+
+        let overallArchiveSuccess = dirCreationSuccess;
+        let toastReportType = 'info';
+
+        if (dirCreationSuccess) {
+            toastReportType = 'success';
+            finalToastMessage = `סיכום ארכוב לתיקייה "${sanitizedFolderName}":\n- יצירת תיקייה: הצלחה.\n`;
+
+            finalToastMessage += "\nהעברת קבצים:\n";
+            if (attemptedMoves.length > 0) {
+                attemptedMoves.forEach(item => {
+                    finalToastMessage += `  - ${item.name}: ${item.success ? 'הועבר' : 'נכשל (' + item.error + ')'}\n`;
+                    if (!item.success) { overallArchiveSuccess = false; toastReportType = 'warning'; }
+                });
+            } else {
+                 finalToastMessage += "  - לא בוצעו העברות קבצים (ייתכן שרשימת הקבצים הייתה ריקה).\n";
+                 if (uniqueFilesToMove.length > 0) {
+                    overallArchiveSuccess = false; toastReportType = 'warning';
+                 }
+            }
+
+
+            finalToastMessage += `\nהעתקת ${iniFileNameToCopy}:\n`;
+            if (attemptedCopies.length > 0) {
+                attemptedCopies.forEach(item => {
+                    finalToastMessage += `  - ${item.name}: ${item.success ? 'הועתק' : 'נכשל (' + item.error + ')'}\n`;
+                    if (!item.success) { overallArchiveSuccess = false; toastReportType = 'warning'; }
+                });
+            } else {
+                 finalToastMessage += `  - ${iniFileNameToCopy}: לא נוסה (ייתכן עקב שגיאה קודמת או קובץ מקור לא נמצא).\n`;
+            }
+
+            if (!overallArchiveSuccess && toastReportType === 'success') {
+                toastReportType = 'warning';
+            }
+             if (attemptedMoves.every(m => !m.success) && attemptedCopies.every(c => !c.success) && uniqueFilesToMove.length + attemptedCopies.length > 0) {
+                toastReportType = 'error';
+            }
+
+        } else if (!finalToastMessage) {
+             toastReportType = 'error';
+             finalToastMessage = "הארכוב נכשל: לא ניתן היה ליצור את תיקיית היעד.";
+        }
+
+        const toastToShow = finalToastMessage.trim();
+
+
+        if (overallArchiveSuccess && dirCreationSuccess) {
+            currentParticipantsData = [];
+            if(tableContainer) tableContainer.innerHTML = '<p style="text-align:center; padding: 1rem; color: var(--text-color-muted);">נתוני המבחן הועברו והועתקו לארכיון.</p>';
+            if(statsSummaryDiv) statsSummaryDiv.style.display = 'none';
+            if(currentFileDisplayDiv) currentFileDisplayDiv.style.display = 'none';
+            isDisplayingMainTest = false;
+        }
+
+        const settingsForRefresh = loadEffectiveSettings();
+        if (settingsForRefresh && settingsForRefresh.ymgrPath) {
+            await fetchDataFromApi(settingsForRefresh.ymgrPath, { type: 'direct' });
+        } else {
+            updateButtonStatesAndActions();
+        }
+        if(archiveCurrentTestBtn) archiveCurrentTestBtn.disabled = false;
+
+        if(toastToShow) {
+             showToastNotification(toastToShow, toastReportType, 0);
+        }
+    }
+
+
+
+    // --- Initial Load ---
+    function checkAndLockInterface() {
+        const storedPassword = localStorage.getItem(PASSWORD_STORAGE_KEY);
+        const interfaceLockStoredValue = localStorage.getItem(INTERFACE_LOCK_ENABLED_KEY);
+        const isLockEnabled = (interfaceLockStoredValue === null) ? DEFAULT_INTERFACE_LOCK_ENABLED : (interfaceLockStoredValue === 'true');
+
+        if (isLockEnabled && storedPassword) {
+            if (interfaceLockModal) interfaceLockModal.style.display = 'flex';
+            if (pageWrapper) {
+                pageWrapper.classList.add('blurred-background');
+                document.body.classList.add('no-scroll');
+            }
+            if (lockScreenPasswordInput) lockScreenPasswordInput.value = '';
+            if (lockScreenMessage) {
+                lockScreenMessage.innerHTML = '';
+                lockScreenMessage.style.display = 'none';
+            }
+            failedLoginAttempts = 0;
+            return true;
+        }
+        return false;
+    }
+
+    function proceedWithInitialLoad() {
+        currentParticipantsData = [];
+        calculateAndDisplayStats([], DEFAULT_PASSING_SCORE);
+        if (statsSummaryDiv) statsSummaryDiv.style.display = 'none';
+        updateButtonStatesAndActions();
+
+        const settings = loadEffectiveSettings();
+        // **MODIFIED: Always attempt to fetch data. The function itself will handle missing token.**
+        fetchDataFromApi(settings.ymgrPath, { type: 'direct' });
+    }
+
+    window.onload = () => {
+        const creditLinks = document.querySelectorAll('.credit-logo-link');
+        creditLinks.forEach(link => {
+            if(link) link.href = CREDIT_LINK_URL;
+        });
+
+        proceedWithInitialLoad();
+
+        if (checkAndLockInterface()) {
+            if (pageWrapper) {
+                pageWrapper.classList.remove('initially-hidden');
+                pageWrapper.classList.remove('fully-visible');
+            }
+            if (lockScreenPasswordInput) {
+                 setTimeout(() => lockScreenPasswordInput.focus(), 100);
+            }
+        } else {
+             if (pageWrapper) {
+                pageWrapper.classList.remove('initially-hidden');
+                pageWrapper.classList.remove('blurred-background');
+                document.body.classList.remove('no-scroll');
+                pageWrapper.classList.add('fully-visible');
+            }
+        }
+
+        const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+        window.onscroll = function() {scrollFunction()};
+
+        function scrollFunction() {
+            if (document.body.scrollTop > 200 || document.documentElement.scrollTop > 200) {
+                if (scrollToTopBtn) scrollToTopBtn.style.display = "block";
+            } else {
+                if (scrollToTopBtn) scrollToTopBtn.style.display = "none";
+            }
+        }
+
+        if (scrollToTopBtn) {
+            scrollToTopBtn.addEventListener('click', function() {
+                document.body.scrollTop = 0;
+                document.documentElement.scrollTop = 0;
+            });
+        }
+    };
+  </script>
+ </body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=24e0c58a-e665-44f6-ba79-713611abbc8a
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S.M.T</title>
+    
+    <link rel="icon" type="image/png" href="smt.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --background-color: #f0f2f5;
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --text-primary: #1c1e21;
+            --text-secondary: #606770;
+            --accent-color: #0d6efd;
+            --accent-shadow: rgba(13, 110, 253, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Assistant', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            cursor: none;
+        }
+        
+        /* סמני עכבר מותאמים אישית */
+        .cursor-dot, .cursor-glow {
+            position: fixed;
+            left: 0; top: 0;
+            pointer-events: none;
+            z-index: 999;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+        .cursor-dot { width: 8px; height: 8px; background-color: var(--accent-color); transition: transform 0.2s ease-out; }
+        .cursor-glow {
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, var(--accent-shadow) 0%, rgba(255,255,255,0) 60%);
+        }
+        
+        /* רקע לוגואים אינטראקטיבי */
+        .logo-background {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0; overflow: hidden;
+            transition: transform 0.5s ease-out;
+        }
+
+        .logo-background img {
+            position: absolute;
+            opacity: 0.15;
+            filter: invert(0.6); /* גוון אפור אחיד ומעודן */
+            animation: spin linear infinite;
+        }
+        
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        
+        /* 20 לוגואים */
+        .logo-background .logo1 { top: 10%; left: 5%; width: 80px; animation-duration: 45s; }
+        .logo-background .logo2 { top: 20%; left: 85%; width: 120px; animation-duration: 55s; }
+        .logo-background .logo3 { top: 70%; left: 10%; width: 150px; animation-duration: 65s; }
+        .logo-background .logo4 { top: 85%; left: 70%; width: 60px; animation-duration: 40s; }
+        .logo-background .logo5 { top: 50%; left: 50%; width: 100px; animation-duration: 75s; }
+        .logo-background .logo6 { top: -5%; left: 40%; width: 70px; animation-duration: 50s; }
+        .logo-background .logo7 { top: 90%; left: 25%; width: 90px; animation-duration: 60s; }
+        .logo-background .logo8 { top: 40%; left: 15%; width: 50px; animation-duration: 35s; }
+        .logo-background .logo9 { top: 60%; left: 80%; width: 110px; animation-duration: 70s; }
+        .logo-background .logo10 { top: 30%; left: 60%; width: 65px; animation-duration: 48s; }
+        .logo-background .logo11 { top: 5%; left: 70%; width: 75px; animation-duration: 42s; }
+        .logo-background .logo12 { top: 35%; left: 90%; width: 95px; animation-duration: 58s; }
+        .logo-background .logo13 { top: 75%; left: 40%; width: 130px; animation-duration: 68s; }
+        .logo-background .logo14 { top: 95%; left: 5%; width: 55px; animation-duration: 38s; }
+        .logo-background .logo15 { top: 65%; left: 60%; width: 85px; animation-duration: 72s; }
+        .logo-background .logo16 { top: 15%; left: 25%; width: 60px; animation-duration: 47s; }
+        .logo-background .logo17 { top: 80%; left: 90%; width: 100px; animation-duration: 62s; }
+        .logo-background .logo18 { top: 55%; left: 5%; width: 70px; animation-duration: 53s; }
+        .logo-background .logo19 { top: 25%; left: 45%; width: 140px; animation-duration: 78s; }
+        .logo-background .logo20 { top: 45%; left: 75%; width: 50px; animation-duration: 36s; }
+        
+        /* הכרטיס הראשי */
+        .main-card {
+            position: relative;
+            z-index: 1;
+            background: var(--card-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+            padding: 40px; text-align: center;
+            width: 90%; max-width: 420px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.1);
+            transform-style: preserve-3d;
+        }
+
+        .fade-in { animation: fadeIn 1s ease-out forwards; opacity: 0; }
+        .fade-in.delay-1 { animation-delay: 0.2s; }
+        .fade-in.delay-2 { animation-delay: 0.4s; }
+        .fade-in.delay-3 { animation-delay: 0.6s; }
+        .fade-in.delay-4 { animation-delay: 0.8s; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .logo-container {
+            width: 150px; height: 150px; margin: 0 auto 25px auto;
+            display: flex; justify-content: center; align-items: center;
+            transform: translateZ(40px);
+            border-radius: 16px;
+        }
+        .logo-container img { max-width: 100%; height: auto; }
+
+        .subtitle { color: var(--text-secondary); font-size: 1rem; font-weight: 400; margin-bottom: 5px; }
+
+        .title {
+            font-size: 2.2rem; /* הגדלנו מעט להדגשה */
+            font-weight: 700;
+            margin: 0;
+            color: var(--text-primary); /* צבע שחור ברור */
+        }
+
+        .divider {
+            width: 80px; height: 3px; background-color: var(--accent-color);
+            opacity: 0.5; border: none; border-radius: 1.5px; margin: 25px auto;
+        }
+
+        .contact-info {
+            display: flex; align-items: center; justify-content: center;
+            gap: 12px; background-color: rgba(0,0,0,0.05);
+            padding: 12px 20px; border-radius: 12px; direction: ltr;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .contact-info:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent-shadow); }
+        .contact-info i { color: var(--text-secondary); font-size: 1.2rem; }
+        .contact-info .email-text { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+
+        .close-button {
+            position: absolute; top: 20px; right: 20px;
+            background: none; border: none; color: var(--text-secondary);
+            font-size: 1.5rem; cursor: pointer; z-index: 10;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .close-button:hover { color: var(--text-primary); transform: rotate(90deg); }
+    </style>
+</head>
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-glow"></div>
+
+    <div class="logo-background">
+        <img src="smt.png" class="logo1"> <img src="smt.png" class="logo2">
+        <img src="smt.png" class="logo3"> <img src="smt.png" class="logo4">
+        <img src="smt.png" class="logo5"> <img src="smt.png" class="logo6">
+        <img src="smt.png" class="logo7"> <img src="smt.png" class="logo8">
+        <img src="smt.png" class="logo9"> <img src="smt.png" class="logo10">
+        <img src="smt.png" class="logo11"> <img src="smt.png" class="logo12">
+        <img src="smt.png" class="logo13"> <img src="smt.png" class="logo14">
+        <img src="smt.png" class="logo15"> <img src="smt.png" class="logo16">
+        <img src="smt.png" class="logo17"> <img src="smt.png" class="logo18">
+        <img src="smt.png" class="logo19"> <img src="smt.png" class="logo20">
+    </div>
+
+    <main class="main-card" id="tilt-card">
+        <button onclick="window.close()" class="close-button fade-in delay-4" title="סגירה"><i class="fa-solid fa-times"></i></button>
+        <div class="logo-container fade-in">
+             <img src="smt.png" alt="לוגו S.M.T">
+        </div>
+        <p class="subtitle fade-in delay-1">פותח ע"י</p>
+        <h1 class="title fade-in delay-2">S.M.T - שימי טרייטל</h1>
+        <hr class="divider fade-in delay-3">
+        <div class="contact-info fade-in delay-4">
+            <i class="fa-solid fa-envelope"></i>
+            <span class="email-text">s6754091@gmail.com</span>
+        </div>
+    </main>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
+    <script>
+        // אפקט הטיה
+        VanillaTilt.init(document.querySelector("#tilt-card"), {
+            max: 15, speed: 400, glare: true, "max-glare": 0.1, scale: 1.05
+        });
+
+        // אפקטי עכבר
+        const dot = document.querySelector('.cursor-dot');
+        const glow = document.querySelector('.cursor-glow');
+        const background = document.querySelector('.logo-background');
+        
+        document.addEventListener('mousemove', e => {
+            // עדכון מיקום סמנים
+            dot.style.left = e.clientX + 'px';
+            dot.style.top = e.clientY + 'px';
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+
+            // אפקט Parallax לרקע
+            const moveX = (e.clientX - window.innerWidth / 2) / 40;
+            const moveY = (e.clientY - window.innerHeight / 2) / 40;
+            background.style.transform = `translate(${moveX * -1}px, ${moveY * -1}px)`;
+        });
+
+        // הגדלת הנקודה במעבר על אלמנטים אינטראקטיביים
+        document.querySelectorAll('button, a, .contact-info').forEach(elem => {
+            elem.addEventListener('mouseenter', () => dot.style.transform = 'translate(-50%, -50%) scale(2)');
+            elem.addEventListener('mouseleave', () => dot.style.transform = 'translate(-50%, -50%) scale(1)');
+        });
+    </script>
+</body>
+</html>

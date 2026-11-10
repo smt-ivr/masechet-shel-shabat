@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+<!-- This site is hosted on Netlify. Anyone can build and deploy a site
+     like this one for free: https://netlify.new/?utm_campaign=loops&utm_source=ai-legible&utm_medium=owned&utm_content=comment&utm_id=24e0c58a-e665-44f6-ba79-713611abbc8a
+     Netlify hosting facts for this site: static/SSR served via Netlify Edge. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מסכת של שבת V2</title>
+    <link href="smt.png" rel="icon" type="image/png"/>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="top-bar">
+        <div class="header-right" style="display: flex; align-items: center; gap: 20px;">
+            <h1 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                מסכת של שבת
+                <span style="font-size: 0.8rem; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); padding: 2px 10px; border-radius: 20px; font-weight: 600; letter-spacing: 1px;">V2</span>
+            </h1>
+            <div style="display: flex; align-items: center; background: rgba(255, 255, 255, 0.95); padding: 0 15px 0 70px; border-radius: 30px; color: var(--primary-color); font-size: 0.9rem; font-weight: 500; box-shadow: 0 2px 5px rgba(0,0,0,0.15); height: 36px; position: relative; overflow: visible;">
+                <span>פותח ע"י שימי טרייטל</span>
+                <img src="smt.png" alt="SMT Logo" draggable="false" style="height: 53px; object-fit: contain; pointer-events: none; user-select: none; position: absolute; left: 10px; top: 50%; transform: translateY(-48%); z-index: 1000;">
+            </div>
+        </div>
+        <div class="header-left" style="display: flex; align-items: center; gap: 15px;">
+            <span id="topBarUserDisplay" style="font-size: 0.95rem; background: rgba(0,0,0,0.2); padding: 5px 12px; border-radius: 20px;">
+                <i class="fa fa-spinner fa-spin"></i> ממתין לחיבור...
+            </span>
+            <button id="openSettingsBtn" class="btn btn-primary">
+                <i class="fa fa-cog"></i> הגדרות
+            </button>
+        </div>
+    </header>
+
+    <main class="container-fluid">
+        <div id="authScreens">
+            <div id="globalStartupLoader" class="text-center" style="padding: 60px 20px; color: var(--primary-color);">
+                <i class="fa fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 15px;"></i>
+                <h2>מתחבר למערכת...</h2>
+                <p style="color: var(--text-muted); margin-top: 10px;">מוודא הרשאות ופרטי חיבור</p>
+            </div>
+
+            <div id="mfaBanner" class="hidden text-center loading-banner" style="background: #fff3cd; color: #856404; border-color: #ffeeba; padding: 15px; margin-bottom: 15px;">
+                <p style="margin-bottom: 10px;"><strong>נדרש אימות דו-שלבי לאישור החיבור למערכת</strong></p>
+                <a id="mfaLink" href="index.html#" target="_blank" class="btn btn-primary"><i class="fa fa-external-link"></i> לחץ כאן לביצוע אימות בחלון חדש</a>
+                <div style="margin-top: 15px;">
+                    <button id="mfaRefreshBtn" class="btn btn-secondary"><i class="fa fa-refresh"></i> ביצעת אימות בהצלחה? לחץ כאן לרענון החיבור</button>
+                </div>
+            </div>
+
+            <div id="yemotErrorBanner" class="hidden text-center loading-banner" style="background: #f8d7da; color: #721c24; border-color: #f5c6cb; padding: 15px; margin-bottom: 15px;">
+                <p style="margin-bottom: 10px; font-size: 1.1rem;"><i class="fa fa-exclamation-triangle"></i> <strong>שגיאת חיבור למערכת:</strong> <span id="yemotErrorMessage"></span></p>
+                <button onclick="document.getElementById('openSettingsBtn').click()" class="btn btn-primary"><i class="fa fa-cog"></i> פתח הגדרות</button>
+            </div>
+        </div>
+
+        <div id="mainAppWrapper" class="hidden">
+            <nav class="main-navigation">
+                <div style="display: flex; gap: 20px;">
+                    <button class="main-nav-btn active" data-target="view-exams">
+                        <i class="fa fa-pencil-square-o"></i> ניהול מבחנים
+                    </button>
+                    <button class="main-nav-btn" data-target="view-clients">
+                        <i class="fa fa-users"></i> ניהול לקוחות
+                    </button>
+                </div>
+                
+                <div style="display: flex; align-items: center;">
+                    <button id="globalRefreshBtn" class="btn btn-secondary">
+                        <i class="fa fa-refresh"></i> רענן נתונים
+                    </button>
+                </div>
+            </nav>
+
+            <div id="view-exams" class="app-view active">
+                <div id="examsLoadingIndicator" class="text-center" style="padding: 100px 20px; color: var(--primary-color);">
+                    <i class="fa fa-spinner fa-spin" style="font-size: 4rem; margin-bottom: 20px;"></i>
+                    <h2 style="font-weight: 500;">טוען נתוני מבחנים...</h2>
+                    <p style="color: var(--text-muted); margin-top: 10px;">מושך נתונים מעודכנים משרת המערכת הטלפונית</p>
+                </div>
+            </div>
+
+            <div id="view-clients" class="app-view">
+                
+                <div id="yemotBaseErrorBanner" class="hidden text-center loading-banner" style="background: #fff3cd; color: #856404; border-color: #ffeeba; padding: 15px; margin-bottom: 15px;">
+                    <p style="margin-bottom: 0; font-size: 1.1rem;"><i class="fa fa-exclamation-triangle"></i> <strong>שגיאה בטעינת קובץ לקוחות:</strong> <span id="yemotBaseErrorMessage"></span></p>
+                    <p style="margin-top: 5px; font-size: 0.95rem;">לא ניתן להציג את רשימת הלקוחות. אנא בדוק את הגדרות המערכת הטלפונית.</p>
+                </div>
+
+                <div id="yemotPointsErrorBanner" class="hidden text-center loading-banner" style="background: #fff3cd; color: #856404; border-color: #ffeeba; padding: 15px; margin-bottom: 15px;">
+                    <p style="margin-bottom: 0; font-size: 1.1rem;"><i class="fa fa-exclamation-triangle"></i> <strong>שגיאה בטעינת קובץ נקודות:</strong> <span id="yemotPointsErrorMessage"></span></p>
+                    <p style="margin-top: 5px; font-size: 0.95rem;">המשך השימוש מתאפשר, אך תצוגת וניהול הנקודות מושבתים כעת.</p>
+                </div>
+
+                <div id="yemotAudioErrorBanner" class="hidden text-center loading-banner" style="background: #fff3cd; color: #856404; border-color: #ffeeba; padding: 15px; margin-bottom: 15px;">
+                    <p style="margin-bottom: 0; font-size: 1.1rem;"><i class="fa fa-exclamation-triangle"></i> <strong>שגיאה בטעינת הקלטות:</strong> <span id="yemotAudioErrorMessage"></span></p>
+                    <p style="margin-top: 5px; font-size: 0.95rem;">המשך השימוש מתאפשר, אך תצוגת ההקלטות מושבתת כעת.</p>
+                </div>
+                
+                <div id="nedarimErrorBanner" class="hidden text-center loading-banner" style="background: #fff3cd; color: #856404; border-color: #ffeeba; padding: 15px; margin-bottom: 15px;">
+                    <p style="margin-bottom: 0; font-size: 1.1rem;"><i class="fa fa-exclamation-triangle"></i> <strong>שגיאת חיבור לנדרים כארד:</strong> <span id="nedarimErrorMessage"></span></p>
+                    <p style="margin-top: 5px; font-size: 0.95rem;">המשך השימוש מתאפשר ללא סנכרון נתוני נדרים כארד.</p>
+                </div>
+
+                <div class="dashboard-top-controls" style="margin-bottom: 10px;" id="clientsTopControls">
+                    <div class="stats-cards" id="statsCardsContainer">
+                        <div class="stat-card">
+                            <span class="stat-title">סה"כ רשומים</span>
+                            <strong class="stat-value" id="totalClientsCount" title="סה&quot;כ רשומים">0</strong>
+                        </div>
+                        <div class="stat-card warning">
+                            <span class="stat-title">ללא חשבון נדרים</span>
+                            <strong class="stat-value" id="missingNedarimCount" title="רשומים במערכת הטלפונית, ללא חשבון בנדרים כארד">0</strong>
+                        </div>
+                        <div class="stat-card bordered">
+                            <span class="stat-title">ללא חשבון במערכת</span>
+                            <strong class="stat-value" id="nedarimOnlyCount" style="color: #e67e22;" title="רשומים בנדרים כארד אך לא רשומים במערכת הטלפונית ">0</strong>
+                        </div>
+                        <div class="stat-card bordered">
+                            <span class="stat-title">עדכון אחרון</span>
+                            <strong class="stat-value" id="yemotLastUpdate" title="תאריך עדכון">טרם נטען</strong>
+                        </div>
+                    </div>
+
+                    <div class="actions-wrapper" style="margin-right: auto;">
+                        <div id="loadingIndicator" class="hidden" style="color: var(--primary-color); font-weight: 500; font-size: 0.95rem; margin-left: 10px;">
+                            <i class="fa fa-spinner fa-spin"></i> טוען נתונים...
+                        </div>
+                        
+                        <div id="activeFiltersSummary" class="hidden" style="display: flex; align-items: center; gap: 10px; margin-left: 15px;">
+                            <span id="showingCountText" style="font-weight: 600; color: var(--primary-color); font-size: 13px; background: #eaf1ff; padding: 4px 10px; border-radius: 20px;"></span>
+                            <button id="clearFiltersBtn" class="btn btn-secondary btn-sm"><i class="fa fa-times"></i> נקה סינון</button>
+                        </div>
+
+                        <div class="search-box">
+                            <i class="fa fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="חיפוש כללי...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container" id="mainTableContainer">
+                    <table id="customersTable">
+                        <thead>
+                            <tr>
+                                <th class="checkbox-col text-center"><input type="checkbox" id="selectAllCheckbox"></th>
+                                <th class="text-center">#</th>
+                                <th class="text-center">מספר זהות</th>
+                                <th class="text-center">שם פרטי</th>
+                                <th class="text-center">שם משפחה</th>
+                                <th class="text-center">טלפון ראשי</th>
+                                <th class="text-center">טלפון נוסף</th>
+                                <th class="text-center position-relative">
+                                    <div class="th-content" onclick="toggleFilterMenu('statusMenu', event)">
+                                        <span>סטטוס</span>
+                                        <i class="fa fa-filter filter-icon"></i>
+                                    </div>
+                                    <div id="statusMenu" class="filter-dropdown hidden">
+                                        <div class="filter-option selected" onclick="setFilter('status', '', this)">הכל</div>
+                                    </div>
+                                </th>
+                                <th class="text-center">הקלטת הרשמה</th>
+                                <th class="text-center position-relative">
+                                    <div class="th-content" onclick="toggleFilterMenu('nedarimMenu', event)">
+                                        <span>חשבון נדרים</span>
+                                        <i class="fa fa-filter filter-icon"></i>
+                                    </div>
+                                    <div id="nedarimMenu" class="filter-dropdown hidden">
+                                        <div class="filter-option selected" onclick="setFilter('nedarim', '', this)">הכל</div>
+                                        <div class="filter-option" onclick="setFilter('nedarim', 'yes', this)">יש</div>
+                                        <div class="filter-option" onclick="setFilter('nedarim', 'no', this)">אין</div>
+                                    </div>
+                                </th>
+                                <th class="text-center position-relative">
+                                    <div class="th-content" onclick="toggleFilterMenu('balanceMenu', event)">
+                                        <span>יתרה</span>
+                                        <i class="fa fa-filter filter-icon"></i>
+                                    </div>
+                                    <div id="balanceMenu" class="filter-dropdown hidden">
+                                        <div class="filter-option selected" onclick="setFilter('balance', '', this)">הכל</div>
+                                        <div class="filter-option" onclick="setFilter('balance', 'zero', this)">יתרה 0</div>
+                                        <div class="filter-option" onclick="setFilter('balance', 'positive', this)">חיובית (+)</div>
+                                        <div class="filter-option" onclick="setFilter('balance', 'negative', this)">שלילית (-)</div>
+                                    </div>
+                                </th>
+                                <th class="text-center position-relative">
+                                    <div class="th-content" onclick="toggleFilterMenu('pointsMenu', event)">
+                                        <span>נקודות</span>
+                                        <i class="fa fa-filter filter-icon"></i>
+                                    </div>
+                                    <div id="pointsMenu" class="filter-dropdown hidden">
+                                        <div class="filter-option selected" onclick="setFilter('points', '', this)">הכל</div>
+                                        <div class="filter-option" onclick="setFilter('points', 'none', this)">ללא נקודות</div>
+                                        <div class="filter-option" onclick="setFilter('points', 'has', this)">יש נקודות</div>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="customAlertModal" class="modal-overlay hidden" style="z-index: 2000;"><div class="modal-content" style="max-width: 350px;"><div class="alert-modal-content"><i class="fa fa-info-circle" style="color: var(--primary-color);"></i><p id="customAlertMessage">הודעה</p><button id="closeAlertBtn" class="btn btn-primary">אישור והמשך</button></div></div></div>
+    
+    <div id="audioModal" class="modal-overlay hidden" style="z-index: 1500;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2><i class="fa fa-microphone"></i> הקלטת הרשמה</h2>
+                <button id="closeAudioModalBtn" class="close-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <div class="modal-body text-center" style="padding: 30px 20px;">
+                <h4 id="audioClientName" style="margin-bottom: 20px; color: var(--primary-color);"></h4>
+                <audio id="audioPlayer" controls style="width: 100%; outline: none;">
+                    <source src="index.html" type="audio/wav">
+                    הדפדפן שלך לא תומך בהשמעת אודיו.
+                </audio>
+            </div>
+        </div>
+    </div>
+
+    <div id="clientCardModal" class="modal-overlay hidden">
+        <div class="modal-content crm-modal">
+            <div class="modal-header">
+                <h2 id="crmModalTitle"></h2>
+                <button id="closeClientCardBtn" class="close-btn"><i class="fa fa-times"></i></button>
+            </div>
+            <div class="crm-tabs">
+                <button class="tab-btn active" data-tab="personal"><i class="fa fa-user"></i> פרטים אישיים</button>
+                <button class="tab-btn" data-tab="points"><i class="fa fa-star"></i> נקודות</button>
+                <button class="tab-btn" data-tab="cards"><i class="fa fa-id-badge"></i> כרטיסים</button>
+                <button class="tab-btn" data-tab="zchuyot"><i class="fa fa-gift"></i> זכיות</button>
+                <button class="tab-btn" data-tab="transactions"><i class="fa fa-shopping-cart"></i> עסקאות</button>
+                <button class="tab-btn" data-tab="siruvim"><i class="fa fa-ban"></i> סירובים</button>
+            </div>
+            <div class="modal-body crm-body">
+                <div id="tab-personal" class="tab-content active">
+                    <div class="tab-personal-scroll">
+                        <div class="split-layout">
+                            <div id="nedarimContainer" class="split-column position-relative">
+                                <div class="column-header-flex">
+                                    <h3><i class="fa fa-database"></i> נדרים כארד</h3>
+                                    <button class="btn btn-sm import-btn" id="importFromYemotBtn" title="ייבא נתונים לנדרים כארד"><i class="fa fa-arrow-right"></i> ייבא ממערכת טלפונית</button>
+                                </div>
+                                <div style="display: flex; gap:10px;">
+                                    <div class="form-group compact-group" style="flex: 1;"><label>מס' לקוח</label><input type="text" id="nedarimClientId" readonly class="readonly-input"></div>
+                                    <div class="form-group compact-group" style="flex: 1;"><label>קבוצה</label><input type="text" id="nedarimGroupe" class="nedarim-input"></div>
+                                </div>
+                                <div style="display: flex; gap:10px;">
+                                    <div class="form-group compact-group" style="flex: 1;"><label>שם פרטי</label><input type="text" id="nedarimFirstName" class="nedarim-input"></div>
+                                    <div class="form-group compact-group" style="flex: 1;"><label>משפחה</label><input type="text" id="nedarimFamilyName" class="nedarim-input"></div>
+                                </div>
+                                <div style="display: flex; gap:10px;">
+                                    <div class="form-group compact-group" style="flex: 1;"><label>עיר</label><input type="text" id="nedarimCity" class="nedarim-input"></div>
+                                    <div class="form-group compact-group" style="flex: 2;"><label>כתובת</label><input type="text" id="nedarimAddress" class="nedarim-input"></div>
+                                </div>
+                                <div style="display: flex; gap:10px;">
+                                    <div class="form-group compact-group" style="flex: 1;"><label>טלפון 1</label><input type="text" id="nedarimPhone1" class="nedarim-input"></div>
+                                    <div class="form-group compact-group" style="flex: 1;"><label>טלפון 2</label><input type="text" id="nedarimPhone2" class="nedarim-input"></div>
+                                </div>
+                                <div class="form-group compact-group"><label>אימייל</label><input type="email" id="nedarimEmail" dir="ltr" class="text-left nedarim-input"></div>
+                                <div class="form-group compact-group"><label>הערות</label><input type="text" id="nedarimComments" class="nedarim-input"></div>
+                            </div>
+                            <div class="split-column">
+                                <div class="column-header-flex">
+                                    <h3><i class="fa fa-phone-square"></i> מערכת טלפונית</h3>
+                                    <button class="btn btn-sm import-btn" id="importFromNedarimBtn" title="ייבא מנדרים כארד"><i class="fa fa-arrow-left"></i> ייבא מנדרים כארד</button>
+                                </div>
+                                <div class="form-group compact-group"><label>שם פרטי</label><input type="text" id="yemotFirstName" class="yemot-input"></div>
+                                <div class="form-group compact-group"><label>שם משפחה</label><input type="text" id="yemotLastName" class="yemot-input"></div>
+                                <div class="form-group compact-group"><label>טלפון ראשי</label><input type="text" id="yemotPhone1" class="yemot-input"></div>
+                                <div class="form-group compact-group"><label>טלפון נוסף</label><input type="text" id="yemotPhone2" class="yemot-input"></div>
+                                <div class="form-group compact-group"><label>סטטוס (קבוצה)</label><input type="text" id="yemotStatus" class="yemot-input"></div>
+                                <div style="margin-top: 15px; text-align: center;">
+                                    <button class="btn btn-sm play-audio-btn hidden" id="cardAudioBtn"><i class="fa fa-play-circle"></i> השמע הקלטת הרשמה</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" id="crmActionFooter" style="display: flex; background:#f8f9fa;">
+                        <div style="flex: 1; text-align: center;"><div id="nedarimStatusMsg" class="fixed-status-msg"></div><button id="saveNedarimBtn" class="btn btn-primary"><i class="fa fa-save"></i> <span id="saveNedarimText">שמור שינויים בנדרים כארד</span></button></div>
+                        <div style="width: 1px; background: #ddd; margin: 0 15px;"></div>
+                        <div style="flex: 1; text-align: center;"><div id="yemotStatusMsg" class="fixed-status-msg"></div><button id="saveYemotBtn" class="btn btn-primary"><i class="fa fa-save"></i> שמור שינויים במערכת טלפונית</button></div>
+                    </div>
+                </div>
+                
+                <div id="tab-points" class="tab-content">
+                    <div class="summary-bar" style="background:#eaf1ff; border-color:#cce0ff;">
+                        <div class="summary-item">
+                            <span class="summary-label">סך נקודות שנצברו:</span>
+                            <span class="summary-val" id="crmTotalPoints">-</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="tab-cards" class="tab-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div class="summary-bar" style="margin-bottom: 0; padding: 10px 15px;">
+                            <div class="summary-item">
+                                <span class="summary-label">סה"כ כרטיסים:</span>
+                                <span class="summary-val" id="cardsCountTotal">0</span>
+                            </div>
+                        </div>
+                        <button id="openAddCardBtn" class="btn btn-primary"><i class="fa fa-plus"></i> הוסף כרטיס</button>
+                    </div>
+
+                    <div id="addCardContainer" class="add-card-container hidden">
+                        <div style="display: flex; gap: 10px; align-items: flex-end;">
+                            <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                                <label>הכנס מספר כרטיס או פס מגנטי:</label>
+                                <input type="text" id="newCardInput" dir="ltr" placeholder="...">
+                            </div>
+                            <button id="saveNewCardBtn" class="btn btn-success" style="height: 35px;"><i class="fa fa-save"></i> שמור</button>
+                            <button id="cancelAddCardBtn" class="btn btn-secondary" style="height: 35px;"><i class="fa fa-times"></i> ביטול</button>
+                        </div>
+                        <div id="addCardErrorMsg" style="color: #dc3545; font-size: 0.85rem; margin-top: 8px; display: none; font-weight: 500;"></div>
+                    </div>
+
+                    <div id="cardsListContainer" class="data-list"></div>
+                </div>
+                
+                <div id="tab-zchuyot" class="tab-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div class="summary-bar" style="margin-bottom: 0; padding: 10px 15px; width: 100%;">
+                            <div class="summary-item">
+                                <span class="summary-label">סך הכל יתרה למימוש:</span>
+                                <span class="summary-val" id="crmTotalFreeAmount">0.00 ₪</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">סה"כ זכיות:</span>
+                                <span class="summary-val" id="zchuyotCountTotal">0</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="summary-label">סכום זכיות כולל:</span>
+                                <span class="summary-val" id="zchuyotAmountTotal">0.00 ₪</span>
+                            </div>
+                        </div>
+                        <button id="openAddTlushBtn" class="btn btn-primary" style="margin-right: 15px; white-space: nowrap; height: 100%;"><i class="fa fa-plus"></i> הוסף טעינה</button>
+                    </div>
+
+                    <div id="addTlushContainer" class="add-card-container hidden">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>סכום (חובה):</label>
+                                <input type="number" id="newTlushAmount" placeholder="לדוגמה: 100">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>תוקף (dd/MM/yyyy):</label>
+                                <input type="text" id="newTlushExpiration" placeholder="לדוגמה: 31/12/2026">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>הגבלת קבוצת חנויות:</label>
+                                <select id="newTlushLimitedId" class="form-control" style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; font-family: inherit; font-size: 0.9rem;">
+                                    <option value="">ללא הגבלה (ברירת מחדל)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label>הערות:</label>
+                            <input type="text" id="newTlushComments" placeholder="הערה לטעינה (אופציונלי)">
+                        </div>
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button id="saveNewTlushBtn" class="btn btn-success" style="height: 35px;"><i class="fa fa-check"></i> בצע טעינה</button>
+                            <button id="cancelAddTlushBtn" class="btn btn-secondary" style="height: 35px;"><i class="fa fa-times"></i> ביטול</button>
+                        </div>
+                        <div id="addTlushErrorMsg" style="color: #dc3545; font-size: 0.85rem; margin-top: 8px; display: none; font-weight: 500;"></div>
+                    </div>
+                    
+                    <h4 style="margin-bottom: 10px; color: var(--primary-color); border-bottom: 1px solid var(--border-light); padding-bottom: 5px;">היסטורית זכיות</h4>
+                    <div id="zchuyotListContainer" class="data-list"></div>
+                    <div id="cancellationsListContainer"></div>
+                </div>
+
+                <div id="tab-transactions" class="tab-content">
+                    <div class="summary-bar">
+                        <div class="summary-item">
+                            <span class="summary-label">סה"כ עסקאות:</span>
+                            <span class="summary-val" id="transactionsCountTotal">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">סכום עסקאות כולל:</span>
+                            <span class="summary-val" id="transactionsAmountTotal">0.00 ₪</span>
+                        </div>
+                    </div>
+                    <div id="transactionsListContainer" class="data-list"></div>
+                </div>
+
+                <div id="tab-siruvim" class="tab-content">
+                    <div class="summary-bar" style="background: #fff3cd; border-color: #ffeeba;">
+                        <div class="summary-item">
+                            <span class="summary-label">סה"כ סירובים:</span>
+                            <span class="summary-val" id="siruvimCountTotal" style="color: #856404;">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">סכום סירובים כולל:</span>
+                            <span class="summary-val" id="siruvimAmountTotal" style="color: #856404;">0.00 ₪</span>
+                        </div>
+                    </div>
+                    <div id="siruvimListContainer" class="data-list"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="api-yemot.js"></script>
+    <script src="api-nedarim.js"></script>
+    <script src="exams-manager.js"></script>
+    <script src="questions-manager.js"></script>
+    <script src="history-manager.js"></script>
+    <script src="app.js"></script>
+    <script src="modals-and-ui.js"></script>
+    <script src="auth.js"></script>
+    <script src="table-manager.js"></script>
+    <script src="client-card.js"></script>
+    <script src="server-sync.js"></script>
+    <script src="settings-manager.js"></script>
+</body>
+</html>
