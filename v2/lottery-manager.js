@@ -34,7 +34,6 @@ const LotteryManager = {
                 </div>
             </div>`;
         document.body.appendChild(modal);
-        modal.addEventListener('click', (e) => { if (e.target === modal) LotteryManager.close(); });
     },
 
     open() {

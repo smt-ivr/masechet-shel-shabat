@@ -185,9 +185,9 @@ const ExamsManager = {
             </div>
         ` : `
             <div class="actions-wrapper" style="margin-right: auto; gap: 8px;">
-                <button class="btn btn-primary btn-sm" ${disableActiveButtons} onclick="showAlert('פיצ\\'ר זה יעלה בקרוב!')"><i class="fa fa-pencil"></i> עריכת קובץ</button>
+                <button class="btn btn-secondary btn-sm" disabled title="פיצ'ר בפיתוח"><i class="fa fa-pencil"></i> עריכת קובץ (בפיתוח)</button>
                 <button class="btn btn-primary btn-sm" ${disableActiveButtons} onclick="if(typeof LotteryManager!=='undefined') LotteryManager.open()"><i class="fa fa-trophy"></i> ביצוע הגרלה</button>
-                <button class="btn btn-primary btn-sm" ${disableActiveButtons} onclick="showAlert('פיצ\\'ר זה יעלה בקרוב!')"><i class="fa fa-stop-circle"></i> סגירת מבחן</button>
+                <button class="btn btn-primary btn-sm" ${disableActiveButtons} onclick="if(typeof CloseExamManager!=='undefined') CloseExamManager.run()"><i class="fa fa-stop-circle"></i> סגירת מבחן</button>
                 
                 <span style="border-left: 1px solid var(--border-color); height: 24px; margin: 0 4px;"></span>
                 

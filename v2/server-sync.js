@@ -117,9 +117,6 @@ function updateUserDisplay(username) {
 
         closeBtn.addEventListener('click', closeModal);
         cancelBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal(); 
-        });
 
         const handleSubmit = async () => {
             const pass = input.value.trim();
