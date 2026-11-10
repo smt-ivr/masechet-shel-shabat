@@ -79,7 +79,7 @@ const YemotAPI = {
 
     async fetchRecordingsList(token) {
         try {
-            const url = `https://www.call2all.co.il/ym/api/GetIVR2Dir?token=${token}&path=1/1/Record`;
+            const url = `https://www.call2all.co.il/ym/api/GetIVR2Dir?token=${token}&path=1/2/1`;
             const res = await fetch(url);
             if (!res.ok) return { error: true, data: {} };
             
