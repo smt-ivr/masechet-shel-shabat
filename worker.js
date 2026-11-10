@@ -1,16 +1,10 @@
 // Cloudflare Worker – "מסכת של שבת"
-// מגיש שתי גרסאות של האתר תחת נתיב הבסיס /masechet:
-//   /masechet          → הגרסה הישנה (old/)
-//   /masechet/v2       → הגרסה החדשה (v2/)
+// נתיב הבסיס: /masechet
+//   /masechet            → האתר החדש (v2)  ← הראשי
+//   /masechet/old        → האתר הישן        ← נגיש בכפתור
 // הקבצים מיובאים כמודולים (טקסט / בינארי) לפי ההגדרות ב-wrangler.toml.
 
-// ----- הגרסה הישנה -----
-import oldIndex from './old/index.html';
-import oldSmtHtml from './old/smt.html';
-import oldSmtPng from './old/smt.png';
-import oldFavicon from './old/favicon.ico';
-
-// ----- גרסה V2 -----
+// ----- האתר החדש (v2) -----
 import v2Index from './v2/index.html';
 import v2Style from './v2/style.css';
 import v2SmtPng from './v2/smt.png';
@@ -27,6 +21,12 @@ import v2ClientCard from './v2/client-card.js';
 import v2ServerSync from './v2/server-sync.js';
 import v2SettingsManager from './v2/settings-manager.js';
 
+// ----- האתר הישן -----
+import oldIndex from './old/index.html';
+import oldSmtHtml from './old/smt.html';
+import oldSmtPng from './old/smt.png';
+import oldFavicon from './old/favicon.ico';
+
 const HTML = 'text/html; charset=utf-8';
 const CSS  = 'text/css; charset=utf-8';
 const JS   = 'application/javascript; charset=utf-8';
@@ -35,40 +35,47 @@ const ICO  = 'image/x-icon';
 
 // מיפוי נתיב → [תוכן, סוג-תוכן]
 const ROUTES = {
-  // ---- הגרסה הישנה: /masechet ----
-  '/masechet/':              [oldIndex,   HTML],
-  '/masechet/index.html':    [oldIndex,   HTML],
-  '/masechet/smt.html':      [oldSmtHtml, HTML],
-  '/masechet/smt.png':       [oldSmtPng,  PNG],
-  '/masechet/favicon.ico':   [oldFavicon, ICO],
+  // ---- האתר החדש (v2): מוגש ישירות תחת /masechet/ ----
+  '/masechet/':                     [v2Index,            HTML],
+  '/masechet/index.html':           [v2Index,            HTML],
+  '/masechet/style.css':            [v2Style,            CSS],
+  '/masechet/smt.png':              [v2SmtPng,           PNG],
+  '/masechet/api-yemot.js':         [v2ApiYemot,         JS],
+  '/masechet/api-nedarim.js':       [v2ApiNedarim,       JS],
+  '/masechet/exams-manager.js':     [v2ExamsManager,     JS],
+  '/masechet/questions-manager.js': [v2QuestionsManager, JS],
+  '/masechet/history-manager.js':   [v2HistoryManager,   JS],
+  '/masechet/app.js':               [v2App,              JS],
+  '/masechet/modals-and-ui.js':     [v2ModalsAndUi,      JS],
+  '/masechet/auth.js':              [v2Auth,             JS],
+  '/masechet/table-manager.js':     [v2TableManager,     JS],
+  '/masechet/client-card.js':       [v2ClientCard,       JS],
+  '/masechet/server-sync.js':       [v2ServerSync,       JS],
+  '/masechet/settings-manager.js':  [v2SettingsManager,  JS],
 
-  // ---- גרסה V2: /masechet/v2 ----
-  '/masechet/v2/':                     [v2Index,            HTML],
-  '/masechet/v2/index.html':           [v2Index,            HTML],
-  '/masechet/v2/style.css':            [v2Style,            CSS],
-  '/masechet/v2/smt.png':              [v2SmtPng,           PNG],
-  '/masechet/v2/api-yemot.js':         [v2ApiYemot,         JS],
-  '/masechet/v2/api-nedarim.js':       [v2ApiNedarim,       JS],
-  '/masechet/v2/exams-manager.js':     [v2ExamsManager,     JS],
-  '/masechet/v2/questions-manager.js': [v2QuestionsManager, JS],
-  '/masechet/v2/history-manager.js':   [v2HistoryManager,   JS],
-  '/masechet/v2/app.js':               [v2App,              JS],
-  '/masechet/v2/modals-and-ui.js':     [v2ModalsAndUi,      JS],
-  '/masechet/v2/auth.js':              [v2Auth,             JS],
-  '/masechet/v2/table-manager.js':     [v2TableManager,     JS],
-  '/masechet/v2/client-card.js':       [v2ClientCard,       JS],
-  '/masechet/v2/server-sync.js':       [v2ServerSync,       JS],
-  '/masechet/v2/settings-manager.js':  [v2SettingsManager,  JS],
+  // ---- האתר הישן: מוגש תחת /masechet/old/ ----
+  '/masechet/old/':            [oldIndex,   HTML],
+  '/masechet/old/index.html':  [oldIndex,   HTML],
+  '/masechet/old/smt.html':    [oldSmtHtml, HTML],
+  '/masechet/old/smt.png':     [oldSmtPng,  PNG],
+  '/masechet/old/favicon.ico': [oldFavicon, ICO],
 };
 
 export default {
   async fetch(request) {
     const url = new URL(request.url);
     const path = url.pathname;
+    const redirect = (to) => Response.redirect(url.origin + to, 301);
 
-    // נרמול נתיבים ללא "/" בסוף → הפניה לנתיב עם "/" (כדי שקישורים יחסיים יעבדו)
-    if (path === '/masechet')    return Response.redirect(url.origin + '/masechet/', 301);
-    if (path === '/masechet/v2') return Response.redirect(url.origin + '/masechet/v2/', 301);
+    // נרמול נתיבים ללא "/" בסוף (כדי שקישורים יחסיים יעבדו)
+    if (path === '/masechet')     return redirect('/masechet/');
+    if (path === '/masechet/old') return redirect('/masechet/old/');
+
+    // תאימות לאחור: קישורים ישנים ל-/masechet/v2/... → האתר החדש ב-/masechet/...
+    if (path === '/masechet/v2' || path === '/masechet/v2/') return redirect('/masechet/');
+    if (path.startsWith('/masechet/v2/')) {
+      return redirect('/masechet/' + path.slice('/masechet/v2/'.length));
+    }
 
     const hit = ROUTES[path];
     if (hit) {
