@@ -9,9 +9,6 @@ window.isNedarimDisabled = false;
 window.isAudioDisabled = false;
 window.isPointsDisabled = false;
 
-if (localStorage.getItem('autoSyncOnLoad') === null) {
-    localStorage.setItem('autoSyncOnLoad', 'true');
-}
 
 // --- אלמנטים ב-DOM ---
 let globalRefreshBtn, searchInput, selectAllCheckbox, loadingIndicator, mainTableContainer, tbody;
@@ -355,31 +352,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     processEarlyUrlParams();
 
-    // לוגיקת הפעלת המערכת בהתאם לבחירת המשתמש על טעינה אוטומטית
-    if (localStorage.getItem('autoSyncOnLoad') !== 'false') {
-        initApplication();
-    } else {
-        // המשתמש בחר להשבית טעינה אוטומטית - נציג לו את חלון הפעלת הטעינה הידנית
-        globalStartupLoader.classList.add('hidden');
-        
-        const manualScreen = document.createElement('div');
-        manualScreen.id = 'manualLoadScreen';
-        manualScreen.className = 'text-center';
-        manualScreen.style.cssText = 'padding: 100px 20px; color: var(--text-main); display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%;';
-        manualScreen.innerHTML = `
-            <div style="background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid var(--border-light); max-width: 500px; width: 100%;">
-                <i class="fa fa-pause-circle-o" style="font-size: 5rem; color: #adb5bd; margin-bottom: 20px;"></i>
-                <h2 style="color: var(--primary-color); margin-bottom: 15px; font-weight: 500;">טעינת נתונים אוטומטית מושבתת</h2>
-                <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 30px;">הגדרת במערכת שלא למשוך נתונים באופן אוטומטי בעת פתיחת הדף.</p>
-                <button id="btnManualLoadStart" class="btn btn-primary" style="font-size: 1.15rem; padding: 12px 35px; border-radius: 30px; box-shadow: 0 4px 10px rgba(3, 27, 79, 0.2);">
-                    <i class="fa fa-cloud-download"></i> לחץ לטעינת נתונים מהשרת
-                </button>
-            </div>
-        `;
-        authScreens.appendChild(manualScreen);
-        
-        document.getElementById('btnManualLoadStart').addEventListener('click', () => {
-            initApplication();
-        });
-    }
+    // הנתונים נטענים תמיד מיד אחרי הכניסה למערכת
+    initApplication();
 });

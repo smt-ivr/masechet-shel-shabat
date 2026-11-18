@@ -41,10 +41,6 @@ const SettingsManager = {
                         <div id="infoUserPerms" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;"></div>
                     </div>
 
-                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; background: #f8f9fa; padding: 12px 20px; border-radius: 8px; border: 1px solid var(--border-light);">
-                        <input type="checkbox" id="autoSyncCheck" style="transform: scale(1.3); cursor: pointer;">
-                        <span style="color: var(--text-main); font-size: 0.95rem;">טען נתונים אוטומטית בפתיחת הדף</span>
-                    </label>
                 </div>
                 <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; background: #f8f9fa; border-top: 1px solid var(--border-light);">
                     <button id="cancelSettingsBtn" class="btn btn-primary" style="padding: 8px 24px; font-size: 1rem;">סגור</button>
@@ -60,10 +56,6 @@ const SettingsManager = {
         document.getElementById('closeSettingsBtn').addEventListener('click', () => this.closeModal());
         document.getElementById('cancelSettingsBtn').addEventListener('click', () => this.closeModal());
         document.getElementById('refreshStatusBtn').addEventListener('click', () => this.checkStatusLive());
-        // נשמר מיד – אין כפתור שמירה
-        document.getElementById('autoSyncCheck').addEventListener('change', (e) => {
-            localStorage.setItem('autoSyncOnLoad', e.target.checked);
-        });
     },
 
     PERM_NAMES: {
@@ -90,8 +82,6 @@ const SettingsManager = {
     },
 
     openModal() {
-        const isAutoSync = localStorage.getItem('autoSyncOnLoad') !== 'false';
-        document.getElementById('autoSyncCheck').checked = isAutoSync;
         this.renderUser();
         document.getElementById(this.modalId).classList.remove('hidden');
         // בדיקת חיבור חיה בעת פתיחת החלון

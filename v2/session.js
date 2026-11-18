@@ -59,6 +59,7 @@ const MsSession = (() => {
     // ===== ניקוי הדפדפן =====
     async function cleanBrowser() {
         store.del('completionAnnouncementDismissed'); // הסגירה נשמרת עכשיו בחשבון
+        store.del('autoSyncOnLoad'); // הנתונים נטענים תמיד אחרי הכניסה
         const found = LEGACY_KEYS.filter((k) => store.get(k) !== null);
         found.forEach((k) => store.del(k));
         // מדווחים תמיד כשנמצא משהו, ופעם אחת לכל דפדפן גם כשהוא נקי
