@@ -26,7 +26,7 @@ import v2SettingsManager from './v2/settings-manager.js';
 
 // ----- API של האתר -----
 import { handleApi } from './api/router.js';
-import { isLoggedIn } from './api/auth.js';
+import { hasPagePermission } from './api/auth.js';
 import { ensureSchema } from './api/schema.js';
 import adminPage from './api/admin.html';
 
@@ -110,10 +110,10 @@ export default {
       return redirect('/masechet/' + path.slice('/masechet/v2/'.length));
     }
 
-    // האתר הישן – רק למשתמש מחובר (הכניסה דרך האתר החדש)
+    // האתר הישן – רק למשתמש מחובר עם ההרשאה "אתר ישן" (הכניסה דרך האתר החדש)
     if (path.startsWith('/masechet/old/') && ROUTES[path]) {
       await ensureSchema(env);
-      if (!(await isLoggedIn(request, env))) return Response.redirect(url.origin + '/masechet/', 302);
+      if (!(await hasPagePermission(request, env, 'old_site'))) return Response.redirect(url.origin + '/masechet/', 302);
     }
 
     const hit = ROUTES[path];

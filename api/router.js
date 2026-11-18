@@ -10,6 +10,8 @@ import { login, loginGoogle, loginOptions, logout, authenticate, publicAccount }
 import { proxyYemot, proxyNedarim, connectionStatus } from './proxy.js';
 import { handleAdmin } from './admin.js';
 import { logAction } from './audit.js';
+import { getConfig } from './settings.js';
+import { sha256Hex } from './auth.js';
 
 // מפתחות שהאתר הישן שמר בדפדפן (טוקנים וסיסמאות) – נמחקים ומדווחים
 const KNOWN_BROWSER_KEYS = [
@@ -32,6 +34,20 @@ async function browserCleanup(request, env, ctx) {
   return json({ logged: true });
 }
 
+// ===== הודעה בראש האתר: הטקסט בהגדרות; סגירה נשמרת בחשבון המשתמש (לא בדפדפן) =====
+// מזהה ההודעה = גיבוב של הטקסט, כך ששינוי הטקסט מציג אותה מחדש לכולם
+async function announcement(request, env, ctx, action) {
+  const cfg = await getConfig(env);
+  const id = (await sha256Hex(cfg.announcement_text || '')).slice(0, 16);
+  if (action === 'dismiss' || action === 'restore') {
+    await env.DB.prepare('UPDATE ms_accounts SET announcement_dismissed = ? WHERE id = ?')
+      .bind(action === 'dismiss' ? id : null, ctx.account.id).run();
+    await logAction(env, request, ctx, { kind: 'auth', action: action === 'dismiss' ? 'סגירת הודעה' : 'הצגת הודעה מחדש', target: cfg.announcement_text });
+    return json({ show: action === 'restore' && cfg.announcement_enabled, text: cfg.announcement_text });
+  }
+  return json({ show: cfg.announcement_enabled && !!cfg.announcement_text && ctx.account.announcement_dismissed !== id, text: cfg.announcement_text });
+}
+
 export async function handleApi(request, env, path) {
   try {
     if (!env.DB) throw new Error('D1 binding DB is missing');
@@ -48,6 +64,9 @@ export async function handleApi(request, env, path) {
 
     if (path === 'auth/me' && m === 'GET') return json({ user: publicAccount(ctx.account), ip: clientIp(request) });
     if (path === 'status' && m === 'GET') return json(await connectionStatus(env));
+    if (path === 'announcement' && m === 'GET') return await announcement(request, env, ctx);
+    if (path === 'announcement/dismiss' && m === 'POST') return await announcement(request, env, ctx, 'dismiss');
+    if (path === 'announcement/restore' && m === 'POST') return await announcement(request, env, ctx, 'restore');
     if (path === 'client/browser-cleanup' && m === 'POST') return await browserCleanup(request, env, ctx);
     if (path.startsWith('yemot/')) return await proxyYemot(request, env, ctx, path.slice('yemot/'.length));
     if (path === 'nedarim' && m === 'GET') return await proxyNedarim(request, env, ctx);

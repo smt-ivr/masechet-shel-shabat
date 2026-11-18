@@ -66,6 +66,9 @@
   .dlg-body { padding:16px; max-height:70vh; overflow:auto; }
   .dlg-foot { padding:12px 16px; display:flex; gap:8px; border-top:1px solid var(--border); background:#f8f9fb; }
   .hidden { display:none !important; }
+  .perm-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; }
+  .ip-row { display:grid; grid-template-columns:1.2fr 1fr auto; gap:8px; margin-bottom:8px; }
+  @media (max-width:700px) { .perm-grid { grid-template-columns:1fr; } }
   .empty { color:var(--muted); text-align:center; padding:20px; }
   @media (max-width:700px) {
     .grid { grid-template-columns:1fr; }
@@ -100,11 +103,11 @@
     <section id="tab-users">
       <div class="card">
         <div class="toolbar">
-          <div><h2>משתמשים</h2><p class="sub">כניסה בסיסמה בלבד (ואפשר גם Google לפי המייל), או כניסה אוטומטית לפי IP מורשה. לכל משתמש סיסמה משלו</p></div>
+          <div><h2>משתמשים</h2><p class="sub">לכל משתמש: שם ומייל, ובתוכו סיסמה, כתובות IP (כניסה אוטומטית) והרשאות. עם המייל אפשר להיכנס גם עם Google</p></div>
           <button id="addBtn"><i class="fa fa-plus"></i> משתמש חדש</button>
         </div>
         <table>
-          <thead><tr><th>שם</th><th>כניסה</th><th>מצב</th><th>כניסה אחרונה</th><th></th></tr></thead>
+          <thead><tr><th>שם</th><th>דרכי כניסה</th><th>הרשאות</th><th>כניסה אחרונה</th><th></th></tr></thead>
           <tbody id="usersRows"></tbody>
         </table>
         <div class="msg" id="usersMsg"></div>
@@ -192,6 +195,13 @@
         </fieldset>
 
         <fieldset>
+          <legend><i class="fa fa-bullhorn"></i> הודעה בראש האתר</legend>
+          <label class="check"><input type="checkbox" id="aOn"> להציג הודעה בראש האתר</label>
+          <div style="margin-top:10px"><label class="f" for="aText">טקסט ההודעה</label><input id="aText" maxlength="300"></div>
+          <div class="hint">כל משתמש יכול לסגור את ההודעה, והסגירה נשמרת בחשבון שלו. שינוי הטקסט מציג אותה שוב לכולם</div>
+        </fieldset>
+
+        <fieldset>
           <legend><i class="fa fa-paper-plane"></i> מייל פתיחה</legend>
           <div class="grid">
             <div class="full"><label class="f" for="wSubject">נושא</label><input id="wSubject"></div>
@@ -211,22 +221,40 @@
 </div>
 
 <!-- משתמש -->
-<dialog id="userDlg">
+<dialog id="userDlg" style="width:min(640px, calc(100% - 32px))">
   <form id="userForm" method="dialog">
     <div class="dlg-head"><h3 id="userTitle">משתמש</h3><button type="button" data-close aria-label="סגירה">×</button></div>
     <div class="dlg-body">
       <div class="grid">
-        <div class="full"><label class="f" for="uName">שם לתצוגה</label><input id="uName" required></div>
-        <div><label class="f" for="uType">כניסה לפי</label>
-          <select id="uType"><option value="user">סיסמה</option><option value="ip">כתובת IP (אוטומטית)</option></select></div>
-        <div class="u-ip"><label class="f" for="uIp">כתובת IP</label><input id="uIp" class="ltr" placeholder="1.2.3.4"><div class="hint">הכתובת שלך עכשיו: <a href="#" id="myIp" class="ltr"></a></div></div>
-        <div class="u-user"><label class="f" for="uPass" id="uPassLabel">סיסמה</label><input id="uPass" type="text" class="ltr" autocomplete="new-password"><div class="hint" id="uPassHint"></div></div>
-        <div class="u-user"><label class="f" for="uEmail">מייל (לכניסה עם Google ולמייל פתיחה)</label><input id="uEmail" type="email" class="ltr"></div>
-        <div class="full" style="display:flex; gap:20px; flex-wrap:wrap">
-          <label class="check"><input type="checkbox" id="uActive" checked> פעיל</label>
-          <label class="check u-user"><input type="checkbox" id="uAdmin"> מנהל (גישה לדף הזה)</label>
-        </div>
+        <div><label class="f" for="uName">שם</label><input id="uName" required></div>
+        <div><label class="f" for="uEmail">מייל (לכניסה עם Google ולמייל פתיחה)</label><input id="uEmail" type="email" class="ltr"></div>
       </div>
+
+      <fieldset style="margin-top:14px">
+        <legend><i class="fa fa-key"></i> סיסמה</legend>
+        <label class="f" for="uPass" id="uPassLabel">סיסמה</label>
+        <input id="uPass" type="text" class="ltr" autocomplete="new-password">
+        <div class="hint" id="uPassHint"></div>
+        <label class="check hidden" id="uRemovePassWrap" style="margin-top:8px"><input type="checkbox" id="uRemovePass"> להסיר את הסיסמה (כניסה רק לפי IP / Google)</label>
+      </fieldset>
+
+      <fieldset>
+        <legend><i class="fa fa-desktop"></i> כתובות IP (כניסה אוטומטית)</legend>
+        <div id="ipRows"></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
+          <button type="button" class="secondary small" id="addIpBtn"><i class="fa fa-plus"></i> כתובת</button>
+          <button type="button" class="secondary small" id="addMyIpBtn"><i class="fa fa-map-marker"></i> הכתובת שלי (<span id="myIp" class="ltr"></span>)</button>
+        </div>
+        <div class="hint">מחשב שנכנס מאחת הכתובות האלה נכנס אוטומטית כמשתמש הזה</div>
+      </fieldset>
+
+      <fieldset>
+        <legend><i class="fa fa-lock"></i> הרשאות</legend>
+        <div id="permBoxes" class="perm-grid"></div>
+        <label class="check" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border)"><input type="checkbox" id="uAdmin"> <b>ניהול המערכת</b> – דף הניהול וכל ההרשאות</label>
+      </fieldset>
+
+      <label class="check"><input type="checkbox" id="uActive" checked> פעיל</label>
       <div class="msg err" id="userMsg"></div>
     </div>
     <div class="dlg-foot"><button type="submit" id="userSave">שמירה</button><button type="button" class="secondary" data-close>ביטול</button></div>
@@ -300,32 +328,51 @@ document.querySelectorAll('nav.tabs button').forEach((b) => b.addEventListener('
 }));
 
 // ===== משתמשים =====
+let PERMS = {};
+const PERM_ORDER = ['clients_view', 'clients_edit', 'nedarim_charge', 'exams_view', 'exams_manage', 'old_site'];
+
 async function loadUsers() {
   const r = await api('GET', 'admin/accounts');
-  accounts = r.accounts;
-  $('usersRows').innerHTML = accounts.map((a) => `
+  accounts = r.accounts; PERMS = r.permissions || {};
+  $('usersRows').innerHTML = accounts.map((a) => {
+    const ways = [
+      a.has_password ? '<span class="tag">סיסמה</span>' : '',
+      ...a.ips.map((x) => `<span class="tag" title="${esc(x.label)}">IP <span class="ltr">${esc(x.ip)}</span></span>`),
+      a.email ? '<span class="tag">Google</span>' : '',
+    ].join('') || '<span class="tag off">אין</span>';
+    const perms = a.is_admin ? '<span class="tag admin">ניהול המערכת (הכול)</span>'
+      : (a.permissions.map((p) => `<span class="tag">${esc(PERMS[p] || p)}</span>`).join('') || '<span class="tag off">אין הרשאות</span>');
+    return `
     <tr>
-      <td><strong>${esc(a.name)}</strong>${a.id === me.id ? ' <span class="tag">אתה</span>' : ''}${a.email ? `<div class="details ltr">${esc(a.email)}</div>` : ''}</td>
-      <td>${a.type === 'ip' ? `IP <span class="ltr">${esc(a.ip)}</span>` : (a.has_password ? 'סיסמה' : '<span class="tag off">בלי סיסמה</span>')}</td>
-      <td>${a.is_admin ? '<span class="tag admin">מנהל</span>' : ''}${a.active ? '<span class="tag ok">פעיל</span>' : '<span class="tag off">מושבת</span>'}</td>
+      <td><strong>${esc(a.name)}</strong>${a.id === me.id ? ' <span class="tag">אתה</span>' : ''}${a.active ? '' : ' <span class="tag off">מושבת</span>'}${a.email ? `<div class="details ltr">${esc(a.email)}</div>` : ''}</td>
+      <td>${ways}</td>
+      <td>${perms}</td>
       <td class="nowrap">${esc(a.last_used_at || '—')}</td>
       <td class="actions">
-        ${a.type === 'user' ? `<button class="secondary small" data-welcome="${a.id}" title="שליחת מייל פתיחה"><i class="fa fa-paper-plane"></i></button>` : ''}
+        <button class="secondary small" data-welcome="${a.id}" title="שליחת מייל פתיחה"><i class="fa fa-paper-plane"></i></button>
         <button class="secondary small" data-log="${a.id}" title="הפעולות של המשתמש"><i class="fa fa-list"></i></button>
         <button class="secondary small" data-edit="${a.id}">עריכה</button>
         ${a.id === me.id ? '' : `<button class="danger small" data-del="${a.id}">מחיקה</button>`}
       </td>
-    </tr>`).join('') || '<tr><td colspan="5" class="empty">אין משתמשים</td></tr>';
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="empty">אין משתמשים</td></tr>';
   $('fAccount').innerHTML = '<option value="">כל המשתמשים</option>' + accounts.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
 }
 
-function syncType() {
-  const isIp = $('uType').value === 'ip';
-  document.querySelectorAll('.u-ip').forEach((e) => e.classList.toggle('hidden', !isIp));
-  document.querySelectorAll('.u-user').forEach((e) => e.classList.toggle('hidden', isIp));
-  // שדה מוסתר לא יכול להיות חובה
-  $('uIp').required = isIp;
-  $('uPass').required = !isIp && !editing;
+function addIpRow(ip = '', label = '') {
+  const row = document.createElement('div');
+  row.className = 'ip-row';
+  row.innerHTML = `<input class="ltr ip-val" placeholder="1.2.3.4" value="${esc(ip)}">
+    <input class="ip-label" placeholder="תיאור (למשל: מחשב משרד)" value="${esc(label)}">
+    <button type="button" class="danger small" title="הסרה"><i class="fa fa-times"></i></button>`;
+  row.querySelector('button').onclick = () => row.remove();
+  $('ipRows').appendChild(row);
+  return row;
+}
+
+function syncAdmin() {
+  const admin = $('uAdmin').checked;
+  document.querySelectorAll('#permBoxes input').forEach((i) => { i.disabled = admin; if (admin) i.checked = true; });
 }
 
 function openUser(a) {
@@ -333,33 +380,45 @@ function openUser(a) {
   $('userTitle').textContent = a ? 'עריכת משתמש' : 'משתמש חדש';
   $('userMsg').textContent = '';
   $('uName').value = a?.name || '';
-  $('uType').value = a?.type || 'user'; $('uType').disabled = !!a;
-  $('uIp').value = a?.ip || ''; $('myIp').textContent = myIp;
-  $('uPass').value = '';
-  $('uPassLabel').textContent = a ? 'סיסמה חדשה' : 'סיסמה';
-  $('uPassHint').textContent = a ? 'השאר ריק כדי לא לשנות' : 'לפחות 6 תווים. הסיסמה מזהה את המשתמש, ולכן צריכה להיות שונה מזו של משתמשים אחרים';
   $('uEmail').value = a?.email || '';
-  $('uActive').checked = a ? a.active : true;
+  $('uPass').value = '';
+  $('uPassLabel').textContent = a?.has_password ? 'סיסמה חדשה' : 'סיסמה';
+  $('uPassHint').textContent = a?.has_password
+    ? 'יש סיסמה. השאר ריק כדי לא לשנות'
+    : 'לפחות 6 תווים. הסיסמה מזהה את המשתמש, ולכן צריכה להיות שונה משל משתמשים אחרים. אפשר להשאיר ריק אם נכנסים רק לפי IP / Google';
+  $('uRemovePass').checked = false;
+  $('uRemovePassWrap').classList.toggle('hidden', !a?.has_password);
+  $('ipRows').innerHTML = '';
+  (a?.ips || []).forEach((x) => addIpRow(x.ip, x.label));
+  $('myIp').textContent = myIp;
+  const have = new Set(a ? a.permissions : PERM_ORDER);
+  $('permBoxes').innerHTML = PERM_ORDER.map((p) => `<label class="check"><input type="checkbox" value="${p}" ${have.has(p) ? 'checked' : ''}> ${esc(PERMS[p] || p)}</label>`).join('');
   $('uAdmin').checked = !!a?.is_admin;
-  syncType();
+  syncAdmin();
+  $('uActive').checked = a ? a.active : true;
   $('userDlg').showModal();
 }
 
-$('uType').onchange = syncType;
-$('myIp').onclick = (e) => { e.preventDefault(); $('uIp').value = myIp; };
+$('uAdmin').onchange = syncAdmin;
+$('addIpBtn').onclick = () => addIpRow().querySelector('input').focus();
+$('addMyIpBtn').onclick = () => {
+  if ([...document.querySelectorAll('.ip-val')].some((i) => i.value.trim() === myIp)) return;
+  addIpRow(myIp, '');
+};
 $('addBtn').onclick = () => openUser(null);
 
 $('userForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const type = $('uType').value;
-  const body = { name: $('uName').value, active: $('uActive').checked };
-  if (!editing) body.type = type;
-  if (type === 'ip') body.ip = $('uIp').value;
-  else {
-    body.email = $('uEmail').value;
-    body.is_admin = $('uAdmin').checked;
-    if ($('uPass').value) body.password = $('uPass').value;
-  }
+  const body = {
+    name: $('uName').value,
+    email: $('uEmail').value,
+    active: $('uActive').checked,
+    is_admin: $('uAdmin').checked,
+    permissions: [...document.querySelectorAll('#permBoxes input:checked')].map((i) => i.value),
+    ips: [...document.querySelectorAll('.ip-row')].map((r) => ({ ip: r.querySelector('.ip-val').value.trim(), label: r.querySelector('.ip-label').value.trim() })).filter((x) => x.ip),
+  };
+  if ($('uPass').value) body.password = $('uPass').value;
+  else if ($('uRemovePass').checked) body.remove_password = true;
   $('userSave').disabled = true; $('userMsg').textContent = '';
   try {
     if (editing) await api('PUT', 'admin/accounts/' + editing.id, body);
@@ -475,6 +534,7 @@ function fillSettings(s) {
   $('sMosad').value = s.nedarim_mosad_id || '';
   $('sNedKey').value = ''; secretState('sNedKeyState', s.nedarim_api_password_set, s.nedarim_api_password_hint);
   $('sGoogleOn').checked = !!s.google_enabled; $('sGoogleId').value = s.google_client_id || '';
+  $('aOn').checked = !!s.announcement_enabled; $('aText').value = s.announcement_text || '';
   $('sResend').value = ''; secretState('sResendState', s.resend_api_key_set, s.resend_api_key_hint);
   $('sFrom').value = s.mail_from || ''; $('sSite').value = s.site_url || '';
   $('wSubject').value = s.welcome_subject || ''; $('wTitle').value = s.welcome_title || '';
@@ -490,6 +550,7 @@ $('settingsForm').addEventListener('submit', async (e) => {
     const body = {
       yemot_token: $('sYemot').value, nedarim_mosad_id: $('sMosad').value, nedarim_api_password: $('sNedKey').value,
       google_enabled: $('sGoogleOn').checked, google_client_id: $('sGoogleId').value,
+      announcement_enabled: $('aOn').checked, announcement_text: $('aText').value,
       resend_api_key: $('sResend').value, mail_from: $('sFrom').value, site_url: $('sSite').value, ...welcomeFields(),
     };
     fillSettings(await api('PUT', 'admin/settings', body));

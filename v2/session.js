@@ -58,6 +58,7 @@ const MsSession = (() => {
 
     // ===== ניקוי הדפדפן =====
     async function cleanBrowser() {
+        store.del('completionAnnouncementDismissed'); // הסגירה נשמרת עכשיו בחשבון
         const found = LEGACY_KEYS.filter((k) => store.get(k) !== null);
         found.forEach((k) => store.del(k));
         // מדווחים תמיד כשנמצא משהו, ופעם אחת לכל דפדפן גם כשהוא נקי
@@ -78,6 +79,17 @@ const MsSession = (() => {
             const strong = document.createElement('strong');
             strong.textContent = user.name;
             el.append(icon, ' ', strong);
+            // נכנסו לפי IP – אפשרות קטנה להתחבר בסיסמה (למשל כמשתמש אחר)
+            if (user.method === 'ip') {
+                const link = document.createElement('a');
+                link.href = '#';
+                link.id = 'msPasswordLoginLink';
+                link.textContent = 'כניסה בסיסמה';
+                link.title = 'נכנסתם לפי כתובת IP. לחצו כדי להתחבר בסיסמה';
+                link.style.cssText = 'color: inherit; opacity: .75; font-size: .8em; margin-right: 8px;';
+                link.onclick = (e) => { e.preventDefault(); openPasswordLogin(); };
+                el.append(link);
+            }
         }
         const anchor = $('openSettingsBtn');
         if (!anchor) return;
@@ -115,7 +127,10 @@ const MsSession = (() => {
     }
 
     // חזרה למסך הכניסה (כניסה שפגה באמצע העבודה)
+    let loginAgainShown = false;
     function showLoginAgain(message) {
+        if (loginAgainShown) return;
+        loginAgainShown = true;
         clearSession();
         const flicker = $('noFlickerStyle');
         if (flicker) flicker.remove();
@@ -123,12 +138,39 @@ const MsSession = (() => {
         document.body.classList.add('ms-locked');
         const overlay = $('auth-overlay');
         overlay.style.display = '';
+        $('lgCancel').classList.add('hidden');
         $('authMessage').innerHTML = `<i class="fa fa-lock"></i>${message}`;
         resetButton();
         $('passwordInput').value = '';
         $('passwordInput').focus();
         // אחרי כניסה מחדש – טוענים את האתר מחדש כדי שהנתונים יעלו נקי
         reloadAfterLogin = true;
+        // קודם בודקים IP מורשה – אם המחשב מורשה, נכנסים שוב אוטומטית
+        call('POST', 'auth/login', {}, 8000)
+            .then((r) => { if (r.authorized && !$('passwordInput').value) finish(r.user); })
+            .catch(() => {});
+    }
+
+    // מסך הכניסה מעל האתר, כשכבר מחוברים (לפי IP) – כניסה בסיסמה, עם אפשרות ביטול
+    function openPasswordLogin() {
+        const overlay = $('auth-overlay');
+        const flicker = $('noFlickerStyle');
+        if (flicker) flicker.remove();
+        overlay.style.display = '';
+        document.body.classList.add('ms-locked');
+        $('authMessage').innerHTML = `<i class="fa fa-lock"></i>מחוברים לפי כתובת IP כ"${user.name}". הזינו סיסמה כדי להתחבר בסיסמה`;
+        $('loginError').classList.add('hidden');
+        $('lgCancel').classList.remove('hidden');
+        resetButton();
+        $('passwordInput').value = '';
+        $('passwordInput').focus();
+        reloadAfterLogin = true;
+    }
+    function closePasswordLogin() {
+        $('auth-overlay').style.display = 'none';
+        document.body.classList.remove('ms-locked');
+        $('lgCancel').classList.add('hidden');
+        reloadAfterLogin = false;
     }
 
     let reloadAfterLogin = false;
@@ -137,7 +179,7 @@ const MsSession = (() => {
     async function finish(u) {
         user = u;
         saveSession(u);
-        try { sessionStorage.removeItem('msLoggedOut'); } catch (e) { /* ignore */ }
+        applyPermissions();
         if (reloadAfterLogin) return location.reload();
         if (done) { renderTopBar(); return; }
         done = true;
@@ -145,7 +187,45 @@ const MsSession = (() => {
         renderTopBar();
         resolveReady(u);
         cleanBrowser();
+        loadAnnouncement();
     }
+
+    // ===== הרשאות: מה שאין למשתמש הרשאה אליו מוסתר באתר (והשרת חוסם ממילא) =====
+    const ALL_PERMS = ['clients_view', 'clients_edit', 'nedarim_charge', 'exams_view', 'exams_manage', 'old_site', 'admin'];
+    function applyPermissions() {
+        const have = new Set((user && user.permissions) || []);
+        const root = document.documentElement;
+        ALL_PERMS.forEach((p) => root.classList.toggle('ms-no-' + p, !have.has(p)));
+        // בלי צפייה במבחנים – פותחים את לשונית הלקוחות
+        if (!have.has('exams_view') && have.has('clients_view')) {
+            const tab = document.querySelector('.main-nav-btn[data-target="view-clients"]');
+            if (tab && !tab.classList.contains('active')) tab.click();
+        }
+    }
+    const can = (p) => !!(user && user.permissions && user.permissions.includes(p));
+
+    // ===== הודעה בראש האתר – מהשרת; סגירה נשמרת בחשבון המשתמש =====
+    async function loadAnnouncement() {
+        try {
+            const r = await call('GET', 'announcement', null, 8000);
+            setAnnouncement(r);
+        } catch (e) { /* ההודעה נשארת מוסתרת */ }
+    }
+    function setAnnouncement(r) {
+        const box = $('completionAnnouncement');
+        if (!box) return;
+        const text = box.querySelector('.completion-announcement span');
+        if (text && r.text) text.textContent = r.text;
+        box.style.display = r.show ? 'flex' : 'none';
+    }
+    window.dismissCompletionAnnouncement = async function () {
+        const box = $('completionAnnouncement');
+        if (box) box.style.display = 'none';
+        try { await call('POST', 'announcement/dismiss', null, 8000); } catch (e) { /* ignore */ }
+    };
+    window.showCompletionAnnouncement = async function () {
+        try { setAnnouncement(await call('POST', 'announcement/restore', null, 8000)); } catch (e) { /* ignore */ }
+    };
 
     function resetButton() {
         const btn = $('loginBtn');
@@ -156,8 +236,6 @@ const MsSession = (() => {
     async function logout() {
         try { await call('POST', 'auth/logout', null, 8000); } catch (e) { /* ignore */ }
         clearSession();
-        // אחרי יציאה מפורשת לא נכנסים שוב אוטומטית לפי IP (עד שסוגרים את הלשונית)
-        try { sessionStorage.setItem('msLoggedOut', '1'); } catch (e) { /* ignore */ }
         location.reload();
     }
 
@@ -194,6 +272,7 @@ const MsSession = (() => {
     function setupLogin() {
         const pass = $('passwordInput'), btn = $('loginBtn'), msg = $('authMessage');
         const showError = (text) => { $('loginErrorText').textContent = text; $('loginError').classList.remove('hidden'); };
+        $('lgCancel').onclick = closePasswordLogin;
 
         // הצגת סיסמה + Caps Lock
         $('lgEye').onclick = () => {
@@ -241,12 +320,9 @@ const MsSession = (() => {
         document.body.classList.add('ms-locked');
         pass.focus();
         const typing = () => pass.value || !btn.querySelector('.fa-arrow-left');
-        let skipIp = false;
-        try { skipIp = sessionStorage.getItem('msLoggedOut') === '1'; } catch (e) { /* ignore */ }
         (async () => {
             // חיבור קיים בעוגייה (למשל אחרי ניקוי הזיכרון בדפדפן)
             try { return finish((await call('GET', 'auth/me', null, 8000)).user); } catch (e) { /* לא מחובר */ }
-            if (skipIp) { if (!done) msg.innerHTML = '<i class="fa fa-lock"></i>יצאתם מהמערכת — הזינו סיסמה'; return; }
             try {
                 const r = await call('POST', 'auth/login', {}, 8000);
                 if (r.authorized && !typing()) return finish(r.user);
@@ -275,6 +351,7 @@ const MsSession = (() => {
     return {
         ready: () => readyPromise,
         user: () => user,
+        can,
         logout,
     };
 })();

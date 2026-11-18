@@ -9,6 +9,7 @@
 import { ApiError, badRequest } from './http.js';
 import { getConfig } from './settings.js';
 import { logAction, safeDetails } from './audit.js';
+import { requirePermission, requireAnyPermission } from './permissions.js';
 
 const YEMOT_BASE = 'https://www.call2all.co.il/ym/api/';
 const NEDARIM_URL = 'https://www.matara.pro/nedarimplus/Mechubad/Reports/ManageReports.aspx';
@@ -98,9 +99,21 @@ export async function proxyYemot(request, env, ctx, method) {
   const range = request.headers.get('Range');
   if (range) init.headers.Range = range;
 
-  const upstream = await fetch(`${YEMOT_BASE}${method}?${query.toString()}`, init);
   const action = YEMOT_NAMES[method] || method;
   const target = yemotTarget(logged);
+
+  // הרשאות: קריאה – צפייה בלקוחות / במבחנים / אתר ישן.
+  // שמירת קובץ הלקוחות – עריכת לקוחות. כל שינוי אחר בימות – ניהול מבחנים
+  try {
+    if (kind === 'read') requireAnyPermission(ctx, ['clients_view', 'exams_view', 'old_site']);
+    else if (method === 'UploadTextFile' && /ListAllInformation/i.test(target)) requirePermission(ctx, 'clients_edit');
+    else requirePermission(ctx, 'exams_manage');
+  } catch (err) {
+    await logAction(env, request, ctx, { kind, action, target, details: safeDetails(logged), status: 'נחסם: אין הרשאה' });
+    throw err;
+  }
+
+  const upstream = await fetch(`${YEMOT_BASE}${method}?${query.toString()}`, init);
   const contentType = upstream.headers.get('content-type') || '';
 
   // קבצים (הקלטות) – מועברים כמו שהם
@@ -139,6 +152,19 @@ export async function proxyNedarim(request, env, ctx) {
   const actionKey = params.get('Action') || '';
   const kind = NEDARIM_ACTIONS[actionKey];
   if (!kind) throw badRequest('פעולה לא מורשית מול נדרים');
+
+  // הרשאות: קריאה – צפייה בלקוחות; שמירת לקוח – עריכת לקוחות; טעינות וכרטיסים – טעינות וכרטיסים
+  const perm = kind === 'read' ? 'clients_view' : actionKey === 'SaveClientCard' ? 'clients_edit' : 'nedarim_charge';
+  try {
+    requirePermission(ctx, perm);
+  } catch (err) {
+    const blocked = Object.fromEntries([...params].filter(([k]) => !['MosadId', 'ApiPassword', 'Action'].includes(k)));
+    await logAction(env, request, ctx, {
+      kind, action: NEDARIM_NAMES[actionKey] || actionKey, target: blocked.ClientId || blocked.Zeout || blocked.TlushId || '',
+      details: safeDetails(blocked), status: 'נחסם: אין הרשאה',
+    });
+    throw err;
+  }
 
   const cfg = await getConfig(env);
   if (!cfg.nedarim_mosad_id || !cfg.nedarim_api_password) {

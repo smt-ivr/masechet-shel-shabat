@@ -11,6 +11,7 @@
 import { ApiError, unauthorized, forbidden, badRequest, readJson, str, clientIp, israelNow, json } from './http.js';
 import { getConfig } from './settings.js';
 import { logAction } from './audit.js';
+import { permissionsOf, requirePermission } from './permissions.js';
 
 const SESSION_DAYS = 30;
 const MAX_FAILS = 8; // ניסיונות כושלים מאותה כתובת ברבע שעה
@@ -58,14 +59,15 @@ function sameHash(a, b) {
 
 export const normalizeEmail = (e) => String(e || '').trim().toLowerCase();
 
-export function publicAccount(a) {
+// method: איך נכנסו בחיבור הזה – password / ip / google
+export function publicAccount(a, method = a.s_method || null) {
   return {
     id: a.id,
+    method,
     name: a.display_name,
-    method: a.rule_type,
-    username: a.username || null,
     email: a.email || null,
     is_admin: !!a.is_admin,
+    permissions: permissionsOf(a),
   };
 }
 
@@ -110,17 +112,17 @@ function readCookie(request) {
   return '';
 }
 
-async function openSession(env, request, account) {
+async function openSession(env, request, account, method) {
   const token = randomToken();
   await env.DB.batch([
-    env.DB.prepare('INSERT INTO ms_sessions (token_hash, account_id, ip, expires_at, created_at) VALUES (?, ?, ?, ?, ?)').bind(
-      await sha256Hex(token), account.id, clientIp(request),
+    env.DB.prepare('INSERT INTO ms_sessions (token_hash, account_id, ip, method, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)').bind(
+      await sha256Hex(token), account.id, clientIp(request), method,
       new Date(Date.now() + SESSION_DAYS * 86400000).toISOString(), israelNow(),
     ),
     env.DB.prepare('UPDATE ms_accounts SET last_used_at = ? WHERE id = ?').bind(israelNow(), account.id),
     env.DB.prepare('DELETE FROM ms_sessions WHERE expires_at < ?').bind(new Date().toISOString()),
   ]);
-  return json({ authorized: true, user: publicAccount(account) }, 200, {
+  return json({ authorized: true, user: publicAccount(account, method) }, 200, {
     'Set-Cookie': sessionCookie(token, SESSION_DAYS * 86400),
   });
 }
@@ -128,9 +130,9 @@ async function openSession(env, request, account) {
 // איתור משתמש לפי סיסמה. משתמש שהועבר מהמערכת הקודמת (SHA-256) משודרג אוטומטית בכניסה הראשונה
 async function findByPassword(env, password) {
   const key = await passwordKey(env, password);
-  const a = await env.DB.prepare("SELECT * FROM ms_accounts WHERE rule_type = 'user' AND password_hash = ? AND active = 1").bind(key).first();
+  const a = await env.DB.prepare('SELECT * FROM ms_accounts WHERE password_hash = ? AND active = 1').bind(key).first();
   if (a) return a;
-  const legacy = await env.DB.prepare("SELECT * FROM ms_accounts WHERE rule_type = 'user' AND legacy_sha256 = ? AND active = 1")
+  const legacy = await env.DB.prepare('SELECT * FROM ms_accounts WHERE legacy_sha256 = ? AND active = 1')
     .bind(await sha256Hex(password)).first();
   if (!legacy) return null;
   await env.DB.prepare("UPDATE ms_accounts SET password_hash = ?, password_salt = 'system', legacy_sha256 = NULL WHERE id = ?")
@@ -149,7 +151,10 @@ export async function login(request, env) {
   if (password) {
     account = await findByPassword(env, password);
   } else if (ip) {
-    account = await env.DB.prepare("SELECT * FROM ms_accounts WHERE rule_type = 'ip' AND ip = ? AND active = 1").bind(ip).first();
+    // כתובת IP מורשית – שייכת למשתמש אחד (אצלו ברשימת הכתובות)
+    account = await env.DB.prepare(
+      'SELECT a.* FROM ms_user_ips i JOIN ms_accounts a ON a.id = i.account_id WHERE i.ip = ? AND a.active = 1',
+    ).bind(ip).first();
   }
 
   // כניסה לפי IP בלי הצלחה היא בדיקה שקטה – לא נרשמת ככישלון
@@ -163,8 +168,8 @@ export async function login(request, env) {
     if (!password) return json({ authorized: false, ip });
     throw new ApiError(401, 'bad_credentials', 'הסיסמה שגויה');
   }
-  await logAction(env, request, { account }, { kind: 'auth', action: 'כניסה', target: password ? 'סיסמה' : 'IP מורשה' });
-  return openSession(env, request, account);
+  await logAction(env, request, { account }, { kind: 'auth', action: 'כניסה', target: password ? 'סיסמה' : `IP מורשה (${ip})` });
+  return openSession(env, request, account, password ? 'password' : 'ip');
 }
 
 export async function loginOptions(env) {
@@ -188,11 +193,11 @@ export async function loginGoogle(request, env) {
     throw new ApiError(401, 'google_failed', 'האימות מול Google נכשל. נסו שוב');
   }
   const email = normalizeEmail(g.email);
-  const account = await env.DB.prepare("SELECT * FROM ms_accounts WHERE rule_type = 'user' AND email = ? AND active = 1").bind(email).first();
+  const account = await env.DB.prepare('SELECT * FROM ms_accounts WHERE email = ? AND active = 1').bind(email).first();
   await loginLog(env, request, { success: !!account, method: 'google', username: email, accountId: account?.id });
   if (!account) throw new ApiError(401, 'no_user', `אין במערכת משתמש פעיל עם המייל ${g.email}. פנו למנהל המערכת`);
   await logAction(env, request, { account }, { kind: 'auth', action: 'כניסה', target: `Google (${email})` });
-  return openSession(env, request, account);
+  return openSession(env, request, account, 'google');
 }
 
 export async function logout(request, env) {
@@ -209,20 +214,24 @@ export async function authenticate(request, env) {
   const token = readCookie(request);
   if (!token) throw unauthorized();
   const row = await env.DB.prepare(
-    `SELECT a.*, s.expires_at AS s_expires, s.ip AS s_ip FROM ms_sessions s JOIN ms_accounts a ON a.id = s.account_id
+    `SELECT a.*, s.expires_at AS s_expires, s.ip AS s_ip, s.method AS s_method FROM ms_sessions s JOIN ms_accounts a ON a.id = s.account_id
      WHERE s.token_hash = ? AND a.active = 1`,
   ).bind(await sha256Hex(token)).first();
   if (!row || row.s_expires < new Date().toISOString()) throw unauthorized('פג תוקף הכניסה, יש להיכנס מחדש');
-  // הרשאת IP תקפה רק מאותה כתובת
-  if (row.rule_type === 'ip' && row.ip !== clientIp(request)) throw unauthorized('הכתובת שלכם השתנתה, יש להיכנס מחדש');
+  // כניסה לפי IP תקפה רק מאותה כתובת, וכל עוד הכתובת עדיין ברשימה של המשתמש
+  if (row.s_method === 'ip') {
+    const ip = clientIp(request);
+    const ok = ip === row.s_ip && (await env.DB.prepare('SELECT 1 FROM ms_user_ips WHERE account_id = ? AND ip = ?').bind(row.id, ip).first());
+    if (!ok) throw unauthorized('הכתובת שלכם השתנתה, יש להיכנס מחדש');
+  }
   return { account: row, sessionHash: await sha256Hex(token) };
 }
 
 export function requireAdmin(ctx) {
-  if (!ctx.account.is_admin) throw forbidden('אזור זה זמין למנהל בלבד');
+  requirePermission(ctx, 'admin');
 }
 
-// בדיקה שקטה (לדפים שמוגשים מהשרת, למשל האתר הישן)
-export async function isLoggedIn(request, env) {
-  try { await authenticate(request, env); return true; } catch { return false; }
+// בדיקה שקטה (לדפים שמוגשים מהשרת, למשל האתר הישן): מחובר ועם ההרשאה
+export async function hasPagePermission(request, env, perm) {
+  try { return permissionsOf((await authenticate(request, env)).account).includes(perm); } catch { return false; }
 }

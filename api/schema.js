@@ -81,6 +81,31 @@ const MIGRATIONS = [
       `CREATE UNIQUE INDEX IF NOT EXISTS ms_accounts_password ON ms_accounts(password_hash) WHERE rule_type = 'user' AND password_hash IS NOT NULL`,
     ],
   },
+  {
+    // משתמש = שם ומייל. בתוכו: סיסמה, כתובות IP (כמה שרוצים) והרשאות.
+    // הודעה בראש האתר: סגירה נשמרת בחשבון המשתמש
+    version: 3,
+    name: 'users_ips_permissions_announcement',
+    sql: [
+      `CREATE TABLE IF NOT EXISTS ms_user_ips (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        account_id INTEGER NOT NULL,
+        ip TEXT NOT NULL,
+        label TEXT,
+        created_at TEXT NOT NULL
+      )`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS ms_user_ips_ip ON ms_user_ips(ip)`,
+      `ALTER TABLE ms_accounts ADD COLUMN permissions TEXT NOT NULL DEFAULT '[]'`,
+      `ALTER TABLE ms_accounts ADD COLUMN announcement_dismissed TEXT`,
+      `ALTER TABLE ms_sessions ADD COLUMN method TEXT`,
+      // משתמשי IP קיימים → משתמש רגיל עם כתובת IP
+      `INSERT INTO ms_user_ips (account_id, ip, created_at) SELECT id, ip, created_at FROM ms_accounts WHERE rule_type = 'ip' AND ip IS NOT NULL`,
+      `DELETE FROM ms_sessions WHERE account_id IN (SELECT id FROM ms_accounts WHERE rule_type = 'ip')`,
+      `UPDATE ms_accounts SET rule_type = 'user', ip = NULL WHERE rule_type = 'ip'`,
+      // כל המשתמשים הקיימים ממשיכים לעבוד כרגיל – כל ההרשאות באתר
+      `UPDATE ms_accounts SET permissions = '["clients_view","clients_edit","nedarim_charge","exams_view","exams_manage","old_site"]'`,
+    ],
+  },
 ];
 
 let ready = null;

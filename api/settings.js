@@ -28,12 +28,16 @@ const FIELDS = {
   welcome_body: [4000, false],
   welcome_button: [60, false],
   welcome_note: [1000, false],
+  announcement_enabled: [1, false],
+  announcement_text: [300, false],
 };
 
 const DEFAULTS = {
   google_enabled: '0',
   mail_from: 'מסכת של שבת <masechet@smti.uk>',
   site_url: 'https://smti.uk/masechet/',
+  announcement_enabled: '1',
+  announcement_text: 'הפיתוח של האתר החדש הושלם! אין צורך להשתמש יותר באתר הישן',
   ...DEFAULT_WELCOME,
 };
 
@@ -53,6 +57,7 @@ export async function getConfig(env) {
     values[k] = v !== undefined && v !== null && v !== '' ? v : DEFAULTS[k] ?? '';
   }
   values.google_enabled = values.google_enabled === '1';
+  values.announcement_enabled = values.announcement_enabled === '1';
   cache = { at: Date.now(), values };
   return values;
 }
@@ -79,7 +84,7 @@ export async function updateSettings(env, body) {
   const changed = [];
   for (const [k, [max, secret]] of Object.entries(FIELDS)) {
     if (body[k] === undefined) continue;
-    let v = k === 'google_enabled' ? (body[k] ? '1' : '0') : String(body[k] ?? '').slice(0, max);
+    let v = k === 'google_enabled' || k === 'announcement_enabled' ? (body[k] ? '1' : '0') : String(body[k] ?? '').slice(0, max);
     if (k !== 'welcome_body' && k !== 'welcome_note') v = v.trim();
     if (secret && !v) continue;
     if (k === 'resend_api_key' && !/^re_[\w-]{10,}$/.test(v)) throw badRequest('מפתח Resend אמור להתחיל ב-re_');

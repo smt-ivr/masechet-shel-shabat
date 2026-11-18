@@ -167,3 +167,28 @@ body.ms-locked { overflow: hidden; }
 .lg-or { display: flex; align-items: center; gap: 12px; margin: 18px 0 14px; color: #94a3b8; font-size: .82rem; }
 .lg-or::before, .lg-or::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
 .google-slot { display: flex; justify-content: center; min-height: 44px; }
+
+/* ביטול – כשנכנסים בסיסמה מעל חיבור לפי IP */
+.lg-cancel {
+    margin-top: 14px; align-self: center;
+    border: none; background: none; cursor: pointer;
+    color: #64748b; font-size: .85rem; display: flex; align-items: center; gap: 6px;
+}
+.lg-cancel:hover { color: #2563eb; text-decoration: underline; }
+
+/* ============================================================
+   הרשאות – מה שאין למשתמש הרשאה אליו מוסתר (השרת חוסם ממילא)
+   ============================================================ */
+html.ms-no-exams_view .main-nav-btn[data-target="view-exams"],
+html.ms-no-exams_view #view-exams,
+html.ms-no-clients_view .main-nav-btn[data-target="view-clients"],
+html.ms-no-clients_view #view-clients,
+html.ms-no-exams_manage [onclick*="LotteryManager"],
+html.ms-no-exams_manage [onclick*="CloseExamManager"],
+html.ms-no-exams_manage #btnManageQuestions,
+html.ms-no-clients_edit #saveYemotBtn,
+html.ms-no-clients_edit #saveNedarimBtn,
+html.ms-no-nedarim_charge #openAddCardBtn,
+html.ms-no-nedarim_charge #openAddTlushBtn,
+html.ms-no-nedarim_charge [onclick*="prikTlush"],
+html.ms-no-old_site a[href="/masechet/old/"] { display: none !important; }
