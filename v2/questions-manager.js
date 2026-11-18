@@ -147,7 +147,7 @@ const QuestionsManager = {
     },
 
     async fetchData() {
-        const token = localStorage.getItem('yemotToken');
+        const token = 'server';
         if (!token) return this.showError('חסר טוקן חיבור לימות המשיח.');
 
         this.showLoading();
@@ -156,7 +156,7 @@ const QuestionsManager = {
         this.pendingFiles = {};
 
         try {
-            const answersRes = await fetch(`https://www.call2all.co.il/ym/api/GetTextFile?token=${token}&what=ivr2:/2/1/examination.ini`);
+            const answersRes = await fetch(`/masechet/api/yemot/GetTextFile?token=${token}&what=ivr2:/2/1/examination.ini`);
             const answersData = await answersRes.json();
             
             // זיהוי אם המבחן טרם נוצר או שאין בו שאלות (הקובץ לא קיים)
@@ -175,7 +175,7 @@ const QuestionsManager = {
             }
 
             // טוען אודיו רק אם הקובץ לא היה חסר
-            const audioRes = await fetch(`https://www.call2all.co.il/ym/api/GetIVR2Dir?token=${token}&path=2/1`);
+            const audioRes = await fetch(`/masechet/api/yemot/GetIVR2Dir?token=${token}&path=2/1`);
             const audioData = await audioRes.json();
             
             if (audioData.responseStatus === 'OK' && audioData.files) {
@@ -228,7 +228,7 @@ const QuestionsManager = {
 
     renderQuestionsList() {
         const container = document.getElementById('questionsListContainer');
-        const token = localStorage.getItem('yemotToken');
+        const token = 'server';
         container.innerHTML = '';
         
         let html = '';
@@ -238,7 +238,7 @@ const QuestionsManager = {
             const hasAudio = this.audioMap[qNumStr];
             
             let audioHtml = hasAudio 
-                ? `<audio controls controlsList="nodownload noplaybackrate" class="q-audio-player" preload="none" src="https://www.call2all.co.il/ym/api/DownloadFile?token=${token}&path=ivr2:2/1/${qNumStr}.wav" style="height: 35px; max-width: 210px; outline:none;"></audio>`
+                ? `<audio controls controlsList="nodownload noplaybackrate" class="q-audio-player" preload="none" src="/masechet/api/yemot/DownloadFile?token=${token}&path=ivr2:2/1/${qNumStr}.wav" style="height: 35px; max-width: 210px; outline:none;"></audio>`
                 : `<span style="color: var(--text-muted); font-size: 0.85rem;"><i class="fa fa-microphone-slash"></i> לא הוקלט בשרת</span>`;
 
             html += `
@@ -338,7 +338,7 @@ const QuestionsManager = {
     },
 
     async saveNewQuestion() {
-        const token = localStorage.getItem('yemotToken');
+        const token = 'server';
         const answer = document.getElementById('newQAnswer').value;
         const fileInput = document.getElementById('newQFileInput');
         const errorEl = document.getElementById('addQError');
@@ -373,7 +373,7 @@ const QuestionsManager = {
             formData.append('convertAudio', '1');
             formData.append('file', fileInput.files[0]);
 
-            const upRes = await fetch(`https://www.call2all.co.il/ym/api/UploadFile`, { method: 'POST', body: formData });
+            const upRes = await fetch(`/masechet/api/yemot/UploadFile`, { method: 'POST', body: formData });
             const upData = await upRes.json();
             if (upData.responseStatus !== 'OK') throw new Error(upData.message || "שגיאה בהעלאת הקובץ לשרת.");
 
@@ -395,7 +395,7 @@ const QuestionsManager = {
             params.append('what', 'ivr2:/2/1/examination.ini');
             params.append('contents', newContents);
 
-            const iniRes = await fetch(`https://www.call2all.co.il/ym/api/UploadTextFile`, { method: 'POST', body: params });
+            const iniRes = await fetch(`/masechet/api/yemot/UploadTextFile`, { method: 'POST', body: params });
             const iniData = await iniRes.json();
             if (iniData.responseStatus !== 'OK') throw new Error(iniData.message || "שגיאה בעדכון קובץ התשובות.");
 
@@ -421,7 +421,7 @@ const QuestionsManager = {
     },
 
     async saveData() {
-        const token = localStorage.getItem('yemotToken');
+        const token = 'server';
         if (!token) return;
 
         const btn = document.getElementById('saveQuestionsBtn');
@@ -444,7 +444,7 @@ const QuestionsManager = {
                 formData.append('convertAudio', '1');
                 formData.append('file', file);
 
-                const p = fetch(`https://www.call2all.co.il/ym/api/UploadFile`, {
+                const p = fetch(`/masechet/api/yemot/UploadFile`, {
                     method: 'POST',
                     body: formData
                 }).then(res => res.json()).then(data => {
@@ -472,7 +472,7 @@ const QuestionsManager = {
             params.append('what', 'ivr2:/2/1/examination.ini');
             params.append('contents', newContents);
 
-            const res = await fetch(`https://www.call2all.co.il/ym/api/UploadTextFile`, {
+            const res = await fetch(`/masechet/api/yemot/UploadTextFile`, {
                 method: 'POST',
                 body: params
             });

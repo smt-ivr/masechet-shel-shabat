@@ -20,12 +20,14 @@ import v2ModalsAndUi from './v2/modals-and-ui.js';
 import v2Auth from './v2/auth.js';
 import v2TableManager from './v2/table-manager.js';
 import v2ClientCard from './v2/client-card.js';
-import v2ServerSync from './v2/server-sync.js';
+import v2Session from './v2/session.js';
+import v2LoginCss from './v2/login.css';
 import v2SettingsManager from './v2/settings-manager.js';
 
 // ----- API של האתר -----
-import { handleLogin } from './api/login.js';
-import { handleAdminApi } from './api/admin.js';
+import { handleApi } from './api/router.js';
+import { isLoggedIn } from './api/auth.js';
+import { ensureSchema } from './api/schema.js';
 import adminPage from './api/admin.html';
 
 // ----- כרטיס נדרים: שלוחות ימות המשיח -----
@@ -64,7 +66,8 @@ const ROUTES = {
   '/masechet/auth.js':              [v2Auth,             JS],
   '/masechet/table-manager.js':     [v2TableManager,     JS],
   '/masechet/client-card.js':       [v2ClientCard,       JS],
-  '/masechet/server-sync.js':       [v2ServerSync,       JS],
+  '/masechet/session.js':           [v2Session,          JS],
+  '/masechet/login.css':            [v2LoginCss,         CSS],
   '/masechet/settings-manager.js':  [v2SettingsManager,  JS],
 
   // ---- האתר הישן: מוגש תחת /masechet/old/ ----
@@ -81,10 +84,9 @@ export default {
     const path = url.pathname;
     const redirect = (to) => Response.redirect(url.origin + to, 301);
 
-    // API של האתר
-    if (path === '/masechet/api/login') return handleLogin(request, env);
-    if (path.startsWith('/masechet/api/admin/')) {
-      return handleAdminApi(request, env, path.slice('/masechet/api/admin/'.length));
+    // API של האתר (כניסה, ניהול, ופניות לימות / נדרים דרך השרת)
+    if (path.startsWith('/masechet/api/')) {
+      return handleApi(request, env, path.slice('/masechet/api/'.length));
     }
     if (path === '/masechet/admin' || path === '/masechet/admin/') {
       return new Response(adminPage, {
@@ -106,6 +108,12 @@ export default {
     if (path === '/masechet/v2' || path === '/masechet/v2/') return redirect('/masechet/');
     if (path.startsWith('/masechet/v2/')) {
       return redirect('/masechet/' + path.slice('/masechet/v2/'.length));
+    }
+
+    // האתר הישן – רק למשתמש מחובר (הכניסה דרך האתר החדש)
+    if (path.startsWith('/masechet/old/') && ROUTES[path]) {
+      await ensureSchema(env);
+      if (!(await isLoggedIn(request, env))) return Response.redirect(url.origin + '/masechet/', 302);
     }
 
     const hit = ROUTES[path];

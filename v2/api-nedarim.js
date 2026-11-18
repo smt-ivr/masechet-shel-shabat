@@ -1,13 +1,13 @@
 const NedarimAPI = {
     async fetchClientList(mosadId, password) {
-        const url = `https://www.matara.pro/nedarimplus/Mechubad/Reports/ManageReports.aspx?Action=GetClient_Table&MosadId=${mosadId}&ApiPassword=${password}`;
+        const url = `/masechet/api/nedarim?Action=GetClient_Table&MosadId=${mosadId}&ApiPassword=${password}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('שגיאה בתקשורת מול מערכת הסליקה (רשימת לקוחות)');
         return await res.json();
     },
 
     async fetchClientCard(mosadId, password, clientId) {
-        const url = `https://www.matara.pro/nedarimplus/Mechubad/Reports/ManageReports.aspx?Action=GetClientCard&MosadId=${mosadId}&ApiPassword=${password}&ClientId=${clientId}`;
+        const url = `/masechet/api/nedarim?Action=GetClientCard&MosadId=${mosadId}&ApiPassword=${password}&ClientId=${clientId}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('שגיאה בתקשורת מול מערכת הסליקה (כרטיס לקוח)');
         return await res.json();
@@ -34,7 +34,7 @@ const NedarimAPI = {
             params.append('ClientId', clientId);
         }
 
-        const url = `https://www.matara.pro/nedarimplus/Mechubad/Reports/ManageReports.aspx?${params.toString()}`;
+        const url = `/masechet/api/nedarim?${params.toString()}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('שגיאה בתקשורת מול מערכת נדרים לשמירת הלקוח');
         return await res.json();
@@ -50,7 +50,7 @@ const NedarimAPI = {
             Remove: 0
         });
 
-        const url = `https://www.matara.pro/nedarimplus/Mechubad/Reports/ManageReports.aspx?${params.toString()}`;
+        const url = `/masechet/api/nedarim?${params.toString()}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('שגיאה בהוספת כרטיס');
         return await res.json();
@@ -68,7 +68,7 @@ const NedarimAPI = {
         if (limitedId) params.append('LimitedId', limitedId);
         if (comments) params.append('Comments', comments);
 
-        const url = `https://www.matara.pro/nedarimplus/Mechubad/Reports/ManageReports.aspx?${params.toString()}`;
+        const url = `/masechet/api/nedarim?${params.toString()}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('שגיאה בהוספת טעינה');
         return await res.json();
@@ -82,14 +82,14 @@ const NedarimAPI = {
             TlushId: tlushId
         });
 
-        const url = `https://www.matara.pro/nedarimplus/Mechubad/Reports/ManageReports.aspx?${params.toString()}`;
+        const url = `/masechet/api/nedarim?${params.toString()}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('שגיאה בפריקת טעינה');
         return await res.json();
     },
 
     async fetchLimitedStoresList(mosadId, password) {
-        const url = `https://www.matara.pro/nedarimplus/Mechubad/Reports/ManageReports.aspx?Action=GetLimitedStoresList&MosadId=${mosadId}&ApiPassword=${password}`;
+        const url = `/masechet/api/nedarim?Action=GetLimitedStoresList&MosadId=${mosadId}&ApiPassword=${password}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('שגיאה בתקשורת מול מערכת הסליקה (רשימת קבוצות חנויות)');
         return await res.json();

@@ -47,7 +47,7 @@ const HistoryManager = {
     },
 
     async fetchData() {
-        const token = localStorage.getItem('yemotToken');
+        const token = 'server';
         if (!token) return this.showError('חסר טוקן חיבור למערכת ימות המשיח.');
 
         this.showLoading();
@@ -100,7 +100,7 @@ const HistoryManager = {
     },
 
     async loadExam(folderPath, examName) {
-        const token = localStorage.getItem('yemotToken');
+        const token = 'server';
         if (!token) return;
 
         // סוגרים את חלון הרשימה ומפעילים את הספינר המרכזי של ניהול המבחנים

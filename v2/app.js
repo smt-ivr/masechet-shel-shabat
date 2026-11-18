@@ -136,8 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
         nedarimOnlyCountEl.innerHTML = spinnerHtml;
         yemotLastUpdateEl.innerHTML = spinnerHtml;
 
-        const mosadId = localStorage.getItem('nedarimMosadId');
-        const password = localStorage.getItem('nedarimPassword');
+        const mosadId = 'server';
+        const password = 'server';
 
         loadingIndicator.classList.remove('hidden');
         tbody.innerHTML = ''; 
@@ -326,7 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.refreshApplicationData = async () => {
-        const token = localStorage.getItem('yemotToken');
+        const token = 'server';
         if (token) {
             const icon = globalRefreshBtn.querySelector('i');
             if (icon) icon.classList.add('fa-spin');

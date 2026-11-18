@@ -1,8 +1,8 @@
 window.prikTlush = async function(tlushId, btnEl) {
     if (!confirm('האם אתה בטוח שברצונך לפרוק טעינה זו?')) return;
     
-    const mosadId = localStorage.getItem('nedarimMosadId');
-    const password = localStorage.getItem('nedarimPassword');
+    const mosadId = 'server';
+    const password = 'server';
     
     if (!mosadId || !password) {
         if (typeof showAlert === 'function') showAlert('חסרים פרטי התחברות לנדרים כארד');
@@ -37,8 +37,8 @@ async function loadLimitedStoresIntoSelect() {
     
     selectEl.innerHTML = '<option value="">ללא הגבלה (ברירת מחדל)</option>';
     
-    const mosadId = localStorage.getItem('nedarimMosadId');
-    const password = localStorage.getItem('nedarimPassword');
+    const mosadId = 'server';
+    const password = 'server';
     if (!mosadId || !password) return;
 
     try {
@@ -139,8 +139,8 @@ function updateTabBadge(tabId, iconClass, title, count) {
 
 async function openClientCard(zeout) {
     const clientData = globalClientsMap[zeout];
-    const mosadId = localStorage.getItem('nedarimMosadId');
-    const password = localStorage.getItem('nedarimPassword');
+    const mosadId = 'server';
+    const password = 'server';
 
     resetPulse(); 
     clientCardModal.dataset.zeout = zeout;
@@ -552,8 +552,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const mosadId = localStorage.getItem('nedarimMosadId');
-        const password = localStorage.getItem('nedarimPassword');
+        const mosadId = 'server';
+        const password = 'server';
         const clientId = document.getElementById('nedarimClientId').value;
 
         if (!mosadId || !password || !clientId || clientId === "לא קיים חשבון") return;
@@ -620,8 +620,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const mosadId = localStorage.getItem('nedarimMosadId');
-        const password = localStorage.getItem('nedarimPassword');
+        const mosadId = 'server';
+        const password = 'server';
         const clientId = document.getElementById('nedarimClientId').value;
 
         if (!mosadId || !password || !clientId || clientId === "לא קיים חשבון") return;
@@ -669,7 +669,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('saveYemotBtn').addEventListener('click', async () => {
-        const token = localStorage.getItem('yemotToken');
+        const token = 'server';
         const msgEl = document.getElementById('yemotStatusMsg');
         const zeout = clientCardModal.dataset.zeout;
 
@@ -748,8 +748,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('saveNedarimBtn').addEventListener('click', async () => {
         if (window.isNedarimDisabled) return; 
 
-        const mosadId = localStorage.getItem('nedarimMosadId');
-        const password = localStorage.getItem('nedarimPassword');
+        const mosadId = 'server';
+        const password = 'server';
         const statusMsg = document.getElementById('nedarimStatusMsg');
         const zeout = clientCardModal.dataset.zeout;
         

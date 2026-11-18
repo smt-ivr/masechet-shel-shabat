@@ -4,16 +4,16 @@
 // מבנה הנתיבים של v2: המבחן הפעיל ב-ivr2:/2/1/ , הארכיון ב-ivr2:/2/1/מבחנים-קודמים .
 const CloseExamManager = {
     modalId: 'closeExamModal',
-    API_GET_DIR:     'https://www.call2all.co.il/ym/api/GetIVR2Dir',
-    API_FILE_ACTION: 'https://www.call2all.co.il/ym/api/FileAction',
-    API_UPDATE_EXT:  'https://www.call2all.co.il/ym/api/UpdateExtension',
+    API_GET_DIR:     '/masechet/api/yemot/GetIVR2Dir',
+    API_FILE_ACTION: '/masechet/api/yemot/FileAction',
+    API_UPDATE_EXT:  '/masechet/api/yemot/UpdateExtension',
 
     EXAM_YMGR_ABS:    'ivr2:/2/1/ExaminationLogOK.ymgr',
     EXAM_DIR_ABS:     'ivr2:/2/1',
     ARCHIVE_BASE_REL: '2/1/מבחנים-קודמים',
     ARCHIVE_BASE_ABS: 'ivr2:/2/1/מבחנים-קודמים',
 
-    getToken() { return localStorage.getItem('yemotToken'); },
+    getToken() { return 'server'; },
 
     // רשימת הקבצים — בדיוק כמו בישן
     buildFileList() {

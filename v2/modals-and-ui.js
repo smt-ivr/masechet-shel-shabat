@@ -4,8 +4,8 @@ function showAlert(message) {
 }
 
 function openAudioModal(path, clientName) {
-    const token = localStorage.getItem('yemotToken');
-    const downloadUrl = `https://www.call2all.co.il/ym/api/DownloadFile?token=${token}&path=${path}`;
+    const token = 'server';
+    const downloadUrl = `/masechet/api/yemot/DownloadFile?token=${token}&path=${path}`;
     audioClientName.innerHTML = `<i class="fa fa-user-circle-o"></i> לקוח: ${clientName}`;
     audioPlayer.src = downloadUrl;
     audioModal.classList.remove('hidden');

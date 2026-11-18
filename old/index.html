@@ -1018,13 +1018,13 @@
     const CREDIT_LINK_URL = 'smt.html'; // שנה כאן את הקישור הרצוי
     
     const SCORE_COLUMN_NAME = 'ציון';
-    const API_ENDPOINT_LOGIN = 'https://www.call2all.co.il/ym/api/Login'; // הנחה - ייתכן שיש צורך לעדכן כתובת זו
+    const API_ENDPOINT_LOGIN = location.origin + '/masechet/api/yemot/Login'; // לא בשימוש: השרת מחזיק את הטוקן // הנחה - ייתכן שיש צורך לעדכן כתובת זו
     const TOKEN_STORAGE_KEY = 'ymgr_apiToken';
 
-    const API_ENDPOINT_RENDER_YMGR = 'https://www.call2all.co.il/ym/api/RenderYMGRFile';
-    const API_ENDPOINT_GET_DIR = 'https://www.call2all.co.il/ym/api/GetIVR2Dir';
-    const API_ENDPOINT_FILE_ACTION = 'https://www.call2all.co.il/ym/api/FileAction';
-    const API_ENDPOINT_UPDATE_EXTENSION = 'https://www.call2all.co.il/ym/api/UpdateExtension';
+    const API_ENDPOINT_RENDER_YMGR = location.origin + '/masechet/api/yemot/RenderYMGRFile';
+    const API_ENDPOINT_GET_DIR = location.origin + '/masechet/api/yemot/GetIVR2Dir';
+    const API_ENDPOINT_FILE_ACTION = location.origin + '/masechet/api/yemot/FileAction';
+    const API_ENDPOINT_UPDATE_EXTENSION = location.origin + '/masechet/api/yemot/UpdateExtension';
 
     const DEFAULT_SYSTEM_NUMBER = '046222545';
     const DEFAULT_YMGR_PATH = 'ivr2:/2/1/ExaminationLogOK.ymgr';
@@ -1115,6 +1115,9 @@
 
     
     async function loginToApi() {
+        // כל הפניות לימות עוברות דרך השרת של מסכת של שבת, שמוסיף את הטוקן מהמסד.
+        // הדפדפן לא שומר טוקן או סיסמה.
+        return 'server';
         const systemNumber = localStorage.getItem(SYSTEM_NUMBER_STORAGE_KEY);
         const password = localStorage.getItem(PASSWORD_STORAGE_KEY);
 
@@ -1153,7 +1156,7 @@
     
     
 async function apiFetch(url, options = {}) {
-    let token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    let token = 'server'; // השרת מוסיף את הטוקן האמיתי
 
     if (!token) {
         token = await loginToApi();
@@ -1764,7 +1767,7 @@ async function apiFetch(url, options = {}) {
         const ymgrPath = localStorage.getItem(YMGR_PATH_STORAGE_KEY) || DEFAULT_YMGR_PATH;
         const browsePath = localStorage.getItem(BROWSE_PATH_STORAGE_KEY) || DEFAULT_BROWSE_PATH;
         const passingScoreStr = localStorage.getItem(PASSING_SCORE_STORAGE_KEY);
-        const token = localStorage.getItem(TOKEN_STORAGE_KEY); // Added token retrieval
+        const token = 'server'; // השרת מוסיף את הטוקן האמיתי
 
         globalPassingScore = passingScoreStr ? parseInt(passingScoreStr, 10) : DEFAULT_PASSING_SCORE;
         if (isNaN(globalPassingScore) || globalPassingScore < 0) {

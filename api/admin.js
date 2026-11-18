@@ -1,202 +1,251 @@
-// ניהול משתמשי האתר – רק למשתמש עם is_admin = 1 (כניסה עם הסיסמה שלו)
-//
-// דף הניהול:  https://smti.uk/masechet/admin
-// API:        https://smti.uk/masechet/api/admin/...
-//   POST   /check            – בדיקת סיסמת מנהל
-//   GET    /users            – רשימת משתמשים
-//   POST   /users            – הוספת משתמש
-//   PUT    /users?id=N       – עדכון משתמש
-//   DELETE /users?id=N       – מחיקת משתמש
-//   POST   /logout           – ניתוק (מחיקת טוקן הניהול)
-// אימות: כותרת X-Admin-Token (טוקן שמתקבל בהתחברות) או X-Admin-Pass (סיסמת המנהל).
-
-import { sha256, createAdminSession } from './login.js';
-
-const json = (data, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
-  });
-
-const CONFIG_KEYS = ['yemotUsername', 'yemotPassword', 'yemotToken', 'nedarimMosadId', 'nedarimPassword', 'forceUpdate'];
-
-async function getAdmin(request, env) {
-  const token = (request.headers.get('X-Admin-Token') || '').trim();
-  if (token) {
-    const row = await env.DB
-      .prepare(
-        `SELECT u.id, u.name FROM ms_admin_sessions s JOIN ms_users u ON u.id = s.user_id
-         WHERE s.token_hash = ? AND s.expires_at > ? AND u.is_admin = 1 AND u.blocked = 0`,
-      )
-      .bind(await sha256(token), Date.now())
-      .first();
-    if (row) return { ...row, via: 'token' };
-  }
-  const pass = (request.headers.get('X-Admin-Pass') || '').trim();
-  if (!pass) return null;
-  const row = await env.DB
-    .prepare("SELECT id, name FROM ms_users WHERE match_type = 'pass' AND match_value = ? AND is_admin = 1 AND blocked = 0")
-    .bind(await sha256(pass))
-    .first();
-  return row ? { ...row, via: 'pass' } : null;
-}
-
-const toUser = (r) => {
-  let config = {};
-  try { config = JSON.parse(r.config || '{}'); } catch { config = {}; }
-  return {
-    id: r.id,
-    type: r.match_type,
-    ip: r.match_type === 'ip' ? r.match_value : null,
-    name: r.name || '',
-    blocked: !!r.blocked,
-    canReceiveConfig: !!r.can_receive_config,
-    isAdmin: !!r.is_admin,
-    config,
-    createdAt: r.created_at,
-  };
-};
-
-// ניקוי ההגדרות – רק מפתחות מוכרים, ערכים כטקסט, בלי ריקים
-function cleanConfig(input) {
-  const out = {};
-  if (!input || typeof input !== 'object') return out;
-  for (const k of CONFIG_KEYS) {
-    if (input[k] === undefined || input[k] === null) continue;
-    const v = k === 'forceUpdate' ? (input[k] === true || input[k] === 'true' ? 'true' : '') : String(input[k]).trim();
-    if (v !== '') out[k] = v;
-  }
-  return out;
-}
+// ============================================================
+//  admin.js — ניהול (מנהל בלבד): משתמשים, הגדרות, יומן כניסות, יומן פעולות, מייל פתיחה
+//  כל פעולת ניהול נרשמת ביומן הפעולות.
+// ============================================================
+import { badRequest, conflict, notFound, readJson, str, json, israelNow } from './http.js';
+import { hashPassword, normalizeEmail, requireAdmin } from './auth.js';
+import { getConfig, publicSettings, updateSettings, fillTemplate } from './settings.js';
+import { logAction } from './audit.js';
+import { welcomeMail, sendMail, validEmail, mailReady, renderMail } from './mail.js';
 
 const isIp = (v) =>
   /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/.test(v) || // IPv4
   (v.includes(':') && /^[0-9a-fA-F:]{2,45}$/.test(v)); // IPv6
 
-async function adminCount(db) {
-  const r = await db.prepare("SELECT count(*) AS n FROM ms_users WHERE is_admin = 1 AND blocked = 0 AND match_type = 'pass'").first();
-  return r?.n || 0;
+function accountOut(a) {
+  return {
+    id: a.id,
+    type: a.rule_type,
+    username: a.username,
+    email: a.email,
+    ip: a.ip,
+    name: a.display_name,
+    is_admin: !!a.is_admin,
+    active: !!a.active,
+    has_password: !!(a.password_hash || a.legacy_sha256),
+    last_used_at: a.last_used_at,
+    created_at: a.created_at,
+  };
 }
 
-export async function handleAdminApi(request, env, path) {
-  if (!env.DB) return json({ error: 'מסד הנתונים לא מחובר' }, 500);
+async function activeAdmins(env) {
+  const r = await env.DB.prepare('SELECT COUNT(*) n FROM ms_accounts WHERE is_admin = 1 AND active = 1').first();
+  return r.n;
+}
 
-  const admin = await getAdmin(request, env);
-  if (!admin) {
-    await new Promise((r) => setTimeout(r, 800)); // האטה מול ניחוש סיסמאות
-    return json({ error: 'סיסמת מנהל שגויה' }, 401);
+async function checkUnique(env, field, value, exceptId = 0) {
+  if (!value) return;
+  const q = {
+    username: "SELECT id FROM ms_accounts WHERE rule_type = 'user' AND username = ? AND id != ?",
+    email: 'SELECT id FROM ms_accounts WHERE email = ? AND id != ?',
+    ip: "SELECT id FROM ms_accounts WHERE rule_type = 'ip' AND ip = ? AND id != ?",
+  }[field];
+  const hit = await env.DB.prepare(q).bind(value, exceptId).first();
+  if (hit) throw conflict({ username: 'שם המשתמש כבר קיים', email: 'המייל כבר משויך למשתמש אחר', ip: 'כתובת ה-IP כבר קיימת' }[field]);
+}
+
+// ===== משתמשים =====
+async function listAccounts(env) {
+  const { results } = await env.DB.prepare('SELECT * FROM ms_accounts ORDER BY is_admin DESC, active DESC, display_name').all();
+  return json({ accounts: results.map(accountOut) });
+}
+
+async function createAccount(request, env, ctx) {
+  const b = await readJson(request);
+  const type = b.type === 'ip' ? 'ip' : 'user';
+  const name = str(b.name, 80);
+  if (!name) throw badRequest('חסר שם לתצוגה');
+  const now = israelNow();
+
+  if (type === 'ip') {
+    const ip = str(b.ip, 45);
+    if (!isIp(ip)) throw badRequest('כתובת IP לא תקינה');
+    await checkUnique(env, 'ip', ip);
+    const r = await env.DB.prepare('INSERT INTO ms_accounts (rule_type, ip, display_name, is_admin, active, created_at) VALUES (?, ?, ?, 0, ?, ?)')
+      .bind('ip', ip, name, b.active === false ? 0 : 1, now).run();
+    await logAction(env, request, ctx, { kind: 'admin', action: 'הוספת משתמש', target: name, details: { סוג: 'IP', ip } });
+    return json({ id: r.meta.last_row_id });
   }
 
-  const url = new URL(request.url);
-  const db = env.DB;
+  const username = str(b.username, 60).replace(/\s+/g, ' ');
+  const password = String(b.password || '');
+  const email = b.email ? normalizeEmail(b.email) : null;
+  if (!username) throw badRequest('חסר שם משתמש');
+  if (password.length < 6) throw badRequest('סיסמה חייבת להיות לפחות 6 תווים');
+  if (email && !validEmail(email)) throw badRequest('כתובת המייל אינה תקינה');
+  await checkUnique(env, 'username', username);
+  await checkUnique(env, 'email', email);
+  const { hash, salt } = await hashPassword(password);
+  const r = await env.DB.prepare(
+    'INSERT INTO ms_accounts (rule_type, username, email, password_hash, password_salt, display_name, is_admin, active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+  ).bind('user', username, email, hash, salt, name, b.is_admin ? 1 : 0, b.active === false ? 0 : 1, now).run();
+  await logAction(env, request, ctx, {
+    kind: 'admin', action: 'הוספת משתמש', target: name, details: { 'שם משתמש': username, מייל: email || '', מנהל: b.is_admin ? 'כן' : 'לא' },
+  });
+  return json({ id: r.meta.last_row_id });
+}
 
-  try {
-    if (path === 'check') {
-      const out = { ok: true, name: admin.name, ip: request.headers.get('cf-connecting-ip') || '' };
-      // כניסה בסיסמה – מחזירים טוקן כדי שהדפדפן יזכור את המנהל
-      if (admin.via === 'pass') out.adminToken = await createAdminSession(db, admin.id);
-      return json(out);
-    }
+async function updateAccount(request, env, ctx, id) {
+  const a = await env.DB.prepare('SELECT * FROM ms_accounts WHERE id = ?').bind(id).first();
+  if (!a) throw notFound('המשתמש לא נמצא');
+  const b = await readJson(request);
+  const changes = {};
+  const set = [];
+  const vals = [];
+  const put = (col, val, label, shown = val) => { set.push(`${col} = ?`); vals.push(val); changes[label] = shown; };
 
-    if (path === 'logout') {
-      const token = (request.headers.get('X-Admin-Token') || '').trim();
-      if (token) await db.prepare('DELETE FROM ms_admin_sessions WHERE token_hash = ?').bind(await sha256(token)).run();
-      return json({ ok: true });
-    }
-
-    if (path !== 'users') return json({ error: 'לא נמצא' }, 404);
-
-    // ----- רשימה -----
-    if (request.method === 'GET') {
-      const { results } = await db.prepare('SELECT * FROM ms_users ORDER BY is_admin DESC, name').all();
-      return json({ users: results.map(toUser), me: admin.id });
-    }
-
-    const body = request.method === 'DELETE' ? {} : await request.json().catch(() => ({}));
-    const id = Number(url.searchParams.get('id'));
-
-    // ----- הוספה -----
-    if (request.method === 'POST') {
-      const type = body.type === 'ip' ? 'ip' : 'pass';
-      let value;
-      if (type === 'ip') {
-        value = String(body.ip || '').trim();
-        if (!isIp(value)) return json({ error: 'כתובת IP לא תקינה' }, 400);
-      } else {
-        const pass = String(body.password || '').trim();
-        if (pass.length < 4) return json({ error: 'סיסמה חייבת להיות לפחות 4 תווים' }, 400);
-        value = await sha256(pass);
-      }
-      const name = String(body.name || '').trim();
-      if (!name) return json({ error: 'חסר שם' }, 400);
-
-      const exists = await db.prepare('SELECT id FROM ms_users WHERE match_type = ? AND match_value = ?').bind(type, value).first();
-      if (exists) return json({ error: type === 'ip' ? 'כתובת ה-IP כבר קיימת' : 'הסיסמה כבר בשימוש אצל משתמש אחר' }, 409);
-
-      await db
-        .prepare('INSERT INTO ms_users (match_type, match_value, name, blocked, can_receive_config, is_admin, config) VALUES (?, ?, ?, ?, ?, ?, ?)')
-        .bind(type, value, name, body.blocked ? 1 : 0, body.canReceiveConfig ? 1 : 0, type === 'pass' && body.isAdmin ? 1 : 0, JSON.stringify(cleanConfig(body.config)))
-        .run();
-      return json({ ok: true });
-    }
-
-    if (!id) return json({ error: 'חסר מזהה משתמש' }, 400);
-    const current = await db.prepare('SELECT * FROM ms_users WHERE id = ?').bind(id).first();
-    if (!current) return json({ error: 'המשתמש לא נמצא' }, 404);
-
-    // ----- מחיקה -----
-    if (request.method === 'DELETE') {
-      if (id === admin.id) return json({ error: 'אי אפשר למחוק את עצמך' }, 400);
-      await db.prepare('DELETE FROM ms_admin_sessions WHERE user_id = ?').bind(id).run();
-      await db.prepare('DELETE FROM ms_users WHERE id = ?').bind(id).run();
-      return json({ ok: true });
-    }
-
-    // ----- עדכון -----
-    if (request.method === 'PUT') {
-      let value = current.match_value;
-      if (current.match_type === 'ip' && body.ip !== undefined) {
-        value = String(body.ip).trim();
-        if (!isIp(value)) return json({ error: 'כתובת IP לא תקינה' }, 400);
-      }
-      if (current.match_type === 'pass' && body.password) {
-        const pass = String(body.password).trim();
-        if (pass.length < 4) return json({ error: 'סיסמה חייבת להיות לפחות 4 תווים' }, 400);
-        value = await sha256(pass);
-      }
-      if (value !== current.match_value) {
-        const clash = await db.prepare('SELECT id FROM ms_users WHERE match_type = ? AND match_value = ? AND id != ?').bind(current.match_type, value, id).first();
-        if (clash) return json({ error: current.match_type === 'ip' ? 'כתובת ה-IP כבר קיימת' : 'הסיסמה כבר בשימוש אצל משתמש אחר' }, 409);
-      }
-
-      const name = body.name !== undefined ? String(body.name).trim() : current.name;
-      if (!name) return json({ error: 'חסר שם' }, 400);
-      const blocked = body.blocked !== undefined ? (body.blocked ? 1 : 0) : current.blocked;
-      const isAdmin = current.match_type === 'pass' && body.isAdmin !== undefined ? (body.isAdmin ? 1 : 0) : current.is_admin;
-
-      // לא משאירים את המערכת בלי מנהל פעיל
-      if (current.is_admin && (!isAdmin || blocked) && (await adminCount(db)) <= 1) {
-        return json({ error: 'חייב להישאר לפחות מנהל פעיל אחד' }, 400);
-      }
-
-      await db
-        .prepare('UPDATE ms_users SET match_value = ?, name = ?, blocked = ?, can_receive_config = ?, is_admin = ?, config = ? WHERE id = ?')
-        .bind(
-          value,
-          name,
-          blocked,
-          body.canReceiveConfig !== undefined ? (body.canReceiveConfig ? 1 : 0) : current.can_receive_config,
-          isAdmin,
-          body.config !== undefined ? JSON.stringify(cleanConfig(body.config)) : current.config,
-          id,
-        )
-        .run();
-      return json({ ok: true });
-    }
-
-    return json({ error: 'פעולה לא נתמכת' }, 405);
-  } catch (err) {
-    console.error('admin api error:', err);
-    return json({ error: 'שגיאת שרת' }, 500);
+  if (b.name !== undefined) {
+    const name = str(b.name, 80);
+    if (!name) throw badRequest('חסר שם לתצוגה');
+    if (name !== a.display_name) put('display_name', name, 'שם');
   }
+  if (a.rule_type === 'ip' && b.ip !== undefined) {
+    const ip = str(b.ip, 45);
+    if (!isIp(ip)) throw badRequest('כתובת IP לא תקינה');
+    if (ip !== a.ip) { await checkUnique(env, 'ip', ip, id); put('ip', ip, 'IP'); }
+  }
+  if (a.rule_type === 'user') {
+    if (b.username !== undefined) {
+      const u = str(b.username, 60).replace(/\s+/g, ' ');
+      if (!u) throw badRequest('חסר שם משתמש');
+      if (u !== a.username) { await checkUnique(env, 'username', u, id); put('username', u, 'שם משתמש'); }
+    }
+    if (b.email !== undefined) {
+      const e = b.email ? normalizeEmail(b.email) : null;
+      if (e && !validEmail(e)) throw badRequest('כתובת המייל אינה תקינה');
+      if (e !== (a.email || null)) { await checkUnique(env, 'email', e, id); put('email', e, 'מייל', e || '(הוסר)'); }
+    }
+    if (b.password) {
+      if (String(b.password).length < 6) throw badRequest('סיסמה חייבת להיות לפחות 6 תווים');
+      const { hash, salt } = await hashPassword(String(b.password));
+      set.push('password_hash = ?', 'password_salt = ?', 'legacy_sha256 = NULL');
+      vals.push(hash, salt);
+      changes['סיסמה'] = 'הוחלפה';
+    }
+    if (b.is_admin !== undefined && !!b.is_admin !== !!a.is_admin) put('is_admin', b.is_admin ? 1 : 0, 'מנהל', b.is_admin ? 'כן' : 'לא');
+  }
+  if (b.active !== undefined && !!b.active !== !!a.active) put('active', b.active ? 1 : 0, 'פעיל', b.active ? 'כן' : 'לא');
+
+  // לא משאירים את המערכת בלי מנהל פעיל
+  const losesAdmin = a.is_admin && a.active && ((b.is_admin !== undefined && !b.is_admin) || (b.active !== undefined && !b.active));
+  if (losesAdmin && (await activeAdmins(env)) <= 1) throw badRequest('חייב להישאר לפחות מנהל פעיל אחד');
+
+  if (!set.length) return json({ updated: false });
+  await env.DB.prepare(`UPDATE ms_accounts SET ${set.join(', ')} WHERE id = ?`).bind(...vals, id).run();
+  // השבתה / החלפת סיסמה / הסרת ניהול → ניתוק החיבורים הפעילים של המשתמש
+  if (changes['סיסמה'] || changes['פעיל'] === 'לא' || changes['IP']) {
+    await env.DB.prepare('DELETE FROM ms_sessions WHERE account_id = ? AND token_hash != ?').bind(id, ctx.sessionHash || '').run();
+  }
+  await logAction(env, request, ctx, { kind: 'admin', action: 'עדכון משתמש', target: a.display_name, details: changes });
+  return json({ updated: true });
+}
+
+async function deleteAccount(request, env, ctx, id) {
+  if (id === ctx.account.id) throw badRequest('אי אפשר למחוק את עצמך');
+  const a = await env.DB.prepare('SELECT * FROM ms_accounts WHERE id = ?').bind(id).first();
+  if (!a) throw notFound('המשתמש לא נמצא');
+  if (a.is_admin && a.active && (await activeAdmins(env)) <= 1) throw badRequest('חייב להישאר לפחות מנהל פעיל אחד');
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM ms_sessions WHERE account_id = ?').bind(id),
+    env.DB.prepare('DELETE FROM ms_accounts WHERE id = ?').bind(id),
+  ]);
+  await logAction(env, request, ctx, { kind: 'admin', action: 'מחיקת משתמש', target: a.display_name, details: { סוג: a.rule_type === 'ip' ? `IP ${a.ip}` : a.username } });
+  return json({ deleted: true });
+}
+
+async function sendWelcome(request, env, ctx, id) {
+  const a = await env.DB.prepare('SELECT * FROM ms_accounts WHERE id = ?').bind(id).first();
+  if (!a) throw notFound('המשתמש לא נמצא');
+  if (a.rule_type !== 'user') throw badRequest('מייל פתיחה נשלח רק למשתמש עם שם משתמש');
+  const b = await readJson(request).catch(() => ({}));
+  const to = b.to ? normalizeEmail(b.to) : a.email;
+  if (!to) throw badRequest('למשתמש אין מייל. הוסיפו מייל או הזינו כתובת לשליחה');
+  const cfg = await getConfig(env);
+  const m = welcomeMail(cfg, {
+    displayName: a.display_name, username: a.username, password: b.password ? String(b.password) : '',
+    email: to, google: cfg.google_enabled && !!cfg.google_client_id && to === a.email,
+  }, fillTemplate);
+  const res = await sendMail(cfg, m);
+  await logAction(env, request, ctx, { kind: 'admin', action: 'שליחת מייל פתיחה', target: a.display_name, details: { אל: to, 'כולל סיסמה': b.password ? 'כן' : 'לא' } });
+  return json(res);
+}
+
+// ===== הגדרות =====
+async function saveSettings(request, env, ctx) {
+  const b = await readJson(request);
+  const changed = await updateSettings(env, b);
+  if (changed.length) await logAction(env, request, ctx, { kind: 'admin', action: 'עדכון הגדרות', details: { שדות: changed.join(', ') } });
+  return json(await publicSettings(env));
+}
+
+async function testMail(request, env, ctx) {
+  const b = await readJson(request);
+  const to = normalizeEmail(b.to);
+  if (!validEmail(to)) throw badRequest('כתובת המייל אינה תקינה');
+  const cfg = await getConfig(env);
+  const res = await sendMail(cfg, {
+    to, subject: 'מייל בדיקה – מסכת של שבת', title: 'מייל בדיקה',
+    paragraphs: ['אם קיבלתם את המייל הזה, שליחת המיילים במערכת מסכת של שבת עובדת.'],
+  });
+  await logAction(env, request, ctx, { kind: 'admin', action: 'מייל בדיקה', target: to });
+  return json(res);
+}
+
+async function previewWelcome(request, env) {
+  const b = await readJson(request).catch(() => ({}));
+  const cfg = { ...(await getConfig(env)), ...Object.fromEntries(Object.entries(b).filter(([k]) => k.startsWith('welcome_'))) };
+  const m = welcomeMail(cfg, { displayName: 'ר׳ משה כהן', username: 'moshe', password: 'sod1234', email: 'office@example.com', google: cfg.google_enabled }, fillTemplate);
+  return json({ subject: m.subject, html: renderMail(m), mail_ready: mailReady(cfg) });
+}
+
+// ===== יומנים =====
+const page = (url) => {
+  const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '100', 10) || 100, 1), 500);
+  const offset = Math.max(parseInt(url.searchParams.get('offset') || '0', 10) || 0, 0);
+  return { limit, offset };
+};
+
+async function loginLog(env, url) {
+  const { limit, offset } = page(url);
+  const { results } = await env.DB.prepare(
+    `SELECT l.*, a.display_name FROM ms_login_log l LEFT JOIN ms_accounts a ON a.id = l.account_id
+     ORDER BY l.id DESC LIMIT ? OFFSET ?`,
+  ).bind(limit + 1, offset).all();
+  return json({ rows: results.slice(0, limit), more: results.length > limit });
+}
+
+async function actionLog(env, url) {
+  const { limit, offset } = page(url);
+  const where = [];
+  const vals = [];
+  const kind = url.searchParams.get('kind');
+  if (kind) { where.push('kind = ?'); vals.push(kind); }
+  const account = parseInt(url.searchParams.get('account') || '', 10);
+  if (account) { where.push('account_id = ?'); vals.push(account); }
+  const q = str(url.searchParams.get('q'), 100);
+  if (q) { where.push('(action LIKE ? OR target LIKE ? OR details LIKE ? OR account_name LIKE ?)'); vals.push(...Array(4).fill(`%${q}%`)); }
+  const { results } = await env.DB.prepare(
+    `SELECT * FROM ms_action_log ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY id DESC LIMIT ? OFFSET ?`,
+  ).bind(...vals, limit + 1, offset).all();
+  return json({ rows: results.slice(0, limit), more: results.length > limit });
+}
+
+// ===== נתב =====
+export async function handleAdmin(request, env, ctx, sub, url) {
+  requireAdmin(ctx);
+  const m = request.method;
+  const idMatch = sub.match(/^accounts\/(\d+)(\/welcome)?$/);
+
+  if (sub === 'accounts' && m === 'GET') return listAccounts(env);
+  if (sub === 'accounts' && m === 'POST') return createAccount(request, env, ctx);
+  if (idMatch && !idMatch[2] && m === 'PUT') return updateAccount(request, env, ctx, Number(idMatch[1]));
+  if (idMatch && !idMatch[2] && m === 'DELETE') return deleteAccount(request, env, ctx, Number(idMatch[1]));
+  if (idMatch && idMatch[2] && m === 'POST') return sendWelcome(request, env, ctx, Number(idMatch[1]));
+  if (sub === 'settings' && m === 'GET') return json(await publicSettings(env));
+  if (sub === 'settings' && m === 'PUT') return saveSettings(request, env, ctx);
+  if (sub === 'settings/test-mail' && m === 'POST') return testMail(request, env, ctx);
+  if (sub === 'settings/preview' && m === 'POST') return previewWelcome(request, env);
+  if (sub === 'login-log' && m === 'GET') return loginLog(env, url);
+  if (sub === 'action-log' && m === 'GET') return actionLog(env, url);
+  throw notFound('הכתובת לא נמצאה');
 }

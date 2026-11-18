@@ -1,9 +1,11 @@
 // Webhook לרישום מימות המשיח → כרטיס לקוח בנדרים פלוס
 // https://smti.uk/masechet/nedarim-card/webhook
 //
-// משתני סביבה ב-Cloudflare (Worker: masechet-shel-shabat):
-//   NEDARIM_MOSAD_ID      – מספר מוסד (מוגדר ב-wrangler.toml)
-//   NEDARIM_API_PASSWORD  – מפתח API של נדרים פלוס (Secret, מוגדר בממשק של Cloudflare)
+// מספר המוסד ומפתח ה-API של נדרים נלקחים מהגדרות המערכת במסד (ms_settings),
+// אותן הגדרות שנערכות בדף הניהול: https://smti.uk/masechet/admin
+
+import { ensureSchema } from '../api/schema.js';
+import { getConfig } from '../api/settings.js';
 
 const NEDARIM_URL = 'https://www.matara.pro/nedarimplus/Mechubad/Reports/ManageReports.aspx';
 
@@ -38,10 +40,12 @@ async function readParams(request) {
 
 export async function handleWebhook(request, env) {
   try {
-    const mosadId = env.NEDARIM_MOSAD_ID;
-    const apiPassword = env.NEDARIM_API_PASSWORD;
+    await ensureSchema(env);
+    const cfg = await getConfig(env);
+    const mosadId = cfg.nedarim_mosad_id;
+    const apiPassword = cfg.nedarim_api_password;
     if (!mosadId || !apiPassword) {
-      console.error('Missing NEDARIM_MOSAD_ID / NEDARIM_API_PASSWORD');
+      console.error('Nedarim settings missing in ms_settings');
       return yemot('שגיאת הגדרות בשרת');
     }
 

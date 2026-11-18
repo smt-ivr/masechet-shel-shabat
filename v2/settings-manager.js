@@ -19,8 +19,9 @@ const SettingsManager = {
                     
                     <div style="background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border-light); box-shadow: 0 2px 5px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center;">
                         <div style="display: flex; flex-direction: column; gap: 5px;">
-                            <strong style="font-size: 0.95rem; color: var(--text-main);">מצב חיבור מערכת טלפונית:</strong>
+                            <strong style="font-size: 0.95rem; color: var(--text-main);">מצב חיבור:</strong>
                             <span id="settingsYemotStatusBadge" class="badge badge-secondary" style="font-size: 0.85rem; padding: 6px 12px; align-self: flex-start;"><i class="fa fa-spinner fa-spin"></i> בודק סטטוס...</span>
+                            <span id="settingsNedarimStatusBadge" class="badge badge-secondary" style="font-size: 0.85rem; padding: 6px 12px; align-self: flex-start;"></span>
                         </div>
                         <button id="refreshStatusBtn" class="btn btn-secondary btn-sm" style="height: 35px;"><i class="fa fa-refresh"></i> רענן בדיקת חיבור</button>
                     </div>
@@ -35,34 +36,10 @@ const SettingsManager = {
                         <button id="restoreAnnouncementBtn" class="btn btn-secondary btn-sm" style="height: 35px;"><i class="fa fa-eye"></i> הצג שוב</button>
                     </div>
 
-                    <div class="settings-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div style="background: #fdfdfd; padding: 20px; border: 1px solid var(--border-light); border-radius: 8px;">
-                            <h4 style="margin-bottom: 20px; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; display: inline-block;"><i class="fa fa-phone-square"></i> מערכת טלפונית</h4>
-                            <div class="form-group">
-                                <label>מספר מערכת (Username):</label>
-                                <input type="text" id="yemotUsername" placeholder="הכנס מספר מערכת...">
-                            </div>
-                            <div class="form-group">
-                                <label>סיסמה (Password):</label>
-                                <input type="password" id="yemotPassword" placeholder="הכנס סיסמת ניהול...">
-                            </div>
-                            <div class="form-group">
-                                <label>Token (אם ריק, ייווצר אוטומטית):</label>
-                                <input type="text" id="yemotToken" placeholder="הכנס טוקן חיבור..." dir="ltr" style="text-align: left;">
-                            </div>
-                        </div>
-                        
-                        <div style="background: #fdfdfd; padding: 20px; border: 1px solid var(--border-light); border-radius: 8px;">
-                            <h4 style="margin-bottom: 20px; color: var(--primary-color); border-bottom: 2px solid var(--primary-color); padding-bottom: 8px; display: inline-block;"><i class="fa fa-credit-card"></i> נדרים כארד</h4>
-                            <div class="form-group">
-                                <label>MosadId (מספר מוסד):</label>
-                                <input type="text" id="nedarimMosadId" placeholder="הכנס מזהה מוסד...">
-                            </div>
-                            <div class="form-group">
-                                <label>ApiPassword (סיסמת API):</label>
-                                <input type="password" id="nedarimPassword" placeholder="הכנס סיסמת סליקה...">
-                            </div>
-                        </div>
+                    <div style="background: #f4f8ff; padding: 15px 20px; border-radius: 8px; border: 1px solid #d6e4ff; color: var(--text-main); font-size: 0.95rem; line-height: 1.6;">
+                        <i class="fa fa-lock" style="color: var(--primary-color);"></i>
+                        פרטי החיבור לימות המשיח ולנדרים פלוס שמורים בשרת, ומנוהלים על ידי מנהל המערכת בדף הניהול.
+                        הם לא נשמרים בדפדפן.
                     </div>
                 </div>
                 <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; background: #f8f9fa; border-top: 1px solid var(--border-light);">
@@ -89,17 +66,9 @@ const SettingsManager = {
     },
 
     openModal() {
-        document.getElementById('yemotUsername').value = localStorage.getItem('yemotUsername') || '';
-        document.getElementById('yemotPassword').value = localStorage.getItem('yemotPassword') || '';
-        document.getElementById('yemotToken').value = localStorage.getItem('yemotToken') || '';
-        document.getElementById('nedarimMosadId').value = localStorage.getItem('nedarimMosadId') || '';
-        document.getElementById('nedarimPassword').value = localStorage.getItem('nedarimPassword') || '';
-        
         const isAutoSync = localStorage.getItem('autoSyncOnLoad') !== 'false';
         document.getElementById('autoSyncCheck').checked = isAutoSync;
-        
         document.getElementById(this.modalId).classList.remove('hidden');
-        
         // בדיקת חיבור חיה בעת פתיחת החלון
         this.checkStatusLive();
     },
@@ -109,59 +78,39 @@ const SettingsManager = {
     },
 
     saveData() {
-        localStorage.setItem('yemotUsername', document.getElementById('yemotUsername').value.trim());
-        localStorage.setItem('yemotPassword', document.getElementById('yemotPassword').value.trim());
-        localStorage.setItem('yemotToken', document.getElementById('yemotToken').value.trim());
-        localStorage.setItem('nedarimMosadId', document.getElementById('nedarimMosadId').value.trim());
-        localStorage.setItem('nedarimPassword', document.getElementById('nedarimPassword').value.trim());
         localStorage.setItem('autoSyncOnLoad', document.getElementById('autoSyncCheck').checked);
-        
         this.closeModal();
-        
-        // הצגת הודעת אישור מעוצבת ורענון אם צריך
-        if(typeof showAlert === 'function') {
-            showAlert('ההגדרות נשמרו בהצלחה במערכת!');
-        }
+        if (typeof showAlert === 'function') showAlert('ההגדרות נשמרו בהצלחה!');
     },
 
+    // בדיקה בשרת: האם הטוקנים של ימות ונדרים שבמסד תקינים
     async checkStatusLive() {
-        const badge = document.getElementById('settingsYemotStatusBadge');
         const icon = document.querySelector('#refreshStatusBtn i');
-        
-        badge.innerHTML = '<i class="fa fa-spinner fa-spin"></i> בודק סטטוס חיבור מול ימות המשיח...';
-        badge.style.color = '#856404';
-        badge.style.backgroundColor = '#fff3cd';
-        
-        if(icon) icon.classList.add('fa-spin');
-
-        try {
-            let currentToken = document.getElementById('yemotToken').value.trim() || localStorage.getItem('yemotToken');
-            
-            if (!currentToken) {
-                badge.innerHTML = '<i class="fa fa-times-circle"></i> חסר טוקן חיבור במערכת';
-                badge.style.color = '#fff'; badge.style.backgroundColor = '#dc3545';
-                if(icon) icon.classList.remove('fa-spin');
+        const paint = (el, label, st) => {
+            if (!el) return;
+            if (!st) {
+                el.innerHTML = `<i class="fa fa-spinner fa-spin"></i> ${label}: בודק...`;
+                el.style.color = '#856404'; el.style.backgroundColor = '#fff3cd';
                 return;
             }
-            
-            // בדיקה אמיתית מול שרתי ימות המשיח
-            if (typeof YemotAPI !== 'undefined' && YemotAPI.checkMFA) {
-                const mfaRes = await YemotAPI.checkMFA(currentToken, 'isPass');
-                if (mfaRes.responseStatus === "OK" && mfaRes.isPass) {
-                    badge.innerHTML = `<i class="fa fa-check-circle"></i> מחובר ותקין (${mfaRes.passReason || 'MFA'})`;
-                    badge.style.color = '#fff'; badge.style.backgroundColor = '#28a745';
-                } else {
-                    badge.innerHTML = '<i class="fa fa-exclamation-triangle"></i> טוקן פג תוקף / נדרש אימות';
-                    badge.style.color = '#fff'; badge.style.backgroundColor = '#dc3545';
-                }
-            } else {
-                badge.innerHTML = '<i class="fa fa-info-circle"></i> לא ניתן לבדוק כרגע';
-            }
+            el.innerHTML = `<i class="fa ${st.ok ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i> ${label}: ${st.message}`;
+            el.style.color = '#fff'; el.style.backgroundColor = st.ok ? '#28a745' : '#dc3545';
+        };
+        const ym = document.getElementById('settingsYemotStatusBadge');
+        const nd = document.getElementById('settingsNedarimStatusBadge');
+        paint(ym, 'ימות המשיח'); paint(nd, 'נדרים פלוס');
+        if (icon) icon.classList.add('fa-spin');
+        try {
+            const res = await fetch('/masechet/api/status', { credentials: 'same-origin' });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.error && data.error.message);
+            paint(ym, 'ימות המשיח', data.data.yemot);
+            paint(nd, 'נדרים פלוס', data.data.nedarim);
         } catch (err) {
-            badge.innerHTML = '<i class="fa fa-times-circle"></i> שגיאת תקשורת בבדיקה';
-            badge.style.color = '#fff'; badge.style.backgroundColor = '#dc3545';
+            paint(ym, 'ימות המשיח', { ok: false, message: 'שגיאת תקשורת בבדיקה' });
+            paint(nd, 'נדרים פלוס', { ok: false, message: 'שגיאת תקשורת בבדיקה' });
         }
-        if(icon) icon.classList.remove('fa-spin');
+        if (icon) icon.classList.remove('fa-spin');
     }
 };
 

@@ -14,11 +14,9 @@ type = "Data"
 globs = ["**/*.png", "**/*.ico"]
 fallthrough = true
 
-# משתני סביבה ל-Webhook (המפתח NEDARIM_API_PASSWORD מוגדר כ-Secret בממשק של Cloudflare, לא כאן)
-[vars]
-NEDARIM_MOSAD_ID = "7000886"
-
-# מסד הנתונים של מסכת של שבת – טבלאות עם הקידומת ms_ בתוך המסד yemot-pay (משותף)
+# מסד הנתונים של מסכת של שבת – טבלאות עם הקידומת ms_ בתוך המסד yemot-pay (משותף).
+# כל הטוקנים והמפתחות (ימות, נדרים, Resend, Google) שמורים במסד בטבלה ms_settings –
+# לא במשתני סביבה. עריכה בדף הניהול: https://smti.uk/masechet/admin
 [[d1_databases]]
 binding = "DB"
 database_name = "yemot-pay"
