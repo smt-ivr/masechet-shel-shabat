@@ -8,6 +8,7 @@
 - `v2/` – הגרסה החדשה (מוגשת ב-`/masechet/v2`)
 - `worker.js` – ה-Worker שמגיש את כל הקבצים לפי הנתיב
 - `wrangler.toml` – הגדרות הפריסה ל-Cloudflare
+- `webhook-nedarim/` – Webhook רישום מימות המשיח → נדרים פלוס
 
 ## נתיבים
 
@@ -16,6 +17,7 @@
 | `/masechet` | הגרסה הישנה (`old/index.html`) |
 | `/masechet/smt.html` | דף משני ישן |
 | `/masechet/v2` | הגרסה החדשה (`v2/index.html`) |
+| `/masechet/webhook-nedarim` | Webhook רישום מימות המשיח לנדרים פלוס (`webhook-nedarim/`) |
 
 נתיב `/masechet` ו-`/masechet/v2` ללא `/` בסוף מופנים אוטומטית לנתיב עם `/`
 כדי שהקישורים היחסיים (CSS/JS/תמונות) ייטענו נכון.

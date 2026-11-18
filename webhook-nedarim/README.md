@@ -3,8 +3,10 @@
 פונקציית Netlify שמקבלת רישום מימות המשיח ויוצרת כרטיס לקוח בנדרים פלוס
 (`Action=SaveClientCard`). מחזירה לימות המשיח הודעת `id_list_message`.
 
-- כתובת: `https://webhook-nedarim.netlify.app/.netlify/functions/create_client`
-- פרויקט ב-Netlify: `webhook-nedarim`
+- **כתובת לשלוחה:** `https://smti.uk/masechet/webhook-nedarim`
+  (מוגש מה-Worker הראשי `masechet-shel-shabat` – הקוד ב-`worker-webhook.js`)
+- גרסה ישנה ב-Netlify (`netlify/functions/create_client.js`):
+  `https://webhook-nedarim.netlify.app/.netlify/functions/create_client`
 
 ## פרמטרים מימות המשיח
 
@@ -17,17 +19,12 @@
 | `P050` | קוד קבוצה (1–4) |
 | `Date`, `Time`, `HebrewDate`, `Folder`, `Booking` | נכנסים להערה |
 
-## משתני סביבה (מוגדרים ב-Netlify, לא בקוד)
+## משתני סביבה (Cloudflare → Worker `masechet-shel-shabat`)
 
-- `NEDARIM_MOSAD_ID` – מספר מוסד
-- `NEDARIM_API_PASSWORD` – מפתח API של נדרים פלוס (נשלח בפרמטר `ApiPassword`)
-
-> שינוי במשתני סביבה נכנס לתוקף רק אחרי פריסה מחדש.
+- `NEDARIM_MOSAD_ID` – מספר מוסד, מוגדר ב-`wrangler.toml`
+- `NEDARIM_API_PASSWORD` – מפתח API של נדרים פלוס, מוגדר כ-**Secret** בממשק של Cloudflare
+  (Settings → Variables and Secrets). לא נשמר בקוד.
 
 ## פריסה
 
-מתוך התיקייה הזו:
-
-```bash
-npx netlify deploy --prod --site webhook-nedarim
-```
+הפונקציה חלק מה-Worker הראשי, ונפרסת יחד איתו (`npx wrangler deploy` משורש המאגר).

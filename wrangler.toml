@@ -13,3 +13,7 @@ fallthrough = true
 type = "Data"
 globs = ["**/*.png", "**/*.ico"]
 fallthrough = true
+
+# משתני סביבה ל-Webhook (המפתח NEDARIM_API_PASSWORD מוגדר כ-Secret בממשק של Cloudflare, לא כאן)
+[vars]
+NEDARIM_MOSAD_ID = "7000886"

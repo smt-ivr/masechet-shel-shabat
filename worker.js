@@ -23,6 +23,9 @@ import v2ClientCard from './v2/client-card.js';
 import v2ServerSync from './v2/server-sync.js';
 import v2SettingsManager from './v2/settings-manager.js';
 
+// ----- Webhook רישום (ימות המשיח → נדרים פלוס) -----
+import { handleWebhook } from './webhook-nedarim/worker-webhook.js';
+
 // ----- האתר הישן -----
 import oldIndex from './old/index.html';
 import oldSmtHtml from './old/smt.html';
@@ -66,10 +69,15 @@ const ROUTES = {
 };
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
     const redirect = (to) => Response.redirect(url.origin + to, 301);
+
+    // Webhook רישום מימות המשיח
+    if (path === '/masechet/webhook-nedarim' || path === '/masechet/webhook-nedarim/') {
+      return handleWebhook(request, env);
+    }
 
     // נרמול נתיבים ללא "/" בסוף (כדי שקישורים יחסיים יעבדו)
     if (path === '/masechet')     return redirect('/masechet/');
