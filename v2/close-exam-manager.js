@@ -49,9 +49,10 @@ const CloseExamManager = {
                             </div>
                             <div style="flex:1;">
                                 <label style="display:block; font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">שם המבחן / פרשה</label>
-                                <input type="text" id="closeExamParsha" placeholder="למשל: שמות (ריק = מבחן-תאריך)" style="width:100%; padding:9px 12px; border:1px solid var(--border-color); border-radius:8px; font-family:inherit; font-size:1rem;">
+                                <input type="text" id="closeExamParsha" placeholder="למשל: שמות (חובה)" required style="width:100%; padding:9px 12px; border:1px solid var(--border-color); border-radius:8px; font-family:inherit; font-size:1rem;">
                             </div>
                         </div>
+                        <div id="closeExamFormError" style="display:none; margin:-8px 0 14px; color:#dc3545; font-size:0.85rem;"></div>
                         <div style="background:#fdfdfd; border:1px solid var(--border-light); border-radius:8px; padding:14px 16px; margin-bottom:16px;">
                             <strong style="font-size:0.9rem; color:var(--primary-color);"><i class="fa fa-files-o"></i> קבצים שיטופלו:</strong>
                             <div id="closeExamFilePreview" style="margin-top:10px; font-size:0.85rem; color:var(--text-main); max-height:160px; overflow:auto;"></div>
@@ -83,8 +84,9 @@ const CloseExamManager = {
         let maxNum = 0;
         try {
             const response = await fetch(apiUrl);
-            if (!response.ok) return (maxNum + 1).toString().padStart(2, '0');
+            if (!response.ok) return null;
             const data = await response.json();
+            if (data.responseStatus !== 'OK' && !(data.message && data.message.includes('does not exist'))) return null;
             if (data.responseStatus === 'OK' && Array.isArray(data.dirs)) {
                 data.dirs.forEach(dir => {
                     if (dir && typeof dir.name === 'string') {
@@ -98,6 +100,7 @@ const CloseExamManager = {
             }
         } catch (error) {
             console.error('שגיאה במשיכת תיקיות להצעת מספר:', error);
+            return null;
         }
         return (maxNum + 1).toString().padStart(2, '0');
     },
@@ -129,20 +132,58 @@ const CloseExamManager = {
         const copyHtml = `<div style="padding:2px 0;"><i class="fa fa-copy" style="color:#2e7d32; width:16px;"></i> ${iniToCopyName} <span style="color:var(--text-muted);">(העתקה)</span></div>`;
         document.getElementById('closeExamFilePreview').innerHTML = moveHtml + copyHtml;
 
-        // מספר סידורי
-        document.getElementById('closeExamSerial').textContent = '...';
+        // מספר סידורי – עד שהוא נטען אי אפשר לסגור
+        this._suggestedPrefix = null;
+        const serialEl = document.getElementById('closeExamSerial');
+        const errEl = document.getElementById('closeExamFormError');
+        const nameEl = document.getElementById('closeExamParsha');
+        serialEl.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+        errEl.style.display = 'none';
+        nameEl.oninput = () => { errEl.style.display = 'none'; this.updateConfirmState(); };
+        this.updateConfirmState();
         document.getElementById(this.modalId).classList.remove('hidden');
+        setTimeout(() => nameEl.focus(), 50);
+
         const prefix = await this.suggestNextArchiveFolderName();
-        document.getElementById('closeExamSerial').textContent = prefix;
+        if (!prefix) {
+            serialEl.textContent = '!';
+            errEl.textContent = 'לא ניתן לטעון את המספר הסידורי מהמערכת. סגרו את החלון ונסו שוב.';
+            errEl.style.display = 'block';
+            return;
+        }
+        serialEl.textContent = prefix;
         this._suggestedPrefix = prefix;
+        this.updateConfirmState();
+    },
+
+    // כפתור האישור פעיל רק אחרי שהמספר הסידורי נטען ויש שם תיקייה
+    updateConfirmState() {
+        const btn = document.getElementById('closeExamConfirmBtn');
+        if (!btn) return;
+        const hasName = !!(document.getElementById('closeExamParsha').value || '').trim();
+        if (!this._suggestedPrefix) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> טוען מספר סידורי...';
+            return;
+        }
+        btn.disabled = !hasName;
+        btn.title = hasName ? '' : 'יש להזין שם תיקייה';
+        btn.innerHTML = '<i class="fa fa-check"></i> אישור וסגירת מבחן';
     },
 
     async execute() {
         const token = this.getToken();
-        const suggestedPrefix = this._suggestedPrefix || '01';
-        const todayDate = new Date().toLocaleDateString('fr-CA');
+        const suggestedPrefix = this._suggestedPrefix;
         const rawParsha = (document.getElementById('closeExamParsha').value || '').trim();
-        const finalFolderNamePart = rawParsha === '' ? `מבחן-${todayDate}` : rawParsha.replace(/[\\/?%*:|"<>.]/g, '-');
+        const errEl = document.getElementById('closeExamFormError');
+        if (!suggestedPrefix) return; // המספר הסידורי עוד לא נטען
+        if (!rawParsha) {
+            errEl.textContent = 'יש להזין שם תיקייה (שם המבחן / פרשה).';
+            errEl.style.display = 'block';
+            document.getElementById('closeExamParsha').focus();
+            return;
+        }
+        const finalFolderNamePart = rawParsha.replace(/[\\/?%*:|"<>.]/g, '-');
         const sanitizedFolderName = `${suggestedPrefix} ${finalFolderNamePart}`;
         const targetDirectoryPath = `${this.ARCHIVE_BASE_ABS}/${sanitizedFolderName}`;
 

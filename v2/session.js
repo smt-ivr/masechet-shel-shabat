@@ -54,7 +54,14 @@ const MsSession = (() => {
     }
 
     function clearSession() { store.del(USER_KEY); }
-    function saveSession(u) { store.set(USER_KEY, JSON.stringify(u)); }
+    // נשמר רק מה שצריך כדי לצייר את הפס העליון מיד (שם, הרשאות, מצב ההודעה) – לא טוקנים
+    function savedAnnouncement() {
+        try { return (JSON.parse(store.get(USER_KEY) || 'null') || {}).announcement || null; } catch (e) { return null; }
+    }
+    function saveSession(u) {
+        const ann = (u && u.announcement) || savedAnnouncement();
+        store.set(USER_KEY, JSON.stringify(Object.assign({}, u, ann ? { announcement: ann } : {})));
+    }
 
     // ===== ניקוי הדפדפן =====
     async function cleanBrowser() {
@@ -72,49 +79,10 @@ const MsSession = (() => {
 
     // ===== פס עליון: שם, ניהול, יציאה (בעיצוב הקיים של האתר) =====
     function renderTopBar() {
-        const el = $('topBarUserDisplay');
-        if (el) {
-            el.innerHTML = '';
-            const icon = document.createElement('i');
-            icon.className = 'fa fa-user-circle';
-            const strong = document.createElement('strong');
-            strong.textContent = user.name;
-            el.append(icon, ' ', strong);
-        }
-        const anchor = $('openSettingsBtn');
-        if (!anchor) return;
-        const admin = $('adminPanelBtn');
-        if (user.is_admin && !admin) {
-            const a = document.createElement('a');
-            a.id = 'adminPanelBtn';
-            a.href = '/masechet/admin';
-            a.target = '_blank';
-            a.rel = 'noopener';
-            a.className = 'btn btn-secondary';
-            a.title = 'ניהול משתמשים, הגדרות ויומנים';
-            a.innerHTML = '<i class="fa fa-users"></i> ניהול';
-            anchor.parentNode.insertBefore(a, anchor);
-        } else if (!user.is_admin && admin) {
-            admin.remove();
-        }
-        // כניסה לפי IP: במקום "יציאה" (שהייתה מחזירה מיד לאותו משתמש) – "התחברות עם סיסמה"
-        let b = $('logoutBtn');
-        if (!b) {
-            b = document.createElement('button');
-            b.id = 'logoutBtn';
-            b.type = 'button';
-            b.className = 'btn btn-secondary';
-            anchor.parentNode.insertBefore(b, anchor.nextSibling);
-        }
-        if (user.method === 'ip') {
-            b.title = 'נכנסתם לפי כתובת IP. לחצו כדי להתחבר עם סיסמה';
-            b.innerHTML = '<i class="fa fa-key"></i> התחברות עם סיסמה';
-            b.onclick = openPasswordLogin;
-        } else {
-            b.title = 'יציאה מהמערכת';
-            b.innerHTML = '<i class="fa fa-sign-out"></i> יציאה';
-            b.onclick = logout;
-        }
+        // הכפתורים כתובים ב-HTML; כאן רק מעדכנים (בלי להוסיף/להזיז אלמנטים)
+        if (typeof window.msRenderTopBar === 'function') window.msRenderTopBar(Object.assign({}, user, { announcement: savedAnnouncement() }));
+        const out = $('logoutBtn');
+        if (out) out.onclick = user.method === 'ip' ? openPasswordLogin : logout;
     }
 
     function showSite() {
@@ -181,8 +149,8 @@ const MsSession = (() => {
         if (reloadAfterLogin) return location.reload();
         if (done) { renderTopBar(); return; }
         done = true;
-        showSite();
         renderTopBar();
+        showSite();
         resolveReady(u);
         cleanBrowser();
         loadAnnouncement();
@@ -209,16 +177,19 @@ const MsSession = (() => {
             setAnnouncement(r);
         } catch (e) { /* ההודעה נשארת מוסתרת */ }
     }
+    // ההודעה תופסת תמיד את אותו מקום – מסתירים רק את התוכן, כך שהפס העליון לא משנה גובה
     function setAnnouncement(r) {
         const box = $('completionAnnouncement');
         if (!box) return;
         const text = box.querySelector('.completion-announcement span');
         if (text && r.text) text.textContent = r.text;
-        box.style.display = r.show ? 'flex' : 'none';
+        box.style.visibility = r.show ? 'visible' : 'hidden';
+        if (user) saveSession(Object.assign({}, user, { announcement: { show: !!r.show, text: r.text || '' } }));
     }
     window.dismissCompletionAnnouncement = async function () {
         const box = $('completionAnnouncement');
-        if (box) box.style.display = 'none';
+        if (box) box.style.visibility = 'hidden';
+        if (user) saveSession(Object.assign({}, user, { announcement: { show: false, text: (savedAnnouncement() || {}).text || '' } }));
         try { await call('POST', 'announcement/dismiss', null, 8000); } catch (e) { /* ignore */ }
     };
     window.showCompletionAnnouncement = async function () {

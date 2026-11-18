@@ -77,7 +77,7 @@
                 <img src="smt.png" alt="SMT Logo" draggable="false" style="height: 53px; object-fit: contain; pointer-events: none; user-select: none; position: absolute; left: 10px; top: 50%; transform: translateY(-48%); z-index: 1000;">
             </div>
         </div>
-        <div id="completionAnnouncement" style="flex: 1; display: none; justify-content: center; align-items: center; padding: 0 20px; min-width: 0;">
+        <div id="completionAnnouncement" style="flex: 1; display: flex; visibility: hidden; justify-content: center; align-items: center; padding: 0 20px; min-width: 0;">
             <div class="completion-announcement">
                 <i class="fa fa-check-circle"></i>
                 <span>הפיתוח של האתר החדש הושלם! אין צורך להשתמש יותר באתר הישן</span>
@@ -91,12 +91,48 @@
             <a href="/masechet/old/" class="btn btn-secondary" title="מעבר לאתר הישן (גרסה קודמת עם פונקציות שעדיין לא נבנו כאן)">
                 <i class="fa fa-history"></i> אתר ישן
             </a>
+            <a id="adminPanelBtn" href="/masechet/admin" target="_blank" rel="noopener" class="btn btn-secondary" title="ניהול משתמשים, הגדרות ויומנים" style="display: none;">
+                <i class="fa fa-users"></i> ניהול
+            </a>
             <button id="openSettingsBtn" class="btn btn-primary" title="פרטי חיבור">
                 <i class="fa fa-user-circle"></i> אזור אישי
             </button>
+            <button id="logoutBtn" type="button" class="btn btn-secondary" title="יציאה מהמערכת">
+                <i class="fa fa-sign-out"></i> יציאה
+            </button>
         </div>
     </header>
-    <!-- ההודעה בראש האתר: הטקסט מהשרת (הגדרות הניהול), והסגירה נשמרת בחשבון המשתמש – ב-session.js -->
+    <!-- הפס העליון נבנה מהכניסה השמורה עוד לפני שהדף מוצג – כך ששום כפתור לא קופץ.
+         ההודעה בראש האתר: הטקסט מהשרת (הגדרות הניהול), והסגירה נשמרת בחשבון המשתמש – ב-session.js -->
+    <script>
+        window.msRenderTopBar = function (u) {
+            if (!u) return;
+            var el = document.getElementById('topBarUserDisplay');
+            if (el) {
+                el.innerHTML = '<i class="fa fa-user-circle"></i> <strong></strong>';
+                el.querySelector('strong').textContent = u.name || '';
+            }
+            var admin = document.getElementById('adminPanelBtn');
+            if (admin) admin.style.display = u.is_admin ? '' : 'none';
+            var out = document.getElementById('logoutBtn');
+            if (out) {
+                var ip = u.method === 'ip';
+                out.title = ip ? 'נכנסתם לפי כתובת IP. לחצו כדי להתחבר עם סיסמה' : 'יציאה מהמערכת';
+                out.innerHTML = ip ? '<i class="fa fa-key"></i> התחברות עם סיסמה' : '<i class="fa fa-sign-out"></i> יציאה';
+            }
+            var perms = u.permissions || [];
+            ['clients_view', 'clients_edit', 'nedarim_charge', 'exams_view', 'exams_manage', 'old_site', 'admin'].forEach(function (p) {
+                document.documentElement.classList.toggle('ms-no-' + p, perms.indexOf(p) < 0);
+            });
+            var box = document.getElementById('completionAnnouncement');
+            if (box && u.announcement) {
+                var span = box.querySelector('.completion-announcement span');
+                if (span && u.announcement.text) span.textContent = u.announcement.text;
+                box.style.visibility = u.announcement.show ? 'visible' : 'hidden';
+            }
+        };
+        try { window.msRenderTopBar(JSON.parse(localStorage.getItem('ms_user') || 'null')); } catch (e) {}
+    </script>
 
     <main class="container-fluid">
         <div id="authScreens">
@@ -139,11 +175,7 @@
             </nav>
 
             <div id="view-exams" class="app-view active">
-                <div id="examsLoadingIndicator" class="text-center" style="padding: 100px 20px; color: var(--primary-color);">
-                    <i class="fa fa-spinner fa-spin" style="font-size: 4rem; margin-bottom: 20px;"></i>
-                    <h2 style="font-weight: 500;">טוען נתוני מבחנים...</h2>
-                    <p style="color: var(--text-muted); margin-top: 10px;">מושך נתונים מעודכנים משרת המערכת הטלפונית</p>
-                </div>
+                <!-- המבנה (עם ספינרים) נבנה מיד ב-ExamsManager.showLoading -->
             </div>
 
             <div id="view-clients" class="app-view">

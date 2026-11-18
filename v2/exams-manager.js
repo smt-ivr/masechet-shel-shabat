@@ -1,17 +1,10 @@
 const ExamsManager = {
     lastExamData: null,
 
+    // בזמן טעינה מציגים את אותו מבנה (סיכום, כפתורים, כותרות הטבלה) עם ספינרים –
+    // כך ששום דבר לא קופץ כשהנתונים מגיעים
     showLoading() {
-        const container = document.getElementById('view-exams');
-        if (container) {
-            container.innerHTML = `
-                <div class="text-center" style="padding: 100px 20px; color: var(--primary-color);">
-                    <i class="fa fa-spinner fa-spin" style="font-size: 4rem; margin-bottom: 20px;"></i>
-                    <h2 style="font-weight: 500;">טוען נתוני מבחנים...</h2>
-                    <p style="color: var(--text-muted); margin-top: 10px;">מושך נתונים מעודכנים משרת המערכת הטלפונית</p>
-                </div>
-            `;
-        }
+        this.render({ loading: true });
     },
 
     reRender() {
@@ -49,18 +42,20 @@ const ExamsManager = {
         const container = document.getElementById('view-exams');
         if (!container) return;
 
+        const isLoading = !!(result && result.loading);
+
         // שומרים את הנתונים למטמון רק אם זה מבחן פעיל (לא היסטוריה) ולא רענון מקומי
-        if (!isReRender && !isHistory) {
+        if (!isReRender && !isHistory && !isLoading) {
             this.lastExamData = (result && result.data) ? result.data : [];
         }
 
         let isError = result && result.error;
         let noExam = result && result.noExam;
-        let examData = isHistory ? ((result && result.data) ? result.data : []) : this.lastExamData;
+        let examData = isLoading ? [] : (isHistory ? ((result && result.data) ? result.data : []) : (this.lastExamData || []));
         let errorMsg = isError ? result.message : '';
 
         let totalExams = examData.length;
-        if (totalExams === 0 && !isError) noExam = true;
+        if (totalExams === 0 && !isError && !isLoading) noExam = true;
 
         let passedCount = 0; 
         let failedCount = 0; 
@@ -123,6 +118,8 @@ const ExamsManager = {
                     </tr>
                 `;
             });
+        } else if (isLoading) {
+            tbodyHtml = `<tr><td colspan="19" class="text-center" style="padding: 60px; border: none; color: var(--primary-color); font-size: 1.1rem;"><i class="fa fa-spinner fa-spin" style="font-size: 2.5rem; margin-bottom: 10px; display: block;"></i> טוען נתוני מבחנים...</td></tr>`;
         } else if (noExam) {
             tbodyHtml = `<tr><td colspan="19" class="text-center" style="padding: 60px; border: none; color: var(--text-muted); font-size: 1.2rem;"><i class="fa fa-info-circle" style="font-size: 2.5rem; margin-bottom: 10px; display: block; color: #ced4da;"></i> אין קובץ מבחן להצגה</td></tr>`;
         } else if (isError) {
@@ -132,7 +129,23 @@ const ExamsManager = {
         const disableActiveButtons = (noExam || isError || totalExams === 0) ? 'disabled' : '';
         const hasDataToDisplay = !noExam && !isError && totalExams > 0;
 
-        const statsHtml = hasDataToDisplay ? `
+        const spin = '<i class="fa fa-spinner fa-spin" style="font-size: 1.1rem; color: var(--text-muted);"></i>';
+        const statsHtml = isLoading ? `
+            <div class="stats-cards" style="flex-shrink: 0;">
+                <div class="stat-card">
+                    <span class="stat-title">סה"כ נבחנים</span>
+                    <strong class="stat-value" style="color: var(--primary-color);">${spin}</strong>
+                </div>
+                <div class="stat-card warning">
+                    <span class="stat-title" style="color: #2e7d32;">עברו (80+)</span>
+                    <strong class="stat-value" style="color: #2e7d32;">${spin}</strong>
+                </div>
+                <div class="stat-card bordered">
+                    <span class="stat-title" style="color: #c62828;">לא עברו</span>
+                    <strong class="stat-value" style="color: #c62828;">${spin}</strong>
+                </div>
+            </div>
+        ` : hasDataToDisplay ? `
             <div class="stats-cards" style="flex-shrink: 0;">
                 <div class="stat-card">
                     <span class="stat-title">סה"כ נבחנים</span>
@@ -149,7 +162,7 @@ const ExamsManager = {
             </div>
         ` : `<div class="stats-cards" style="flex-shrink: 0;"></div>`;
 
-        const theadHtml = hasDataToDisplay ? `
+        const theadHtml = (hasDataToDisplay || isLoading) ? `
             <thead>
                 <tr>
                     <th class="text-center">#</th>
@@ -220,4 +233,4 @@ const ExamsManager = {
 
         container.innerHTML = fullHtml;
     }
-};
+};document.addEventListener('DOMContentLoaded', () => ExamsManager.showLoading());
