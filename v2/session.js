@@ -79,17 +79,6 @@ const MsSession = (() => {
             const strong = document.createElement('strong');
             strong.textContent = user.name;
             el.append(icon, ' ', strong);
-            // נכנסו לפי IP – אפשרות קטנה להתחבר בסיסמה (למשל כמשתמש אחר)
-            if (user.method === 'ip') {
-                const link = document.createElement('a');
-                link.href = '#';
-                link.id = 'msPasswordLoginLink';
-                link.textContent = 'כניסה בסיסמה';
-                link.title = 'נכנסתם לפי כתובת IP. לחצו כדי להתחבר בסיסמה';
-                link.style.cssText = 'color: inherit; opacity: .75; font-size: .8em; margin-right: 8px;';
-                link.onclick = (e) => { e.preventDefault(); openPasswordLogin(); };
-                el.append(link);
-            }
         }
         const anchor = $('openSettingsBtn');
         if (!anchor) return;
@@ -107,15 +96,23 @@ const MsSession = (() => {
         } else if (!user.is_admin && admin) {
             admin.remove();
         }
-        if (!$('logoutBtn')) {
-            const b = document.createElement('button');
+        // כניסה לפי IP: במקום "יציאה" (שהייתה מחזירה מיד לאותו משתמש) – "התחברות עם סיסמה"
+        let b = $('logoutBtn');
+        if (!b) {
+            b = document.createElement('button');
             b.id = 'logoutBtn';
             b.type = 'button';
             b.className = 'btn btn-secondary';
+            anchor.parentNode.insertBefore(b, anchor.nextSibling);
+        }
+        if (user.method === 'ip') {
+            b.title = 'נכנסתם לפי כתובת IP. לחצו כדי להתחבר עם סיסמה';
+            b.innerHTML = '<i class="fa fa-key"></i> התחברות עם סיסמה';
+            b.onclick = openPasswordLogin;
+        } else {
             b.title = 'יציאה מהמערכת';
             b.innerHTML = '<i class="fa fa-sign-out"></i> יציאה';
             b.onclick = logout;
-            anchor.parentNode.insertBefore(b, anchor.nextSibling);
         }
     }
 
