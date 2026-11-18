@@ -26,6 +26,9 @@ import v2SettingsManager from './v2/settings-manager.js';
 // ----- Webhook רישום (ימות המשיח → נדרים פלוס) -----
 import { handleWebhook } from './webhook-nedarim/worker-webhook.js';
 
+// ----- כרטיס נדרים (יתרה / פרטי כרטיס בימות המשיח) -----
+import { handleBalance, handleDetails } from './nedarim-card/worker-card.js';
+
 // ----- האתר הישן -----
 import oldIndex from './old/index.html';
 import oldSmtHtml from './old/smt.html';
@@ -78,6 +81,10 @@ export default {
     if (path === '/masechet/webhook-nedarim' || path === '/masechet/webhook-nedarim/') {
       return handleWebhook(request, env);
     }
+
+    // כרטיס נדרים
+    if (path === '/masechet/nedarim-card/balance') return handleBalance(request);
+    if (path === '/masechet/nedarim-card/details') return handleDetails(request);
 
     // נרמול נתיבים ללא "/" בסוף (כדי שקישורים יחסיים יעבדו)
     if (path === '/masechet')     return redirect('/masechet/');
