@@ -81,10 +81,6 @@ export default {
     if (path === NC + 'register')      return handleWebhook(request, env); // רישום לנדרים פלוס
     if (path === NC + 'personal-area') return handleDetails(request);      // אזור אישי לפי ת"ז
     if (path === NC + 'card-balance')  return handleBalance(request);      // יתרה לפי מספר כרטיס
-    // כתובות קודמות (תאימות לאחור)
-    if (path === '/masechet/webhook-nedarim') return handleWebhook(request, env);
-    if (path === NC + 'details') return handleDetails(request);
-    if (path === NC + 'balance') return handleBalance(request);
 
     // נרמול נתיבים ללא "/" בסוף (כדי שקישורים יחסיים יעבדו)
     if (path === '/masechet')     return redirect('/masechet/');

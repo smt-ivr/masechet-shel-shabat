@@ -39,7 +39,3 @@ f-117 עד כאן נתוני הכרטיס
 
 **רישום:** הודעות מוקראות (TTS), לא צריך הקלטות.
 
-## כתובות קודמות (עדיין עובדות)
-
-`/masechet/webhook-nedarim` → register · `/masechet/nedarim-card/details` → personal-area ·
-`/masechet/nedarim-card/balance` → card-balance
