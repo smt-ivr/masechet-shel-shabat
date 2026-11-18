@@ -6,7 +6,7 @@
 
 | שלוחה | כתובת | קובץ |
 |-------|-------|------|
-| **רישום** – יצירת לקוח בנדרים פלוס | `https://smti.uk/masechet/nedarim-card/register` | `register.js` |
+| **רישום** – יצירת לקוח בנדרים פלוס | `https://smti.uk/masechet/nedarim-card/webhook` | `webhook.js` |
 | **אזור אישי** – שמיעת כרטיסים, יתרה וזכיות לפי ת"ז | `https://smti.uk/masechet/nedarim-card/personal-area` | `personal-area.js` |
 | **יתרת כרטיס** – לפי מספר כרטיס | `https://smti.uk/masechet/nedarim-card/card-balance` | `card-balance.js` |
 
@@ -15,7 +15,7 @@
 
 ## פרמטרים
 
-**רישום (`register`):** `P000` שם פרטי · `P001` שם משפחה · `EnterId` ת"ז · `P051` טלפון 1 ·
+**רישום (`webhook`):** `P000` שם פרטי · `P001` שם משפחה · `EnterId` ת"ז · `P051` טלפון 1 ·
 `P052` טלפון 2 (`Next` = דילוג) · `P050` קבוצה (1 תלמוד תורה, 2 ישיבה קטנה, 3 ישיבה גדולה, 4 אברכים ונשואים) ·
 `Date`, `Time`, `HebrewDate`, `Folder`, `Booking` – להערה.
 המוסד והמפתח לא נשלחים מהשלוחה: `NEDARIM_MOSAD_ID` ב-`wrangler.toml`,

@@ -24,7 +24,7 @@ import v2ServerSync from './v2/server-sync.js';
 import v2SettingsManager from './v2/settings-manager.js';
 
 // ----- כרטיס נדרים: שלוחות ימות המשיח -----
-import { handleWebhook } from './nedarim-card/register.js';
+import { handleWebhook } from './nedarim-card/webhook.js';
 import { handleBalance } from './nedarim-card/card-balance.js';
 import { handleDetails } from './nedarim-card/personal-area.js';
 
@@ -78,7 +78,7 @@ export default {
 
     // כרטיס נדרים – שלוחות ימות המשיח
     const NC = '/masechet/nedarim-card/';
-    if (path === NC + 'register')      return handleWebhook(request, env); // רישום לנדרים פלוס
+    if (path === NC + 'webhook')       return handleWebhook(request, env); // רישום לנדרים פלוס
     if (path === NC + 'personal-area') return handleDetails(request);      // אזור אישי לפי ת"ז
     if (path === NC + 'card-balance')  return handleBalance(request);      // יתרה לפי מספר כרטיס
 

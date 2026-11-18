@@ -17,7 +17,7 @@
 | `/masechet` | הגרסה הישנה (`old/index.html`) |
 | `/masechet/smt.html` | דף משני ישן |
 | `/masechet/v2` | הגרסה החדשה (`v2/index.html`) |
-| `/masechet/nedarim-card/register` | שלוחת רישום לנדרים פלוס (`nedarim-card/`) |
+| `/masechet/nedarim-card/webhook` | שלוחת רישום לנדרים פלוס (`nedarim-card/`) |
 | `/masechet/nedarim-card/personal-area` | אזור אישי – זכיות לפי ת"ז (`nedarim-card/`) |
 | `/masechet/nedarim-card/card-balance` | יתרה לפי מספר כרטיס (`nedarim-card/`) |
 
