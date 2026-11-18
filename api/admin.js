@@ -3,7 +3,7 @@
 //  כל פעולת ניהול נרשמת ביומן הפעולות.
 // ============================================================
 import { badRequest, conflict, notFound, readJson, str, json, israelNow } from './http.js';
-import { hashPassword, normalizeEmail, requireAdmin } from './auth.js';
+import { passwordKey, normalizeEmail, requireAdmin } from './auth.js';
 import { getConfig, publicSettings, updateSettings, fillTemplate } from './settings.js';
 import { logAction } from './audit.js';
 import { welcomeMail, sendMail, validEmail, mailReady, renderMail } from './mail.js';
@@ -36,12 +36,12 @@ async function activeAdmins(env) {
 async function checkUnique(env, field, value, exceptId = 0) {
   if (!value) return;
   const q = {
-    username: "SELECT id FROM ms_accounts WHERE rule_type = 'user' AND username = ? AND id != ?",
+    password: "SELECT id FROM ms_accounts WHERE rule_type = 'user' AND password_hash = ? AND id != ?",
     email: 'SELECT id FROM ms_accounts WHERE email = ? AND id != ?',
     ip: "SELECT id FROM ms_accounts WHERE rule_type = 'ip' AND ip = ? AND id != ?",
   }[field];
   const hit = await env.DB.prepare(q).bind(value, exceptId).first();
-  if (hit) throw conflict({ username: 'שם המשתמש כבר קיים', email: 'המייל כבר משויך למשתמש אחר', ip: 'כתובת ה-IP כבר קיימת' }[field]);
+  if (hit) throw conflict({ password: 'הסיסמה כבר בשימוש אצל משתמש אחר – בחרו סיסמה אחרת', email: 'המייל כבר משויך למשתמש אחר', ip: 'כתובת ה-IP כבר קיימת' }[field]);
 }
 
 // ===== משתמשים =====
@@ -67,20 +67,18 @@ async function createAccount(request, env, ctx) {
     return json({ id: r.meta.last_row_id });
   }
 
-  const username = str(b.username, 60).replace(/\s+/g, ' ');
   const password = String(b.password || '');
   const email = b.email ? normalizeEmail(b.email) : null;
-  if (!username) throw badRequest('חסר שם משתמש');
   if (password.length < 6) throw badRequest('סיסמה חייבת להיות לפחות 6 תווים');
   if (email && !validEmail(email)) throw badRequest('כתובת המייל אינה תקינה');
-  await checkUnique(env, 'username', username);
   await checkUnique(env, 'email', email);
-  const { hash, salt } = await hashPassword(password);
+  const key = await passwordKey(env, password);
+  await checkUnique(env, 'password', key);
   const r = await env.DB.prepare(
-    'INSERT INTO ms_accounts (rule_type, username, email, password_hash, password_salt, display_name, is_admin, active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-  ).bind('user', username, email, hash, salt, name, b.is_admin ? 1 : 0, b.active === false ? 0 : 1, now).run();
+    "INSERT INTO ms_accounts (rule_type, email, password_hash, password_salt, display_name, is_admin, active, created_at) VALUES ('user', ?, ?, 'system', ?, ?, ?, ?)",
+  ).bind(email, key, name, b.is_admin ? 1 : 0, b.active === false ? 0 : 1, now).run();
   await logAction(env, request, ctx, {
-    kind: 'admin', action: 'הוספת משתמש', target: name, details: { 'שם משתמש': username, מייל: email || '', מנהל: b.is_admin ? 'כן' : 'לא' },
+    kind: 'admin', action: 'הוספת משתמש', target: name, details: { סוג: 'סיסמה', מייל: email || '', מנהל: b.is_admin ? 'כן' : 'לא' },
   });
   return json({ id: r.meta.last_row_id });
 }
@@ -105,11 +103,6 @@ async function updateAccount(request, env, ctx, id) {
     if (ip !== a.ip) { await checkUnique(env, 'ip', ip, id); put('ip', ip, 'IP'); }
   }
   if (a.rule_type === 'user') {
-    if (b.username !== undefined) {
-      const u = str(b.username, 60).replace(/\s+/g, ' ');
-      if (!u) throw badRequest('חסר שם משתמש');
-      if (u !== a.username) { await checkUnique(env, 'username', u, id); put('username', u, 'שם משתמש'); }
-    }
     if (b.email !== undefined) {
       const e = b.email ? normalizeEmail(b.email) : null;
       if (e && !validEmail(e)) throw badRequest('כתובת המייל אינה תקינה');
@@ -117,9 +110,10 @@ async function updateAccount(request, env, ctx, id) {
     }
     if (b.password) {
       if (String(b.password).length < 6) throw badRequest('סיסמה חייבת להיות לפחות 6 תווים');
-      const { hash, salt } = await hashPassword(String(b.password));
-      set.push('password_hash = ?', 'password_salt = ?', 'legacy_sha256 = NULL');
-      vals.push(hash, salt);
+      const key = await passwordKey(env, String(b.password));
+      await checkUnique(env, 'password', key, id);
+      set.push('password_hash = ?', "password_salt = 'system'", 'legacy_sha256 = NULL');
+      vals.push(key);
       changes['סיסמה'] = 'הוחלפה';
     }
     if (b.is_admin !== undefined && !!b.is_admin !== !!a.is_admin) put('is_admin', b.is_admin ? 1 : 0, 'מנהל', b.is_admin ? 'כן' : 'לא');
@@ -149,20 +143,20 @@ async function deleteAccount(request, env, ctx, id) {
     env.DB.prepare('DELETE FROM ms_sessions WHERE account_id = ?').bind(id),
     env.DB.prepare('DELETE FROM ms_accounts WHERE id = ?').bind(id),
   ]);
-  await logAction(env, request, ctx, { kind: 'admin', action: 'מחיקת משתמש', target: a.display_name, details: { סוג: a.rule_type === 'ip' ? `IP ${a.ip}` : a.username } });
+  await logAction(env, request, ctx, { kind: 'admin', action: 'מחיקת משתמש', target: a.display_name, details: { סוג: a.rule_type === 'ip' ? `IP ${a.ip}` : 'סיסמה' } });
   return json({ deleted: true });
 }
 
 async function sendWelcome(request, env, ctx, id) {
   const a = await env.DB.prepare('SELECT * FROM ms_accounts WHERE id = ?').bind(id).first();
   if (!a) throw notFound('המשתמש לא נמצא');
-  if (a.rule_type !== 'user') throw badRequest('מייל פתיחה נשלח רק למשתמש עם שם משתמש');
+  if (a.rule_type !== 'user') throw badRequest('מייל פתיחה נשלח רק למשתמש עם סיסמה');
   const b = await readJson(request).catch(() => ({}));
   const to = b.to ? normalizeEmail(b.to) : a.email;
   if (!to) throw badRequest('למשתמש אין מייל. הוסיפו מייל או הזינו כתובת לשליחה');
   const cfg = await getConfig(env);
   const m = welcomeMail(cfg, {
-    displayName: a.display_name, username: a.username, password: b.password ? String(b.password) : '',
+    displayName: a.display_name, password: b.password ? String(b.password) : '',
     email: to, google: cfg.google_enabled && !!cfg.google_client_id && to === a.email,
   }, fillTemplate);
   const res = await sendMail(cfg, m);
@@ -194,7 +188,7 @@ async function testMail(request, env, ctx) {
 async function previewWelcome(request, env) {
   const b = await readJson(request).catch(() => ({}));
   const cfg = { ...(await getConfig(env)), ...Object.fromEntries(Object.entries(b).filter(([k]) => k.startsWith('welcome_'))) };
-  const m = welcomeMail(cfg, { displayName: 'ר׳ משה כהן', username: 'moshe', password: 'sod1234', email: 'office@example.com', google: cfg.google_enabled }, fillTemplate);
+  const m = welcomeMail(cfg, { displayName: 'ר׳ משה כהן', password: 'sod1234', email: 'office@example.com', google: cfg.google_enabled }, fillTemplate);
   return json({ subject: m.subject, html: renderMail(m), mail_ready: mailReady(cfg) });
 }
 

@@ -48,11 +48,11 @@ export function renderMail({ title, preheader = '', paragraphs = [], details = [
 }
 
 // מייל פתיחת חשבון — הטקסטים נערכים בדף הניהול. password רק אם הוזנה ברגע השליחה (סיסמאות לא נשמרות)
-export function welcomeMail(cfg, { displayName, username, password, email, google }, fill) {
+export function welcomeMail(cfg, { displayName, password, email, google }, fill) {
     const site = cfg.site_url || 'https://smti.uk/masechet/';
-    const vars = { 'שם': displayName || '', 'שם_משתמש': username, 'מייל': email || '' };
+    const vars = { 'שם': displayName || '', 'מייל': email || '' };
     const t = text => fill(text, vars).replace(/ ,/g, ',').replace(/  +/g, ' ');
-    const details = [['שם משתמש', username, true]];
+    const details = [['שם', displayName || '']];
     if (password) details.push(['סיסמה', password, true]);
     details.push(['כתובת האתר', site.replace(/^https?:\/\//, '').replace(/\/$/, ''), true]);
     return {

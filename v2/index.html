@@ -12,8 +12,58 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="login.css">
+    <!-- כניסה שמורה בזיכרון: מסך הכניסה לא מוצג בכלל. אחרת – האתר מוסתר עד הכניסה (מונע הבהוב) -->
+    <script>
+        try {
+            if (localStorage.getItem('ms_user')) document.write('<style id="noFlickerStyle">#auth-overlay { display: none !important; }</style>');
+            else document.documentElement.classList.add('ms-auth-pending');
+        } catch (e) { document.documentElement.classList.add('ms-auth-pending'); }
+    </script>
 </head>
 <body>
+    <!-- מסך כניסה (כמו באסיפה) — העיצוב ב-login.css, ההתנהגות ב-session.js -->
+    <div id="auth-overlay" class="lg-overlay">
+        <div class="lg-card" role="dialog" aria-labelledby="lgTitle">
+            <aside class="lg-brand">
+                <div class="lg-brand-top">
+                    <div class="lg-logo"><img src="smt.png" alt="" draggable="false"></div>
+                    <div>
+                        <div class="lg-brand-name">מסכת של שבת</div>
+                        <div class="lg-brand-sub">מערכת ניהול לקוחות, מבחנים וכרטיסים</div>
+                    </div>
+                </div>
+                <ul class="lg-features">
+                    <li><i class="fa fa-users"></i><span>לקוחות, מבחנים והגרלות במקום אחד</span></li>
+                    <li><i class="fa fa-credit-card"></i><span>כרטיסי נדרים פלוס וטעינות</span></li>
+                    <li><i class="fa fa-phone"></i><span>שאלות והקלטות במערכת הטלפונית</span></li>
+                </ul>
+                <div class="lg-brand-foot">פותח ע"י שימי טרייטל</div>
+            </aside>
+
+            <section class="lg-form">
+                <div class="lg-mobile-logo"><img src="smt.png" alt="" draggable="false"></div>
+                <h1 id="lgTitle">כניסה למערכת</h1>
+                <p id="authMessage" class="lg-status"><i class="fa fa-spinner fa-spin"></i>בודק הרשאת IP...</p>
+
+                <form id="loginForm" autocomplete="on">
+                    <label class="lg-label" for="passwordInput">סיסמה</label>
+                    <div class="lg-field">
+                        <i class="fa fa-lock lg-field-ico"></i>
+                        <input type="password" id="passwordInput" class="lg-input" autocomplete="current-password" spellcheck="false" dir="ltr">
+                        <button type="button" class="lg-eye" id="lgEye" aria-label="הצגת סיסמה" tabindex="-1"><i class="fa fa-eye"></i></button>
+                    </div>
+                    <div class="lg-caps hidden" id="lgCaps"><i class="fa fa-arrow-circle-o-up"></i> Caps Lock פעיל</div>
+                    <button id="loginBtn" class="lg-btn" type="submit"><span>כניסה</span><i class="fa fa-arrow-left"></i></button>
+                </form>
+
+                <div class="lg-or hidden" id="googleOr"><span>או</span></div>
+                <div id="googleSlot" class="google-slot hidden"></div>
+
+                <div id="loginError" class="lg-error hidden" role="alert"><i class="fa fa-exclamation-circle"></i> <span id="loginErrorText"></span></div>
+                <div class="lg-secure"><i class="fa fa-shield"></i> החיבור מאובטח · כל ניסיון כניסה נרשם במערכת</div>
+            </section>
+        </div>
+    </div>
 
     <header class="top-bar">
         <div class="header-right" style="display: flex; align-items: center; gap: 20px;">

@@ -1,6 +1,7 @@
 // ============================================================
 //  auth.js — כניסה למערכת והרשאות (בסגנון אסיפה, מערכת אחת)
-//  POST /auth/login   { username, password }  — או בלי פרטים: כניסה לפי IP מורשה
+//  POST /auth/login   { password }            — סיסמה בלבד (כמו אסיפה, בלי שם משתמש)
+//                     בלי פרטים: כניסה אוטומטית לפי IP מורשה
 //  POST /auth/google  { credential }           — כניסה עם Google לפי המייל
 //  POST /auth/logout
 //  GET  /auth/me                               — המשתמש המחובר
@@ -33,6 +34,19 @@ export async function hashPassword(password, salt = b64(crypto.getRandomValues(n
     256,
   );
   return { hash: b64(bits), salt };
+}
+
+// מלח אחיד למערכת (נוצר פעם אחת ונשמר במסד). כך הסיסמה לבדה מאתרת את המשתמש בשאילתה אחת
+async function systemSalt(env) {
+  const row = await env.DB.prepare("SELECT value FROM ms_settings WHERE key = 'auth_salt'").first();
+  if (row && row.value) return row.value;
+  const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+  await env.DB.prepare("INSERT OR IGNORE INTO ms_settings (key, value, updated_at) VALUES ('auth_salt', ?, ?)").bind(salt, israelNow()).run();
+  return (await env.DB.prepare("SELECT value FROM ms_settings WHERE key = 'auth_salt'").first()).value;
+}
+
+export async function passwordKey(env, password) {
+  return (await hashPassword(password, await systemSalt(env))).hash;
 }
 
 function sameHash(a, b) {
@@ -111,48 +125,45 @@ async function openSession(env, request, account) {
   });
 }
 
-// בדיקת סיסמה; משתמש שהועבר מהמערכת הקודמת (SHA-256) משודרג אוטומטית ל-PBKDF2 בכניסה הראשונה
-async function verifyPassword(env, account, password) {
-  if (account.password_hash) {
-    return sameHash((await hashPassword(password, account.password_salt)).hash, account.password_hash);
-  }
-  if (account.legacy_sha256 && sameHash(await sha256Hex(password), account.legacy_sha256)) {
-    const { hash, salt } = await hashPassword(password);
-    await env.DB.prepare('UPDATE ms_accounts SET password_hash = ?, password_salt = ?, legacy_sha256 = NULL WHERE id = ?')
-      .bind(hash, salt, account.id)
-      .run();
-    return true;
-  }
-  return false;
+// איתור משתמש לפי סיסמה. משתמש שהועבר מהמערכת הקודמת (SHA-256) משודרג אוטומטית בכניסה הראשונה
+async function findByPassword(env, password) {
+  const key = await passwordKey(env, password);
+  const a = await env.DB.prepare("SELECT * FROM ms_accounts WHERE rule_type = 'user' AND password_hash = ? AND active = 1").bind(key).first();
+  if (a) return a;
+  const legacy = await env.DB.prepare("SELECT * FROM ms_accounts WHERE rule_type = 'user' AND legacy_sha256 = ? AND active = 1")
+    .bind(await sha256Hex(password)).first();
+  if (!legacy) return null;
+  await env.DB.prepare("UPDATE ms_accounts SET password_hash = ?, password_salt = 'system', legacy_sha256 = NULL WHERE id = ?")
+    .bind(key, legacy.id).run();
+  return legacy;
 }
 
 export async function login(request, env) {
   const body = await readJson(request).catch(() => ({}));
-  const username = str(body.username, 60).replace(/\s+/g, ' ');
   const password = String(body.password || '');
   const ip = clientIp(request);
 
   await checkRateLimit(env, request);
 
   let account = null;
-  if (username) {
-    const a = await env.DB.prepare("SELECT * FROM ms_accounts WHERE rule_type = 'user' AND username = ? AND active = 1")
-      .bind(username)
-      .first();
-    if (a && (await verifyPassword(env, a, password))) account = a;
+  if (password) {
+    account = await findByPassword(env, password);
   } else if (ip) {
     account = await env.DB.prepare("SELECT * FROM ms_accounts WHERE rule_type = 'ip' AND ip = ? AND active = 1").bind(ip).first();
   }
 
   // כניסה לפי IP בלי הצלחה היא בדיקה שקטה – לא נרשמת ככישלון
-  if (username || account) {
-    await loginLog(env, request, { success: !!account, method: username ? 'user' : 'ip', username: username || ip, accountId: account?.id });
+  if (password || account) {
+    await loginLog(env, request, {
+      success: !!account, method: password ? 'password' : 'ip',
+      username: account ? account.display_name : (password ? 'סיסמה שגויה' : ip), accountId: account?.id,
+    });
   }
   if (!account) {
-    if (!username) return json({ authorized: false, ip });
-    throw new ApiError(401, 'bad_credentials', 'שם משתמש או סיסמה שגויים');
+    if (!password) return json({ authorized: false, ip });
+    throw new ApiError(401, 'bad_credentials', 'הסיסמה שגויה');
   }
-  await logAction(env, request, { account }, { kind: 'auth', action: 'כניסה', target: username ? 'שם משתמש וסיסמה' : 'IP מורשה' });
+  await logAction(env, request, { account }, { kind: 'auth', action: 'כניסה', target: password ? 'סיסמה' : 'IP מורשה' });
   return openSession(env, request, account);
 }
 

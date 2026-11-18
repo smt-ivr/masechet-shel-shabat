@@ -73,6 +73,14 @@ const MIGRATIONS = [
       )`,
     ],
   },
+  {
+    // כניסה בסיסמה בלבד: הסיסמה מזהה את המשתמש, ולכן היא ייחודית
+    version: 2,
+    name: 'password_only_login',
+    sql: [
+      `CREATE UNIQUE INDEX IF NOT EXISTS ms_accounts_password ON ms_accounts(password_hash) WHERE rule_type = 'user' AND password_hash IS NOT NULL`,
+    ],
+  },
 ];
 
 let ready = null;
