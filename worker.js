@@ -25,6 +25,8 @@ import v2SettingsManager from './v2/settings-manager.js';
 
 // ----- API של האתר -----
 import { handleLogin } from './api/login.js';
+import { handleAdminApi } from './api/admin.js';
+import adminPage from './api/admin.html';
 
 // ----- כרטיס נדרים: שלוחות ימות המשיח -----
 import { handleWebhook } from './nedarim-card/webhook.js';
@@ -81,6 +83,14 @@ export default {
 
     // API של האתר
     if (path === '/masechet/api/login') return handleLogin(request, env);
+    if (path.startsWith('/masechet/api/admin/')) {
+      return handleAdminApi(request, env, path.slice('/masechet/api/admin/'.length));
+    }
+    if (path === '/masechet/admin' || path === '/masechet/admin/') {
+      return new Response(adminPage, {
+        headers: { 'Content-Type': HTML, 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' },
+      });
+    }
 
     // כרטיס נדרים – שלוחות ימות המשיח
     const NC = '/masechet/nedarim-card/';

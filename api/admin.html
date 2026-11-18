@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>ניהול משתמשים – מסכת של שבת</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --primary:#031b4f; --accent:#0d6efd; --bg:#f4f6fa; --card:#fff; --border:#dde2ea; --muted:#6c757d; --danger:#c62828; --ok:#2e7d32; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:'Rubik',Arial,sans-serif; background:var(--bg); color:#1d2433; }
+  header { background:var(--primary); color:#fff; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:1.15rem; font-weight:500; }
+  header .who { font-size:.9rem; opacity:.85; }
+  main { max-width:1000px; margin:0 auto; padding:16px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:16px; }
+  .login { max-width:360px; margin:60px auto; text-align:center; }
+  .login h2 { margin:0 0 14px; font-size:1.2rem; color:var(--primary); }
+  input, select, textarea { width:100%; padding:9px 10px; border:1px solid var(--border); border-radius:6px; font:inherit; background:#fff; }
+  input:focus, select:focus { outline:2px solid #b6ccff; border-color:var(--accent); }
+  button { font:inherit; cursor:pointer; border-radius:6px; padding:8px 16px; border:1px solid var(--primary); background:var(--primary); color:#fff; }
+  button.secondary { background:#fff; color:var(--primary); }
+  button.danger { background:#fff; color:var(--danger); border-color:var(--danger); }
+  button.small { padding:4px 10px; font-size:.85rem; }
+  button:disabled { opacity:.6; cursor:default; }
+  .msg { margin-top:10px; font-size:.9rem; min-height:1.2em; }
+  .msg.err { color:var(--danger); } .msg.ok { color:var(--ok); }
+  .toolbar { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .toolbar h2 { margin:0; font-size:1.1rem; color:var(--primary); }
+  table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  th, td { text-align:right; padding:10px 8px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  th { color:var(--muted); font-weight:500; font-size:.85rem; }
+  .tag { display:inline-block; padding:2px 8px; border-radius:12px; font-size:.78rem; background:#eef2f8; color:var(--primary); margin-left:4px; }
+  .tag.admin { background:#fff4d6; color:#8a5a00; } .tag.blocked { background:#fde7e7; color:var(--danger); } .tag.cfg { background:#e6f4ea; color:var(--ok); }
+  .actions { display:flex; gap:6px; justify-content:flex-end; }
+  .ltr { direction:ltr; unicode-bidi:embed; font-family:monospace; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .grid .full { grid-column:1 / -1; }
+  label.f { display:block; font-size:.85rem; color:var(--muted); margin-bottom:4px; }
+  .check { display:flex; align-items:center; gap:8px; font-size:.92rem; }
+  .check input { width:auto; }
+  fieldset { border:1px solid var(--border); border-radius:8px; padding:12px; margin:0; }
+  legend { padding:0 6px; color:var(--primary); font-size:.9rem; }
+  .hint { font-size:.8rem; color:var(--muted); margin-top:4px; }
+  dialog { border:none; border-radius:12px; padding:0; width:min(640px, calc(100% - 32px)); box-shadow:0 20px 60px rgba(0,0,0,.25); }
+  dialog::backdrop { background:rgba(3,27,79,.35); }
+  .dlg-head { background:var(--primary); color:#fff; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; }
+  .dlg-head h3 { margin:0; font-size:1rem; font-weight:500; }
+  .dlg-head button { background:none; border:none; font-size:1.3rem; padding:0 4px; }
+  .dlg-body { padding:16px; max-height:70vh; overflow:auto; }
+  .dlg-foot { padding:12px 16px; display:flex; gap:8px; justify-content:flex-start; border-top:1px solid var(--border); background:#f8f9fb; }
+  .hidden { display:none !important; }
+  @media (max-width:640px) {
+    .grid { grid-template-columns:1fr; }
+    thead { display:none; }
+    tr { display:block; border-bottom:1px solid var(--border); padding:8px 0; }
+    td { display:block; border:none; padding:4px 0; }
+    .actions { justify-content:flex-start; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>ניהול משתמשים – מסכת של שבת</h1>
+  <div class="who" id="who"></div>
+</header>
+
+<main>
+  <!-- כניסה -->
+  <div id="loginView" class="card login">
+    <h2>כניסת מנהל</h2>
+    <form id="loginForm">
+      <input type="password" id="adminPass" placeholder="סיסמת מנהל" autocomplete="current-password" required>
+      <div style="margin-top:12px"><button type="submit" id="loginBtn">כניסה</button></div>
+      <div class="msg err" id="loginMsg"></div>
+    </form>
+  </div>
+
+  <!-- רשימה -->
+  <div id="appView" class="card hidden">
+    <div class="toolbar">
+      <h2>משתמשים</h2>
+      <div style="display:flex; gap:8px">
+        <button class="secondary" id="logoutBtn">יציאה</button>
+        <button id="addBtn">+ משתמש חדש</button>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>שם</th><th>כניסה לפי</th><th>מצב</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="msg" id="listMsg"></div>
+  </div>
+</main>
+
+<!-- עריכה / הוספה -->
+<dialog id="dlg">
+  <form id="userForm" method="dialog">
+    <div class="dlg-head"><h3 id="dlgTitle">משתמש</h3><button type="button" id="dlgClose" aria-label="סגירה">×</button></div>
+    <div class="dlg-body">
+      <div class="grid">
+        <div class="full">
+          <label class="f" for="fName">שם</label>
+          <input id="fName" required>
+        </div>
+        <div>
+          <label class="f" for="fType">כניסה לפי</label>
+          <select id="fType">
+            <option value="pass">סיסמה</option>
+            <option value="ip">כתובת IP</option>
+          </select>
+        </div>
+        <div id="passWrap">
+          <label class="f" for="fPass" id="passLabel">סיסמה</label>
+          <input id="fPass" type="text" autocomplete="off" class="ltr">
+          <div class="hint" id="passHint"></div>
+        </div>
+        <div id="ipWrap" class="hidden">
+          <label class="f" for="fIp">כתובת IP</label>
+          <input id="fIp" class="ltr" placeholder="1.2.3.4">
+          <div class="hint">הכתובת שלך עכשיו: <a href="#" id="myIp" class="ltr"></a></div>
+        </div>
+        <div class="full" style="display:flex; gap:20px; flex-wrap:wrap">
+          <label class="check"><input type="checkbox" id="fBlocked"> חסום</label>
+          <label class="check"><input type="checkbox" id="fCfg"> מקבל הגדרות מהשרת</label>
+          <label class="check" id="adminWrap"><input type="checkbox" id="fAdmin"> מנהל (יכול לנהל משתמשים)</label>
+        </div>
+        <fieldset class="full" id="cfgBox">
+          <legend>הגדרות שיישלחו לאתר</legend>
+          <div class="grid">
+            <div><label class="f" for="cYemotUser">ימות – שם משתמש</label><input id="cYemotUser" class="ltr"></div>
+            <div><label class="f" for="cYemotPass">ימות – סיסמה</label><input id="cYemotPass" class="ltr"></div>
+            <div class="full"><label class="f" for="cYemotToken">ימות – טוקן</label><input id="cYemotToken" class="ltr"></div>
+            <div><label class="f" for="cNedMosad">נדרים – מספר מוסד</label><input id="cNedMosad" class="ltr"></div>
+            <div><label class="f" for="cNedPass">נדרים – מפתח API</label><input id="cNedPass" class="ltr"></div>
+            <div class="full"><label class="check"><input type="checkbox" id="cForce"> עדכון בכוח (בלי לשאול את המשתמש)</label></div>
+          </div>
+          <div class="hint">שדה ריק = לא נשלח. הערך <span class="ltr">delete</span> מוחק את ההגדרה אצל המשתמש.</div>
+        </fieldset>
+      </div>
+      <div class="msg err" id="dlgMsg"></div>
+    </div>
+    <div class="dlg-foot">
+      <button type="submit" id="saveBtn">שמירה</button>
+      <button type="button" class="secondary" id="cancelBtn">ביטול</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const API = '/masechet/api/admin/';
+let adminPass = sessionStorage.getItem('msAdminPass') || '';
+let users = [], me = null, myIp = '', editing = null;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Pass': adminPass, ...(opts.headers || {}) },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) { logout('הסיסמה לא תקינה או שאין הרשאת מנהל'); throw new Error('unauthorized'); }
+  if (!res.ok) throw new Error(data.error || 'שגיאה');
+  return data;
+}
+
+function logout(msg = '') {
+  adminPass = ''; sessionStorage.removeItem('msAdminPass');
+  $('appView').classList.add('hidden'); $('loginView').classList.remove('hidden');
+  $('who').textContent = ''; $('loginMsg').textContent = msg; $('adminPass').value = '';
+}
+
+async function enter() {
+  const r = await api('check', { method: 'POST' });
+  myIp = r.ip; $('who').textContent = 'מחובר: ' + r.name;
+  sessionStorage.setItem('msAdminPass', adminPass);
+  $('loginView').classList.add('hidden'); $('appView').classList.remove('hidden');
+  await load();
+}
+
+async function load() {
+  const r = await api('users');
+  users = r.users; me = r.me;
+  $('rows').innerHTML = users.map((u) => `
+    <tr>
+      <td><strong>${esc(u.name)}</strong>${u.id === me ? ' <span class="tag">אתה</span>' : ''}</td>
+      <td>${u.type === 'ip' ? 'IP: <span class="ltr">' + esc(u.ip) + '</span>' : 'סיסמה'}</td>
+      <td>
+        ${u.isAdmin ? '<span class="tag admin">מנהל</span>' : ''}
+        ${u.blocked ? '<span class="tag blocked">חסום</span>' : ''}
+        ${u.canReceiveConfig ? '<span class="tag cfg">מקבל הגדרות</span>' : ''}
+      </td>
+      <td class="actions">
+        <button class="secondary small" data-edit="${u.id}">עריכה</button>
+        ${u.id === me ? '' : `<button class="danger small" data-del="${u.id}">מחיקה</button>`}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="4">אין משתמשים</td></tr>';
+}
+
+function syncType() {
+  const isIp = $('fType').value === 'ip';
+  $('ipWrap').classList.toggle('hidden', !isIp);
+  $('passWrap').classList.toggle('hidden', isIp);
+  $('adminWrap').classList.toggle('hidden', isIp);
+}
+function syncCfg() { $('cfgBox').classList.toggle('hidden', !$('fCfg').checked); }
+
+function openDialog(u) {
+  editing = u || null;
+  $('dlgTitle').textContent = u ? 'עריכת משתמש' : 'משתמש חדש';
+  $('dlgMsg').textContent = '';
+  $('fName').value = u?.name || '';
+  $('fType').value = u?.type || 'pass';
+  $('fType').disabled = !!u;
+  $('fPass').value = ''; $('fIp').value = u?.ip || '';
+  $('passLabel').textContent = u ? 'סיסמה חדשה' : 'סיסמה';
+  $('passHint').textContent = u ? 'השאר ריק כדי לא לשנות. הסיסמה הקיימת לא ניתנת לצפייה.' : 'לפחות 4 תווים';
+  $('fPass').required = !u;
+  $('myIp').textContent = myIp;
+  $('fBlocked').checked = !!u?.blocked;
+  $('fCfg').checked = !!u?.canReceiveConfig;
+  $('fAdmin').checked = !!u?.isAdmin;
+  const c = u?.config || {};
+  $('cYemotUser').value = c.yemotUsername || ''; $('cYemotPass').value = c.yemotPassword || '';
+  $('cYemotToken').value = c.yemotToken || ''; $('cNedMosad').value = c.nedarimMosadId || '';
+  $('cNedPass').value = c.nedarimPassword || ''; $('cForce').checked = c.forceUpdate === 'true';
+  syncType(); syncCfg();
+  $('dlg').showModal();
+}
+
+$('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  adminPass = $('adminPass').value.trim(); $('loginMsg').textContent = '';
+  $('loginBtn').disabled = true;
+  try { await enter(); } catch (err) { if (err.message !== 'unauthorized') $('loginMsg').textContent = err.message; }
+  $('loginBtn').disabled = false;
+});
+
+$('logoutBtn').onclick = () => logout();
+$('addBtn').onclick = () => openDialog(null);
+$('dlgClose').onclick = $('cancelBtn').onclick = () => $('dlg').close();
+$('fType').onchange = syncType;
+$('fCfg').onchange = syncCfg;
+$('myIp').onclick = (e) => { e.preventDefault(); $('fIp').value = myIp; };
+
+$('rows').addEventListener('click', async (e) => {
+  const editId = e.target.dataset.edit, delId = e.target.dataset.del;
+  if (editId) openDialog(users.find((u) => u.id == editId));
+  if (delId) {
+    const u = users.find((x) => x.id == delId);
+    if (!confirm(`למחוק את "${u.name}"?`)) return;
+    try { await api('users?id=' + delId, { method: 'DELETE' }); await load(); flash('המשתמש נמחק'); }
+    catch (err) { if (err.message !== 'unauthorized') flash(err.message, true); }
+  }
+});
+
+function flash(text, isErr = false) {
+  const m = $('listMsg'); m.textContent = text; m.className = 'msg ' + (isErr ? 'err' : 'ok');
+  setTimeout(() => { if (m.textContent === text) m.textContent = ''; }, 4000);
+}
+
+$('userForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const body = {
+    name: $('fName').value,
+    type: $('fType').value,
+    blocked: $('fBlocked').checked,
+    canReceiveConfig: $('fCfg').checked,
+    isAdmin: $('fAdmin').checked,
+    config: {
+      yemotUsername: $('cYemotUser').value, yemotPassword: $('cYemotPass').value,
+      yemotToken: $('cYemotToken').value, nedarimMosadId: $('cNedMosad').value,
+      nedarimPassword: $('cNedPass').value, forceUpdate: $('cForce').checked,
+    },
+  };
+  if (body.type === 'ip') body.ip = $('fIp').value;
+  else if ($('fPass').value.trim()) body.password = $('fPass').value;
+
+  $('saveBtn').disabled = true; $('dlgMsg').textContent = '';
+  try {
+    if (editing) await api('users?id=' + editing.id, { method: 'PUT', body: JSON.stringify(body) });
+    else await api('users', { method: 'POST', body: JSON.stringify(body) });
+    // אם המנהל שינה את הסיסמה של עצמו – ממשיכים עם החדשה
+    if (editing && editing.id === me && body.password) { adminPass = body.password.trim(); sessionStorage.setItem('msAdminPass', adminPass); }
+    $('dlg').close(); await load(); flash('נשמר');
+  } catch (err) { if (err.message !== 'unauthorized') $('dlgMsg').textContent = err.message; }
+  $('saveBtn').disabled = false;
+});
+
+if (adminPass) enter().catch(() => {});
+</script>
+</body>
+</html>

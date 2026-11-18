@@ -9,9 +9,7 @@
 //   match_type  = 'pass' → match_value הוא SHA-256 של הסיסמה
 //   match_type  = 'ip'   → match_value הוא כתובת ה-IP
 //
-// הוספת משתמש עם סיסמה (ב-Cloudflare → D1 → yemot-pay → Console):
-//   INSERT INTO ms_users (match_type, match_value, name, can_receive_config, config)
-//   VALUES ('pass', '<sha256 של הסיסמה>', 'שם', 1, '{"yemotToken":"..."}');
+// ניהול המשתמשים: https://smti.uk/masechet/admin (כניסה עם סיסמה של משתמש מנהל, is_admin = 1)
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -25,7 +23,7 @@ const json = (data, status = 200) =>
     headers: { 'Content-Type': 'application/json; charset=utf-8', ...CORS },
   });
 
-async function sha256(text) {
+export async function sha256(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
