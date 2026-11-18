@@ -13,21 +13,14 @@ const SettingsManager = {
         <div id="${this.modalId}" class="modal-overlay hidden" style="z-index: 3000;">
             <div class="modal-content" style="max-width: 700px; width: 95%;">
                 <div class="modal-header" style="background: #f8f9fa; border-bottom: 1px solid var(--border-light);">
-                    <h2 style="font-size: 1.3rem;"><i class="fa fa-info-circle" style="color: var(--primary-color);"></i> מידע על החיבור</h2>
+                    <h2 style="font-size: 1.3rem;"><i class="fa fa-user-circle" style="color: var(--primary-color);"></i> פרטי חיבור</h2>
                     <button id="closeSettingsBtn" class="close-btn"><i class="fa fa-times"></i></button>
                 </div>
                 <div class="modal-body" style="padding: 25px;">
 
-                    <div style="background: #eaf1ff; padding: 15px 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #cce0ff; color: var(--text-main); font-size: 0.95rem; line-height: 1.7;">
-                        <strong style="color: var(--primary-color); font-size: 1.05rem; display: block; margin-bottom: 4px;"><i class="fa fa-server"></i> הכול עובר דרך השרת</strong>
-                        כל הפניות לימות המשיח ולנדרים פלוס עוברות דרך השרת של מסכת של שבת.
-                        הטוקנים והסיסמאות שמורים בשרת בלבד – <b>לא בדפדפן</b> – ומנוהלים על ידי מנהל המערכת.
-                        כל פעולה נרשמת ביומן הפעולות.
-                    </div>
-
                     <div style="${box} display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
                         <div style="display: flex; flex-direction: column; gap: 5px;">
-                            <strong style="font-size: 0.95rem; color: var(--text-main);">מצב החיבור בשרת:</strong>
+                            <strong style="font-size: 0.95rem; color: var(--text-main);">מצב החיבור:</strong>
                             <span id="settingsYemotStatusBadge" class="badge badge-secondary" style="font-size: 0.85rem; padding: 6px 12px; align-self: flex-start;"><i class="fa fa-spinner fa-spin"></i> בודק סטטוס...</span>
                             <span id="settingsNedarimStatusBadge" class="badge badge-secondary" style="font-size: 0.85rem; padding: 6px 12px; align-self: flex-start;"></span>
                         </div>
