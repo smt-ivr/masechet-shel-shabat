@@ -8,6 +8,7 @@
 - `v2/` – הגרסה החדשה (מוגשת ב-`/masechet/v2`)
 - `worker.js` – ה-Worker שמגיש את כל הקבצים לפי הנתיב
 - `wrangler.toml` – הגדרות הפריסה ל-Cloudflare
+- `api/` – API של האתר (התחברות), מסד D1 ‏`yemot-pay`, טבלאות `ms_`
 - `nedarim-card/` – שלוחות ימות המשיח מול נדרים פלוס (רישום, אזור אישי, יתרת כרטיס)
 
 ## נתיבים
@@ -17,6 +18,7 @@
 | `/masechet` | הגרסה הישנה (`old/index.html`) |
 | `/masechet/smt.html` | דף משני ישן |
 | `/masechet/v2` | הגרסה החדשה (`v2/index.html`) |
+| `/masechet/api/login` | התחברות לאתר – לפי IP או סיסמה (`api/login.js`) |
 | `/masechet/nedarim-card/webhook` | שלוחת רישום לנדרים פלוס (`nedarim-card/`) |
 | `/masechet/nedarim-card/personal-area` | אזור אישי – זכיות לפי ת"ז (`nedarim-card/`) |
 | `/masechet/nedarim-card/card-balance` | יתרה לפי מספר כרטיס (`nedarim-card/`) |

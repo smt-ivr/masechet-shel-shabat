@@ -1,4 +1,4 @@
-const SERVER_URL = 'https://masechet.m7008410.workers.dev/'; 
+const SERVER_URL = '/masechet/api/login';
 
 document.addEventListener('DOMContentLoaded', () => {
     runServerSync();
