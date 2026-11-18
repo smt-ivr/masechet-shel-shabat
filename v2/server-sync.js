@@ -2,7 +2,50 @@ const SERVER_URL = '/masechet/api/login';
 
 document.addEventListener('DOMContentLoaded', () => {
     runServerSync();
+    checkAdminButton();
 });
+
+// ===== כפתור ניהול – מוצג רק למנהל =====
+// המנהל מקבל טוקן בהתחברות עם הסיסמה שלו, והוא נשמר בדפדפן.
+// דף הניהול קורא את אותו טוקן, כך שאין צורך להקיש סיסמה שוב.
+const ADMIN_TOKEN_KEY = 'msAdminToken';
+
+function getAdminToken() {
+    try { return localStorage.getItem(ADMIN_TOKEN_KEY) || ''; } catch (e) { return ''; }
+}
+
+function showAdminButton(show) {
+    let btn = document.getElementById('adminPanelBtn');
+    if (!show) { if (btn) btn.remove(); return; }
+    if (btn) return;
+    const anchor = document.getElementById('openSettingsBtn');
+    if (!anchor) return;
+    btn = document.createElement('a');
+    btn.id = 'adminPanelBtn';
+    btn.href = '/masechet/admin';
+    btn.target = '_blank';
+    btn.rel = 'noopener';
+    btn.className = 'btn btn-secondary';
+    btn.title = 'ניהול משתמשים';
+    btn.innerHTML = '<i class="fa fa-users"></i> ניהול';
+    anchor.parentNode.insertBefore(btn, anchor);
+}
+
+// בדיקה שהטוקן עדיין בתוקף (אם המנהל נחסם / הוסר – הכפתור נעלם)
+async function checkAdminButton() {
+    const token = getAdminToken();
+    if (!token) return showAdminButton(false);
+    showAdminButton(true);
+    try {
+        const res = await fetch('/masechet/api/admin/check', { method: 'POST', headers: { 'X-Admin-Token': token } });
+        if (res.status === 401) {
+            try { localStorage.removeItem(ADMIN_TOKEN_KEY); } catch (e) {}
+            showAdminButton(false);
+        }
+    } catch (e) {
+        // שגיאת רשת – משאירים את הכפתור
+    }
+}
 
 // פונקציה ראשית לסנכרון מול השרת
 async function runServerSync(secretPass = null) {
@@ -33,6 +76,11 @@ async function runServerSync(secretPass = null) {
         }
 
         updateUserDisplay(data.username);
+
+        if (data.isAdmin && data.adminToken) {
+            try { localStorage.setItem(ADMIN_TOKEN_KEY, data.adminToken); } catch (e) {}
+            showAdminButton(true);
+        }
 
         if (data.canReceiveConfig && data.config) {
             checkAndPromptConfigUpdate(data.config);

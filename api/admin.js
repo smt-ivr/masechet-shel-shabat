@@ -7,9 +7,10 @@
 //   POST   /users            – הוספת משתמש
 //   PUT    /users?id=N       – עדכון משתמש
 //   DELETE /users?id=N       – מחיקת משתמש
-// סיסמת המנהל נשלחת בכל בקשה בכותרת X-Admin-Pass.
+//   POST   /logout           – ניתוק (מחיקת טוקן הניהול)
+// אימות: כותרת X-Admin-Token (טוקן שמתקבל בהתחברות) או X-Admin-Pass (סיסמת המנהל).
 
-import { sha256 } from './login.js';
+import { sha256, createAdminSession } from './login.js';
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -20,12 +21,24 @@ const json = (data, status = 200) =>
 const CONFIG_KEYS = ['yemotUsername', 'yemotPassword', 'yemotToken', 'nedarimMosadId', 'nedarimPassword', 'forceUpdate'];
 
 async function getAdmin(request, env) {
+  const token = (request.headers.get('X-Admin-Token') || '').trim();
+  if (token) {
+    const row = await env.DB
+      .prepare(
+        `SELECT u.id, u.name FROM ms_admin_sessions s JOIN ms_users u ON u.id = s.user_id
+         WHERE s.token_hash = ? AND s.expires_at > ? AND u.is_admin = 1 AND u.blocked = 0`,
+      )
+      .bind(await sha256(token), Date.now())
+      .first();
+    if (row) return { ...row, via: 'token' };
+  }
   const pass = (request.headers.get('X-Admin-Pass') || '').trim();
   if (!pass) return null;
-  return env.DB
+  const row = await env.DB
     .prepare("SELECT id, name FROM ms_users WHERE match_type = 'pass' AND match_value = ? AND is_admin = 1 AND blocked = 0")
     .bind(await sha256(pass))
     .first();
+  return row ? { ...row, via: 'pass' } : null;
 }
 
 const toUser = (r) => {
@@ -79,7 +92,16 @@ export async function handleAdminApi(request, env, path) {
 
   try {
     if (path === 'check') {
-      return json({ ok: true, name: admin.name, ip: request.headers.get('cf-connecting-ip') || '' });
+      const out = { ok: true, name: admin.name, ip: request.headers.get('cf-connecting-ip') || '' };
+      // כניסה בסיסמה – מחזירים טוקן כדי שהדפדפן יזכור את המנהל
+      if (admin.via === 'pass') out.adminToken = await createAdminSession(db, admin.id);
+      return json(out);
+    }
+
+    if (path === 'logout') {
+      const token = (request.headers.get('X-Admin-Token') || '').trim();
+      if (token) await db.prepare('DELETE FROM ms_admin_sessions WHERE token_hash = ?').bind(await sha256(token)).run();
+      return json({ ok: true });
     }
 
     if (path !== 'users') return json({ error: 'לא נמצא' }, 404);
@@ -125,6 +147,7 @@ export async function handleAdminApi(request, env, path) {
     // ----- מחיקה -----
     if (request.method === 'DELETE') {
       if (id === admin.id) return json({ error: 'אי אפשר למחוק את עצמך' }, 400);
+      await db.prepare('DELETE FROM ms_admin_sessions WHERE user_id = ?').bind(id).run();
       await db.prepare('DELETE FROM ms_users WHERE id = ?').bind(id).run();
       return json({ ok: true });
     }

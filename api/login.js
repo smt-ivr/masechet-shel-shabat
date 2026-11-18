@@ -28,9 +28,24 @@ export async function sha256(text) {
   return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+// ===== חיבור מנהל (טוקן שנשמר בדפדפן, כדי לא להקיש סיסמה שוב) =====
+const ADMIN_SESSION_DAYS = 30;
+
+export async function createAdminSession(db, userId) {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const token = [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
+  const expires = Date.now() + ADMIN_SESSION_DAYS * 86400000;
+  await db.prepare('DELETE FROM ms_admin_sessions WHERE expires_at < ?').bind(Date.now()).run();
+  await db
+    .prepare('INSERT INTO ms_admin_sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)')
+    .bind(await sha256(token), userId, expires)
+    .run();
+  return token;
+}
+
 async function findUser(db, type, value) {
   return db
-    .prepare('SELECT name, blocked, can_receive_config, config FROM ms_users WHERE match_type = ? AND match_value = ?')
+    .prepare('SELECT id, name, blocked, can_receive_config, is_admin, config FROM ms_users WHERE match_type = ? AND match_value = ?')
     .bind(type, value)
     .first();
 }
@@ -75,14 +90,23 @@ export async function handleLogin(request, env) {
   const blocked = !!row?.blocked;
   const canReceiveConfig = !!row?.can_receive_config;
 
-  return json(
-    {
-      ip: clientIP,
-      isAuthorized: !blocked,
-      username: row?.name || 'לא רשום',
-      canReceiveConfig,
-      config: canReceiveConfig ? config : null,
-    },
-    blocked ? 403 : 200,
-  );
+  const payload = {
+    ip: clientIP,
+    isAuthorized: !blocked,
+    username: row?.name || 'לא רשום',
+    canReceiveConfig,
+    config: canReceiveConfig ? config : null,
+  };
+
+  // מנהל שהתחבר בסיסמה – מקבל טוקן ניהול (כפתור "ניהול" באתר, בלי להקיש סיסמה שוב)
+  if (pass && row?.is_admin && !blocked) {
+    try {
+      payload.isAdmin = true;
+      payload.adminToken = await createAdminSession(env.DB, row.id);
+    } catch (err) {
+      console.error('admin session error:', err);
+    }
+  }
+
+  return json(payload, blocked ? 403 : 200);
 }
