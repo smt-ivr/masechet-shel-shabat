@@ -15,8 +15,11 @@ const GROUPS = {
 };
 
 // תשובה בפורמט שימות המשיח יודעת להשמיע
+// ניקוי תווים ששוברים את מחרוזת ההשמעה (נקודה, מקף, = , & , גרשיים, פסיק)
+const clean = (str) => String(str ?? '').replace(/[.\-=&"',]/g, ' ').replace(/\s+/g, ' ').trim();
+
 const yemot = (text) =>
-  new Response(`id_list_message=t-${text}&`, {
+  new Response(`id_list_message=t-${clean(text)}&`, {
     status: 200,
     headers: { 'Content-Type': 'text/plain; charset=utf-8' },
   });
