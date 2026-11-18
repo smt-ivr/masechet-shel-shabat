@@ -8,43 +8,46 @@ const SettingsManager = {
 
     injectHTML() {
         if (document.getElementById(this.modalId)) return;
+        const box = 'background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid var(--border-light); box-shadow: 0 2px 5px rgba(0,0,0,0.02);';
         const html = `
         <div id="${this.modalId}" class="modal-overlay hidden" style="z-index: 3000;">
             <div class="modal-content" style="max-width: 700px; width: 95%;">
                 <div class="modal-header" style="background: #f8f9fa; border-bottom: 1px solid var(--border-light);">
-                    <h2 style="font-size: 1.3rem;"><i class="fa fa-cogs" style="color: var(--primary-color);"></i> הגדרות מערכת</h2>
+                    <h2 style="font-size: 1.3rem;"><i class="fa fa-info-circle" style="color: var(--primary-color);"></i> מידע על החיבור</h2>
                     <button id="closeSettingsBtn" class="close-btn"><i class="fa fa-times"></i></button>
                 </div>
                 <div class="modal-body" style="padding: 25px;">
-                    
-                    <div style="background: #fff; padding: 15px 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border-light); box-shadow: 0 2px 5px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center;">
+
+                    <div style="background: #eaf1ff; padding: 15px 20px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #cce0ff; color: var(--text-main); font-size: 0.95rem; line-height: 1.7;">
+                        <strong style="color: var(--primary-color); font-size: 1.05rem; display: block; margin-bottom: 4px;"><i class="fa fa-server"></i> הכול עובר דרך השרת</strong>
+                        כל הפניות לימות המשיח ולנדרים פלוס עוברות דרך השרת של מסכת של שבת.
+                        הטוקנים והסיסמאות שמורים בשרת בלבד – <b>לא בדפדפן</b> – ומנוהלים על ידי מנהל המערכת.
+                        כל פעולה נרשמת ביומן הפעולות.
+                    </div>
+
+                    <div style="${box} display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
                         <div style="display: flex; flex-direction: column; gap: 5px;">
-                            <strong style="font-size: 0.95rem; color: var(--text-main);">מצב חיבור:</strong>
+                            <strong style="font-size: 0.95rem; color: var(--text-main);">מצב החיבור בשרת:</strong>
                             <span id="settingsYemotStatusBadge" class="badge badge-secondary" style="font-size: 0.85rem; padding: 6px 12px; align-self: flex-start;"><i class="fa fa-spinner fa-spin"></i> בודק סטטוס...</span>
                             <span id="settingsNedarimStatusBadge" class="badge badge-secondary" style="font-size: 0.85rem; padding: 6px 12px; align-self: flex-start;"></span>
                         </div>
                         <button id="refreshStatusBtn" class="btn btn-secondary btn-sm" style="height: 35px;"><i class="fa fa-refresh"></i> רענן בדיקת חיבור</button>
                     </div>
-                    
-                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 15px; background: #eaf1ff; padding: 15px 20px; border-radius: 8px; border: 1px solid #cce0ff; transition: all 0.2s;">
-                        <input type="checkbox" id="autoSyncCheck" style="transform: scale(1.4); cursor: pointer;">
-                        <strong style="color: var(--primary-color); font-size: 1.05rem;">טען נתונים אוטומטית בפתיחת הדף</strong>
+
+                    <div style="${box}">
+                        <strong style="font-size: 0.95rem; color: var(--text-main);">המשתמש שלך:</strong>
+                        <div id="infoUserName" style="margin-top: 6px; font-size: 1rem;"></div>
+                        <div id="infoUserMethod" style="margin-top: 4px; color: var(--text-muted); font-size: 0.9rem;"></div>
+                        <div id="infoUserPerms" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                    </div>
+
+                    <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; background: #f8f9fa; padding: 12px 20px; border-radius: 8px; border: 1px solid var(--border-light);">
+                        <input type="checkbox" id="autoSyncCheck" style="transform: scale(1.3); cursor: pointer;">
+                        <span style="color: var(--text-main); font-size: 0.95rem;">טען נתונים אוטומטית בפתיחת הדף</span>
                     </label>
-
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; background: #fffbea; padding: 12px 20px; border-radius: 8px; border: 1px solid #ffe8a1;">
-                        <strong style="font-size: 0.95rem; color: #8a6d00;">הודעת "הפיתוח הושלם" בראש העמוד</strong>
-                        <button id="restoreAnnouncementBtn" class="btn btn-secondary btn-sm" style="height: 35px;"><i class="fa fa-eye"></i> הצג שוב</button>
-                    </div>
-
-                    <div style="background: #f4f8ff; padding: 15px 20px; border-radius: 8px; border: 1px solid #d6e4ff; color: var(--text-main); font-size: 0.95rem; line-height: 1.6;">
-                        <i class="fa fa-lock" style="color: var(--primary-color);"></i>
-                        פרטי החיבור לימות המשיח ולנדרים פלוס שמורים בשרת, ומנוהלים על ידי מנהל המערכת בדף הניהול.
-                        הם לא נשמרים בדפדפן.
-                    </div>
                 </div>
                 <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; background: #f8f9fa; border-top: 1px solid var(--border-light);">
-                    <button id="cancelSettingsBtn" class="btn btn-secondary" style="padding: 8px 20px; font-size: 1rem;">ביטול</button>
-                    <button id="saveSettingsBtn" class="btn btn-primary" style="padding: 8px 20px; font-size: 1rem;"><i class="fa fa-save"></i> שמור הגדרות</button>
+                    <button id="cancelSettingsBtn" class="btn btn-primary" style="padding: 8px 24px; font-size: 1rem;">סגור</button>
                 </div>
             </div>
         </div>
@@ -56,18 +59,40 @@ const SettingsManager = {
         document.getElementById('openSettingsBtn').addEventListener('click', () => this.openModal());
         document.getElementById('closeSettingsBtn').addEventListener('click', () => this.closeModal());
         document.getElementById('cancelSettingsBtn').addEventListener('click', () => this.closeModal());
-        document.getElementById('saveSettingsBtn').addEventListener('click', () => this.saveData());
         document.getElementById('refreshStatusBtn').addEventListener('click', () => this.checkStatusLive());
-        const restoreBtn = document.getElementById('restoreAnnouncementBtn');
-        if (restoreBtn) restoreBtn.addEventListener('click', () => {
-            if (typeof window.showCompletionAnnouncement === 'function') window.showCompletionAnnouncement();
-            if (typeof showAlert === 'function') showAlert('הודעת "הפיתוח הושלם" תוצג שוב בראש העמוד.');
+        // נשמר מיד – אין כפתור שמירה
+        document.getElementById('autoSyncCheck').addEventListener('change', (e) => {
+            localStorage.setItem('autoSyncOnLoad', e.target.checked);
+        });
+    },
+
+    PERM_NAMES: {
+        clients_view: 'צפייה בלקוחות', clients_edit: 'עריכת לקוחות', nedarim_charge: 'טעינות וכרטיסים',
+        exams_view: 'צפייה במבחנים', exams_manage: 'ניהול מבחנים', old_site: 'אתר ישן', admin: 'ניהול המערכת',
+    },
+
+    renderUser() {
+        const u = typeof MsSession !== 'undefined' ? MsSession.user() : null;
+        if (!u) return;
+        document.getElementById('infoUserName').innerHTML = '<i class="fa fa-user-circle"></i> ';
+        document.getElementById('infoUserName').append(u.name);
+        const method = { password: 'נכנסת עם סיסמה', ip: 'נכנסת לפי כתובת IP מורשית', google: 'נכנסת עם Google' }[u.method] || '';
+        document.getElementById('infoUserMethod').textContent = method;
+        const perms = document.getElementById('infoUserPerms');
+        perms.innerHTML = '';
+        (u.is_admin ? ['admin'] : (u.permissions || [])).forEach((p) => {
+            const tag = document.createElement('span');
+            tag.className = 'badge badge-secondary';
+            tag.style.cssText = 'font-size: 0.8rem; padding: 4px 10px; background: #eef2f8; color: var(--primary-color);';
+            tag.textContent = this.PERM_NAMES[p] || p;
+            perms.append(tag);
         });
     },
 
     openModal() {
         const isAutoSync = localStorage.getItem('autoSyncOnLoad') !== 'false';
         document.getElementById('autoSyncCheck').checked = isAutoSync;
+        this.renderUser();
         document.getElementById(this.modalId).classList.remove('hidden');
         // בדיקת חיבור חיה בעת פתיחת החלון
         this.checkStatusLive();
@@ -75,12 +100,6 @@ const SettingsManager = {
 
     closeModal() {
         document.getElementById(this.modalId).classList.add('hidden');
-    },
-
-    saveData() {
-        localStorage.setItem('autoSyncOnLoad', document.getElementById('autoSyncCheck').checked);
-        this.closeModal();
-        if (typeof showAlert === 'function') showAlert('ההגדרות נשמרו בהצלחה!');
     },
 
     // בדיקה בשרת: האם הטוקנים של ימות ונדרים שבמסד תקינים
