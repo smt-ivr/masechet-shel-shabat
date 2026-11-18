@@ -8,8 +8,7 @@
 - `v2/` – הגרסה החדשה (מוגשת ב-`/masechet/v2`)
 - `worker.js` – ה-Worker שמגיש את כל הקבצים לפי הנתיב
 - `wrangler.toml` – הגדרות הפריסה ל-Cloudflare
-- `nedarim-card/` – שלוחות יתרה ופרטי כרטיס נדרים
-- `webhook-nedarim/` – Webhook רישום מימות המשיח → נדרים פלוס
+- `nedarim-card/` – שלוחות ימות המשיח מול נדרים פלוס (רישום, אזור אישי, יתרת כרטיס)
 
 ## נתיבים
 
@@ -18,9 +17,9 @@
 | `/masechet` | הגרסה הישנה (`old/index.html`) |
 | `/masechet/smt.html` | דף משני ישן |
 | `/masechet/v2` | הגרסה החדשה (`v2/index.html`) |
-| `/masechet/nedarim-card/balance` | יתרת כרטיס נדרים לימות המשיח (`nedarim-card/`) |
-| `/masechet/nedarim-card/details` | פרטי כרטיס וזכיות לפי ת"ז (`nedarim-card/`) |
-| `/masechet/webhook-nedarim` | Webhook רישום מימות המשיח לנדרים פלוס (`webhook-nedarim/`) |
+| `/masechet/nedarim-card/register` | שלוחת רישום לנדרים פלוס (`nedarim-card/`) |
+| `/masechet/nedarim-card/personal-area` | אזור אישי – זכיות לפי ת"ז (`nedarim-card/`) |
+| `/masechet/nedarim-card/card-balance` | יתרה לפי מספר כרטיס (`nedarim-card/`) |
 
 נתיב `/masechet` ו-`/masechet/v2` ללא `/` בסוף מופנים אוטומטית לנתיב עם `/`
 כדי שהקישורים היחסיים (CSS/JS/תמונות) ייטענו נכון.

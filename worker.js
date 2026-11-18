@@ -23,11 +23,10 @@ import v2ClientCard from './v2/client-card.js';
 import v2ServerSync from './v2/server-sync.js';
 import v2SettingsManager from './v2/settings-manager.js';
 
-// ----- Webhook רישום (ימות המשיח → נדרים פלוס) -----
-import { handleWebhook } from './webhook-nedarim/worker-webhook.js';
-
-// ----- כרטיס נדרים (יתרה / פרטי כרטיס בימות המשיח) -----
-import { handleBalance, handleDetails } from './nedarim-card/worker-card.js';
+// ----- כרטיס נדרים: שלוחות ימות המשיח -----
+import { handleWebhook } from './nedarim-card/register.js';
+import { handleBalance } from './nedarim-card/card-balance.js';
+import { handleDetails } from './nedarim-card/personal-area.js';
 
 // ----- האתר הישן -----
 import oldIndex from './old/index.html';
@@ -77,14 +76,15 @@ export default {
     const path = url.pathname;
     const redirect = (to) => Response.redirect(url.origin + to, 301);
 
-    // Webhook רישום מימות המשיח
-    if (path === '/masechet/webhook-nedarim' || path === '/masechet/webhook-nedarim/') {
-      return handleWebhook(request, env);
-    }
-
-    // כרטיס נדרים
-    if (path === '/masechet/nedarim-card/balance') return handleBalance(request);
-    if (path === '/masechet/nedarim-card/details') return handleDetails(request);
+    // כרטיס נדרים – שלוחות ימות המשיח
+    const NC = '/masechet/nedarim-card/';
+    if (path === NC + 'register')      return handleWebhook(request, env); // רישום לנדרים פלוס
+    if (path === NC + 'personal-area') return handleDetails(request);      // אזור אישי לפי ת"ז
+    if (path === NC + 'card-balance')  return handleBalance(request);      // יתרה לפי מספר כרטיס
+    // כתובות קודמות (תאימות לאחור)
+    if (path === '/masechet/webhook-nedarim') return handleWebhook(request, env);
+    if (path === NC + 'details') return handleDetails(request);
+    if (path === NC + 'balance') return handleBalance(request);
 
     // נרמול נתיבים ללא "/" בסוף (כדי שקישורים יחסיים יעבדו)
     if (path === '/masechet')     return redirect('/masechet/');

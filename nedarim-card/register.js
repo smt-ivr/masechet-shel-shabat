@@ -1,5 +1,5 @@
 // Webhook לרישום מימות המשיח → כרטיס לקוח בנדרים פלוס
-// מוגש ב-Worker הראשי בכתובת: https://smti.uk/masechet/webhook-nedarim
+// https://smti.uk/masechet/nedarim-card/register
 //
 // משתני סביבה ב-Cloudflare (Worker: masechet-shel-shabat):
 //   NEDARIM_MOSAD_ID      – מספר מוסד (מוגדר ב-wrangler.toml)

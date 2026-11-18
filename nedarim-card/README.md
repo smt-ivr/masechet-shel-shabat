@@ -1,25 +1,45 @@
 # nedarim-card
 
-שלוחות ימות המשיח לכרטיס נדרים פלוס. הועבר מפרויקט Netlify `smt-nedarim-card`.
+שלוחות ימות המשיח שעובדות מול נדרים פלוס. מוגשות מה-Worker הראשי `masechet-shel-shabat`.
 
-## כתובות לשלוחה
+## כתובות לשלוחות
 
-| כתובת | מה עושה | פרמטרים |
-|-------|---------|---------|
-| `https://smti.uk/masechet/nedarim-card/balance` | יתרה לפי מספר כרטיס | `PrintedNumber` – מספר כרטיס; `MosadId` (רשות) – מוסדות מורשים, מופרדים במקף, למשל `45689-57964` |
-| `https://smti.uk/masechet/nedarim-card/details` | שלום + שם, כרטיסים פעילים, יתרה ופירוט זכיות לפי ת"ז | `ApiEnterID` – ת"ז; `MosadId`; `ApiPassword` – מפתח API של נדרים פלוס |
+| שלוחה | כתובת | קובץ |
+|-------|-------|------|
+| **רישום** – יצירת לקוח בנדרים פלוס | `https://smti.uk/masechet/nedarim-card/register` | `register.js` |
+| **אזור אישי** – שמיעת כרטיסים, יתרה וזכיות לפי ת"ז | `https://smti.uk/masechet/nedarim-card/personal-area` | `personal-area.js` |
+| **יתרת כרטיס** – לפי מספר כרטיס | `https://smti.uk/masechet/nedarim-card/card-balance` | `card-balance.js` |
 
-הקוד: `worker-card.js` (מוגש מה-Worker הראשי `masechet-shel-shabat`).
-הגרסה המקורית מ-Netlify שמורה ב-`netlify/functions/`.
+`common.js` – פונקציות משותפות.
+`netlify-old/` – הקוד המקורי מפרויקטי Netlify (`webhook-nedarim`, `smt-nedarim-card`), לשמירה בלבד.
 
-## הקלטות נדרשות בשלוחה
+## פרמטרים
 
-**יתרה:** f-001 לא הוקש כרטיס · f-002 קצר מדי · f-003 נסו שנית · f-004 טעות בהקלדה ·
+**רישום (`register`):** `P000` שם פרטי · `P001` שם משפחה · `EnterId` ת"ז · `P051` טלפון 1 ·
+`P052` טלפון 2 (`Next` = דילוג) · `P050` קבוצה (1 תלמוד תורה, 2 ישיבה קטנה, 3 ישיבה גדולה, 4 אברכים ונשואים) ·
+`Date`, `Time`, `HebrewDate`, `Folder`, `Booking` – להערה.
+המוסד והמפתח לא נשלחים מהשלוחה: `NEDARIM_MOSAD_ID` ב-`wrangler.toml`,
+`NEDARIM_API_PASSWORD` כ-Secret ב-Cloudflare.
+
+**אזור אישי (`personal-area`):** `ApiEnterID` ת"ז · `MosadId` · `ApiPassword` (נשלחים מהגדרות השלוחה).
+
+**יתרת כרטיס (`card-balance`):** `PrintedNumber` מספר כרטיס · `MosadId` (רשות) מוסדות מורשים מופרדים במקף, למשל `45689-57964`.
+
+## הקלטות נדרשות
+
+**יתרת כרטיס:** f-001 לא הוקש כרטיס · f-002 קצר מדי · f-003 נסו שנית · f-004 טעות בהקלדה ·
 f-005 שגיאה בבדיקה · f-006 פנו להנהלה · f-007 לא שייך למוסד · f-008 היתרה העדכנית היא ·
 f-009 שקלים · f-010 ו · f-011 אגורות · f-012 שגיאה פנימית · f-013 נסו מאוחר יותר
 
-**פרטי כרטיס:** f-100 לא הוקשה ת"ז · f-101 שגיאה בקבלת נתונים · f-102 ת"ז לא קיימת ·
+**אזור אישי:** f-100 לא הוקשה ת"ז · f-101 שגיאה בקבלת נתונים · f-102 ת"ז לא קיימת ·
 f-103 אין נתוני כרטיס · f-104 שגיאה · f-105 שלום · f-106 לא נמצא כרטיס · f-107 נתוני כרטיס (יחיד) ·
 f-118 נתוני כרטיסי (רבים) · f-108 יתרתכם העדכנית · f-109 שקלים · f-110 ו · f-111 אגורות ·
 f-112 פירוט הזכיות · f-113 זכיה · f-114 הזכיה הקודמת · f-115 על סכום · f-116 הוטען בתאריך ·
 f-117 עד כאן נתוני הכרטיס
+
+**רישום:** הודעות מוקראות (TTS), לא צריך הקלטות.
+
+## כתובות קודמות (עדיין עובדות)
+
+`/masechet/webhook-nedarim` → register · `/masechet/nedarim-card/details` → personal-area ·
+`/masechet/nedarim-card/balance` → card-balance
