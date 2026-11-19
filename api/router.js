@@ -71,6 +71,16 @@ export async function handleApi(request, env, path) {
     if (path === 'announcement/dismiss' && m === 'POST') return await announcement(request, env, ctx, 'dismiss');
     if (path === 'announcement/restore' && m === 'POST') return await announcement(request, env, ctx, 'restore');
     if (path === 'client/browser-cleanup' && m === 'POST') return await browserCleanup(request, env, ctx);
+    // חסימה של נטפרי בדפדפן המשתמש – נרשמת ביומן כדי שהמנהל יראה מה נחסם
+    if (path === 'client/netfree-block' && m === 'POST') {
+      const b = await readJson(request).catch(() => ({}));
+      await logAction(env, request, ctx, {
+        kind: 'netfree', action: 'חסימת נטפרי', target: str(b.target, 200) || str(b.action, 60),
+        details: { פעולה: str(b.action, 60), סיבה: str(b.reason, 40) === 'badwords' ? 'סינון מילים' : str(b.reason, 40) },
+        status: 'נחסם בנטפרי',
+      });
+      return json({ logged: true });
+    }
     if (path.startsWith('yemot/')) return await proxyYemot(request, env, ctx, path.slice('yemot/'.length));
     if (path === 'nedarim' && m === 'GET') return await proxyNedarim(request, env, ctx);
     if (path.startsWith('admin/')) return await handleAdmin(request, env, ctx, path.slice('admin/'.length), url);

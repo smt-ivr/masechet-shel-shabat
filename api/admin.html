@@ -128,6 +128,7 @@
               <option value="admin">ניהול</option>
               <option value="auth">כניסה ויציאה</option>
               <option value="cleanup">ניקוי דפדפן</option>
+              <option value="netfree">חסימות נטפרי</option>
             </select>
             <select id="fAccount"><option value="">כל המשתמשים</option></select>
             <input id="fQuery" placeholder="חיפוש…">
@@ -475,7 +476,7 @@ $('welcomeForm').addEventListener('submit', async (e) => {
 });
 
 // ===== יומן פעולות =====
-const KIND = { read: ['קריאה', ''], write: ['שינוי', 'write'], admin: ['ניהול', 'admin'], auth: ['כניסה', 'auth'], cleanup: ['ניקוי דפדפן', 'cleanup'] };
+const KIND = { read: ['קריאה', ''], write: ['שינוי', 'write'], admin: ['ניהול', 'admin'], auth: ['כניסה', 'auth'], cleanup: ['ניקוי דפדפן', 'cleanup'], netfree: ['חסימת נטפרי', 'off'] };
 let actionsOffset = 0;
 function fmtDetails(d) {
   if (!d) return '';

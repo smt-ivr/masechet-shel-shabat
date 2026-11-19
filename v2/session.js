@@ -329,8 +329,55 @@ const MsSession = (() => {
         if (res.status === 401 && done && url && url.includes('/masechet/api/') && !url.includes('/masechet/api/auth/')) {
             showLoginAgain('הכניסה פגה — הזינו סיסמה');
         }
+        if (res.status === 418 && url && url.includes('/masechet/api/')) checkNetFree(res.clone(), url);
         return res;
     };
+
+    // ===== חסימת נטפרי: הודעה ברורה במקום שגיאה כללית, ודיווח ליומן =====
+    const netfreeSeen = new Set();
+    async function checkNetFree(res, url) {
+        let data = null;
+        try { data = await res.json(); } catch (e) { return; }
+        if (!data || !data.blockByNetFree) return;
+        let link = String(data.blockUrl || '');
+        if (link.startsWith('//')) link = 'https:' + link;
+        if (!/^https:\/\/([a-z0-9-]+\.)*netfree\.link\//i.test(link)) link = 'https://netfree.link/';
+        let reason = '';
+        try { reason = JSON.parse(decodeURIComponent(link.split('#')[1] || '')).block || ''; } catch (e) { /* ignore */ }
+        const path = new URL(url, location.origin).pathname.replace('/masechet/api/', '');
+        let what = '';
+        try { const u = new URL(url, location.origin); what = u.searchParams.get('what') || u.searchParams.get('wath') || u.searchParams.get('path') || u.searchParams.get('Action') || ''; } catch (e) { /* ignore */ }
+        showNetFreeBanner(link, reason, what || path);
+        const key = path + '|' + what;
+        if (netfreeSeen.has(key)) return;
+        netfreeSeen.add(key);
+        try { await call('POST', 'client/netfree-block', { action: path, target: what, reason }, 8000); } catch (e) { /* ignore */ }
+    }
+
+    function showNetFreeBanner(link, reason, what) {
+        let box = $('msNetFreeBanner');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'msNetFreeBanner';
+            box.setAttribute('role', 'alert');
+            box.style.cssText = 'position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 9000; max-width: min(640px, calc(100% - 32px)); background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 8px; padding: 12px 16px; box-shadow: 0 6px 20px rgba(0,0,0,.15); display: flex; align-items: flex-start; gap: 12px; font-size: 0.95rem; line-height: 1.5;';
+            box.innerHTML = `
+                <i class="fa fa-ban" style="font-size: 1.4rem; margin-top: 2px;"></i>
+                <div style="flex: 1;">
+                    <strong>הבקשה נחסמה על ידי נטפרי</strong> <span id="msNetFreeReason"></span>
+                    <div style="font-size: 0.85rem; margin-top: 2px;">חלק מהנתונים לא נטענו. אפשר לבקש מנטפרי לאשר את האתר <span dir="ltr">smti.uk/masechet</span>.</div>
+                    <div style="font-size: 0.8rem; opacity: .8; margin-top: 2px;">נחסם: <span id="msNetFreeWhat" dir="ltr"></span></div>
+                    <a id="msNetFreeLink" target="_blank" rel="noopener" class="btn btn-sm" style="margin-top: 8px; background: #721c24; color: #fff; display: inline-block;"><i class="fa fa-external-link"></i> דיווח לנטפרי על חסימה שגויה</a>
+                </div>
+                <button type="button" id="msNetFreeClose" title="סגירה" style="background: none; border: none; color: inherit; font-size: 1.1rem; cursor: pointer;"><i class="fa fa-times"></i></button>`;
+            document.body.appendChild(box);
+            $('msNetFreeClose').onclick = () => { box.style.display = 'none'; };
+        }
+        $('msNetFreeReason').textContent = reason === 'badwords' ? '(סינון מילים)' : (reason ? `(${reason})` : '');
+        $('msNetFreeWhat').textContent = what;
+        $('msNetFreeLink').href = link;
+        box.style.display = 'flex';
+    }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setupLogin);
     else setupLogin();
