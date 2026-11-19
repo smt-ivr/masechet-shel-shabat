@@ -4,7 +4,7 @@
 //  ערכים סודיים לא חוזרים לדפדפן – רק האם הם מוגדרים וארבע הספרות האחרונות.
 // ============================================================
 import { badRequest, israelNow } from './http.js';
-import { DEFAULT_PATH_RULES, validateRules } from './yemot-paths.js';
+import { DEFAULT_PATHS, PATH_FIELDS, validatePaths } from './yemot-paths.js';
 
 export const DEFAULT_WELCOME = {
   welcome_subject: 'פרטי כניסה למערכת מסכת של שבת',
@@ -39,7 +39,7 @@ const DEFAULTS = {
   mail_from: 'מסכת של שבת <masechet@smti.uk>',
   site_url: 'https://smti.uk/masechet/',
   announcement_enabled: '1',
-  yemot_paths: JSON.stringify(DEFAULT_PATH_RULES),
+  yemot_paths: JSON.stringify(DEFAULT_PATHS),
   announcement_text: 'הפיתוח של האתר החדש הושלם! אין צורך להשתמש יותר באתר הישן',
   ...DEFAULT_WELCOME,
 };
@@ -68,7 +68,7 @@ export async function getConfig(env) {
 // לדף הניהול – בלי הערכים הסודיים עצמם
 export async function publicSettings(env) {
   const c = await getConfig(env);
-  const out = { defaults: DEFAULT_WELCOME, yemot_paths_default: DEFAULT_PATH_RULES };
+  const out = { defaults: DEFAULT_WELCOME, yemot_path_fields: PATH_FIELDS };
   for (const [k, [, secret]] of Object.entries(FIELDS)) {
     if (secret) {
       out[`${k}_set`] = !!c[k];
@@ -86,7 +86,7 @@ const LABELS = {
   google_enabled: 'כניסה עם Google', google_client_id: 'Google Client ID', resend_api_key: 'מפתח Resend',
   mail_from: 'שולח המייל', site_url: 'כתובת האתר', welcome_subject: 'נושא מייל הפתיחה', welcome_title: 'כותרת מייל הפתיחה',
   welcome_body: 'גוף מייל הפתיחה', welcome_button: 'כפתור מייל הפתיחה', welcome_note: 'הערת מייל הפתיחה',
-  announcement_enabled: 'הצגת ההודעה', announcement_text: 'טקסט ההודעה', yemot_paths: 'נתיבים מורשים בימות',
+  announcement_enabled: 'הצגת ההודעה', announcement_text: 'טקסט ההודעה', yemot_paths: 'כתובות במערכת ימות',
 };
 
 // מחזיר רק את מה שבאמת השתנה – לתיעוד ביומן הפעולות
@@ -99,7 +99,7 @@ export async function updateSettings(env, body) {
   for (const [k, [max, secret]] of Object.entries(FIELDS)) {
     if (body[k] === undefined) continue;
     let v = k === 'google_enabled' || k === 'announcement_enabled' ? (body[k] ? '1' : '0') : String(body[k] ?? '').slice(0, max);
-    if (k === 'yemot_paths') v = JSON.stringify(validateRules(body[k]));
+    if (k === 'yemot_paths') v = JSON.stringify(validatePaths(body[k]));
     if (k !== 'welcome_body' && k !== 'welcome_note') v = v.trim();
     if (secret && !v) continue;
     if (k === 'resend_api_key' && !/^re_[\w-]{10,}$/.test(v)) throw badRequest('מפתח Resend אמור להתחיל ב-re_');

@@ -1,17 +1,17 @@
 // סגירת מבחן והעברה לארכיון "מבחנים קודמים" — פורט נאמן מהאתר הישן,
 // עם מודל מעוצב במקום דיאלוגים של הדפדפן.
 // משתמש אך ורק ב-endpoints הקיימים של ימות: GetIVR2Dir / UpdateExtension / FileAction.
-// מבנה הנתיבים של v2: המבחן הפעיל ב-ivr2:/2/1/ , הארכיון ב-ivr2:/2/1/מבחנים-קודמים .
+// הכתובות (תיקיית המבחן ותיקיית מבחנים קודמים) נלקחות מהגדרות הניהול – msPath / msIvr ב-session.js
 const CloseExamManager = {
     modalId: 'closeExamModal',
     API_GET_DIR:     '/masechet/api/yemot/GetIVR2Dir',
     API_FILE_ACTION: '/masechet/api/yemot/FileAction',
     API_UPDATE_EXT:  '/masechet/api/yemot/UpdateExtension',
 
-    EXAM_YMGR_ABS:    'ivr2:/2/1/ExaminationLogOK.ymgr',
-    EXAM_DIR_ABS:     'ivr2:/2/1',
-    ARCHIVE_BASE_REL: '2/1/מבחנים-קודמים',
-    ARCHIVE_BASE_ABS: 'ivr2:/2/1/מבחנים-קודמים',
+    get EXAM_YMGR_ABS()    { return msIvr('exam_folder', 'ExaminationLogOK.ymgr'); },
+    get EXAM_DIR_ABS()     { return msIvr('exam_folder'); },
+    get ARCHIVE_BASE_REL() { return msPath('archive_folder'); },
+    get ARCHIVE_BASE_ABS() { return msIvr('archive_folder'); },
 
     getToken() { return 'server'; },
 

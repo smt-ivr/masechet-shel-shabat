@@ -1,18 +1,24 @@
 // ============================================================
-//  yemot-paths.js — נתיבים מורשים בימות המשיח
-//  כל פנייה לימות נבדקת: הנתיב חייב להיות ברשימה (נערכת בהגדרות הניהול).
-//  נתיב מורשה כולל גם את כל מה שמתחתיו. הרשאה: read (קריאה) / write (קריאה ושינוי).
+//  yemot-paths.js — הכתובות (נתיבים) במערכת ימות המשיח שהאתר עובד איתן
+//  נערכות בהגדרות הניהול: אם מעבירים שלוחה בימות, משנים כאן והאתר ממשיך לעבוד.
+//  השרת מרשה פנייה לימות רק לכתובות האלה (וכל מה שמתחתן), לפי סוג השימוש:
+//  read = קריאה בלבד, write = קריאה ושינוי. כל כתובת אחרת נחסמת.
 // ============================================================
 import { badRequest, forbidden } from './http.js';
 
-export const DEFAULT_PATH_RULES = [
-  { path: 'EnterID/ListAllInformation.ini', access: 'write', label: 'קובץ הלקוחות' },
-  { path: 'Points', access: 'read', label: 'קבצי הנקודות' },
-  { path: '1/2/1/Record', access: 'read', label: 'הקלטות ההרשמה' },
-  { path: '2/1', access: 'write', label: 'המבחן, השאלות, ההקלטות ומבחנים קודמים' },
+export const PATH_FIELDS = [
+  { key: 'clients_file', label: 'קובץ הלקוחות', type: 'file', access: 'write', default: 'EnterID/ListAllInformation.ini' },
+  { key: 'points_file', label: 'קובץ הנקודות', type: 'file', access: 'read', default: 'Points/Split/points_total.ini' },
+  { key: 'points_report', label: 'דוח הנקודות (אתר ישן)', type: 'file', access: 'read', default: 'Points/Split/points_total.ymgr' },
+  { key: 'recordings_folder', label: 'תיקיית הקלטות ההרשמה', type: 'folder', access: 'read', default: '1/2/1/Record' },
+  { key: 'exam_folder', label: 'תיקיית המבחן', type: 'folder', access: 'write', default: '2/1',
+    hint: 'כוללת את קובץ התוצאות (ExaminationLogOK), קובץ השאלות (examination.ini) והקלטות השאלות' },
+  { key: 'archive_folder', label: 'תיקיית מבחנים קודמים', type: 'folder', access: 'write', default: '2/1/מבחנים-קודמים' },
 ];
 
-// "ivr2:/2/1/" → "2/1". נתיב עם .. או . נדחה
+export const DEFAULT_PATHS = Object.fromEntries(PATH_FIELDS.map((f) => [f.key, f.default]));
+
+// "ivr2:/2/1/" → "2/1". כתובת עם .. או . נדחית
 export function normalizePath(raw) {
   let p = String(raw ?? '').trim();
   try { p = decodeURIComponent(p); } catch { /* כבר מפוענח */ }
@@ -21,44 +27,48 @@ export function normalizePath(raw) {
   return p;
 }
 
-export function parseRules(json) {
-  let list;
-  try { list = typeof json === 'string' ? JSON.parse(json) : json; } catch { list = null; }
-  if (!Array.isArray(list)) return DEFAULT_PATH_RULES;
-  return list
-    .map((r) => ({ path: normalizePath(r && r.path), access: r && r.access === 'write' ? 'write' : 'read', label: String((r && r.label) || '').slice(0, 80) }))
-    .filter((r) => r.path);
+// הכתובות השמורות (או ברירת המחדל לכל מה שלא נשמר)
+export function getPaths(json) {
+  let saved = {};
+  try { saved = typeof json === 'string' ? JSON.parse(json) : json || {}; } catch { saved = {}; }
+  if (!saved || typeof saved !== 'object' || Array.isArray(saved)) saved = {};
+  const out = {};
+  for (const f of PATH_FIELDS) {
+    const p = normalizePath(saved[f.key]);
+    out[f.key] = p ? p : f.default;
+  }
+  return out;
 }
 
 // בדיקה ושמירה מהגדרות הניהול
-export function validateRules(input) {
-  let list;
-  try { list = typeof input === 'string' ? JSON.parse(input) : input; } catch { throw badRequest('רשימת הנתיבים אינה תקינה'); }
-  if (!Array.isArray(list)) throw badRequest('רשימת הנתיבים אינה תקינה');
-  const out = [];
-  const seen = new Set();
-  for (const r of list) {
-    const raw = String((r && r.path) || '').trim();
-    if (!raw) continue;
-    const path = normalizePath(raw);
-    if (path === null) throw badRequest(`נתיב לא תקין: ${raw}`);
-    if (path === '') throw badRequest('אי אפשר להרשות את כל המערכת (נתיב ריק או /). הגדירו תיקייה מסוימת');
-    if (seen.has(path)) continue;
-    seen.add(path);
-    out.push({ path, access: r.access === 'write' ? 'write' : 'read', label: String(r.label || '').trim().slice(0, 80) });
+export function validatePaths(input) {
+  let obj;
+  try { obj = typeof input === 'string' ? JSON.parse(input) : input; } catch { throw badRequest('הכתובות אינן תקינות'); }
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw badRequest('הכתובות אינן תקינות');
+  const out = {};
+  for (const f of PATH_FIELDS) {
+    const raw = String(obj[f.key] ?? '').trim();
+    if (!raw) throw badRequest(`חסרה כתובת: ${f.label}`);
+    const p = normalizePath(raw);
+    if (p === null) throw badRequest(`כתובת לא תקינה (${f.label}): ${raw}`);
+    if (p === '') throw badRequest(`${f.label}: אי אפשר להגדיר את כל המערכת (/). הגדירו שלוחה או קובץ מסוים`);
+    out[f.key] = p;
   }
-  if (out.length > 100) throw badRequest('יותר מדי נתיבים (עד 100)');
   return out;
+}
+
+// הכתובות → הרשאות גישה
+export function rulesFromPaths(paths) {
+  return PATH_FIELDS.map((f) => ({ path: paths[f.key], access: f.access }));
 }
 
 const inside = (target, rule) => target === rule || target.startsWith(rule + '/');
 
-// האם מותר: need = 'read' / 'write'
 function allowed(rules, target, need) {
   return rules.some((r) => inside(target, r.path) && (need === 'read' || r.access === 'write'));
 }
 
-// איזה פרמטר מכיל נתיב, ומה צריך עליו, לכל פעולה
+// איזה פרמטר מכיל כתובת, ומה צריך עליה, לכל פעולה
 function requirements(method, params) {
   const req = [];
   const add = (key, need) => { if (params[key] !== undefined && params[key] !== '') req.push([key, need]); };
@@ -80,17 +90,17 @@ function requirements(method, params) {
   return req;
 }
 
-// זורק שגיאה אם אחד הנתיבים לא מורשה. מחזיר את רשימת הנתיבים שנבדקו (ליומן)
+// זורק שגיאה אם אחת הכתובות לא מורשית
 export function enforcePaths(method, params, rules) {
   if (method === 'GetSession') return [];
   const req = requirements(method, params);
-  if (!req.length) throw forbidden('חסר נתיב בפנייה לימות');
+  if (!req.length) throw forbidden('חסרה כתובת בפנייה לימות');
   const checked = [];
   for (const [key, need] of req) {
     const target = normalizePath(params[key]);
-    if (target === null) throw forbidden(`נתיב לא תקין: ${params[key]}`);
+    if (target === null) throw forbidden(`כתובת לא תקינה: ${params[key]}`);
     if (!allowed(rules, target, need)) {
-      throw forbidden(`הנתיב "${target || '/'}" לא מורשה ל${need === 'write' ? 'שינוי' : 'קריאה'}. אפשר להוסיף אותו בהגדרות הניהול`);
+      throw forbidden(`הכתובת "${target || '/'}" לא מוגדרת בכתובות של האתר (${need === 'write' ? 'שינוי' : 'קריאה'}). אפשר לעדכן בהגדרות הניהול`);
     }
     checked.push(target);
   }

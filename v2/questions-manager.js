@@ -156,7 +156,7 @@ const QuestionsManager = {
         this.pendingFiles = {};
 
         try {
-            const answersRes = await fetch(`/masechet/api/yemot/GetTextFile?what=ivr2:/2/1/examination.ini`);
+            const answersRes = await fetch(`/masechet/api/yemot/GetTextFile?what=${encodeURIComponent(msIvr('exam_folder', 'examination.ini'))}`);
             const answersData = await answersRes.json();
             
             // זיהוי אם המבחן טרם נוצר או שאין בו שאלות (הקובץ לא קיים)
@@ -175,7 +175,7 @@ const QuestionsManager = {
             }
 
             // טוען אודיו רק אם הקובץ לא היה חסר
-            const audioRes = await fetch(`/masechet/api/yemot/GetIVR2Dir?path=2/1`);
+            const audioRes = await fetch(`/masechet/api/yemot/GetIVR2Dir?path=${encodeURIComponent(msPath('exam_folder'))}`);
             const audioData = await audioRes.json();
             
             if (audioData.responseStatus === 'OK' && audioData.files) {
@@ -238,7 +238,7 @@ const QuestionsManager = {
             const hasAudio = this.audioMap[qNumStr];
             
             let audioHtml = hasAudio 
-                ? `<audio controls controlsList="nodownload noplaybackrate" class="q-audio-player" preload="none" src="/masechet/api/yemot/DownloadFile?path=ivr2:2/1/${qNumStr}.wav" style="height: 35px; max-width: 210px; outline:none;"></audio>`
+                ? `<audio controls controlsList="nodownload noplaybackrate" class="q-audio-player" preload="none" src="/masechet/api/yemot/DownloadFile?path=${encodeURIComponent(msIvr('exam_folder', qNumStr + '.wav'))}" style="height: 35px; max-width: 210px; outline:none;"></audio>`
                 : `<span style="color: var(--text-muted); font-size: 0.85rem;"><i class="fa fa-microphone-slash"></i> לא הוקלט בשרת</span>`;
 
             html += `
@@ -368,7 +368,7 @@ const QuestionsManager = {
         try {
             statusEl.innerHTML = '<i class="fa fa-spinner fa-spin"></i> מעלה קובץ שמע לשרת...';
             const formData = new FormData();
-            formData.append('path', `ivr2:2/1/${this.newQNumStr}.wav`);
+            formData.append('path', msIvr('exam_folder', `${this.newQNumStr}.wav`));
             formData.append('convertAudio', '1');
             formData.append('file', fileInput.files[0]);
 
@@ -390,7 +390,7 @@ const QuestionsManager = {
             const newContents = newContentArray.join('\r\n') + '\r\n';
             
             const params = new URLSearchParams();
-            params.append('what', 'ivr2:/2/1/examination.ini');
+            params.append('what', msIvr('exam_folder', 'examination.ini'));
             params.append('contents', newContents);
 
             const iniRes = await fetch(`/masechet/api/yemot/UploadTextFile`, { method: 'POST', body: params });
@@ -437,7 +437,7 @@ const QuestionsManager = {
             fileKeys.forEach(qNum => {
                 const file = this.pendingFiles[qNum];
                 const formData = new FormData();
-                formData.append('path', `ivr2:2/1/${qNum}.wav`);
+                formData.append('path', msIvr('exam_folder', `${qNum}.wav`));
                 formData.append('convertAudio', '1');
                 formData.append('file', file);
 
@@ -465,7 +465,7 @@ const QuestionsManager = {
 
             const newContents = newContentArray.join('\r\n') + '\r\n';
             const params = new URLSearchParams();
-            params.append('what', 'ivr2:/2/1/examination.ini');
+            params.append('what', msIvr('exam_folder', 'examination.ini'));
             params.append('contents', newContents);
 
             const res = await fetch(`/masechet/api/yemot/UploadTextFile`, {

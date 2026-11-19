@@ -28,6 +28,8 @@ import v2SettingsManager from './v2/settings-manager.js';
 import { handleApi } from './api/router.js';
 import { hasPagePermission } from './api/auth.js';
 import { ensureSchema } from './api/schema.js';
+import { getConfig } from './api/settings.js';
+import { getPaths } from './api/yemot-paths.js';
 import adminPage from './api/admin.html';
 
 // ----- כרטיס נדרים: שלוחות ימות המשיח -----
@@ -117,6 +119,16 @@ export default {
     }
 
     const hit = ROUTES[path];
+    // האתר הישן: הכתובות בימות (ברירות המחדל שלו) נלקחות מהגדרות הניהול
+    if (hit && hit[0] === oldIndex) {
+      const p = getPaths((await getConfig(env)).yemot_paths);
+      const q = (v) => `'ivr2:/${String(v).replace(/'/g, "\\'")}'`;
+      const html = oldIndex
+        .replace(/const DEFAULT_YMGR_PATH = '[^']*';/, `const DEFAULT_YMGR_PATH = ${q(p.exam_folder + '/ExaminationLogOK.ymgr')};`)
+        .replace(/const DEFAULT_BROWSE_PATH = '[^']*';/, `const DEFAULT_BROWSE_PATH = ${q(p.archive_folder)};`)
+        .replace(/const DEFAULT_POINTS_REPORT_PATH = '[^']*';/, `const DEFAULT_POINTS_REPORT_PATH = ${q(p.points_report)};`);
+      return new Response(html, { status: 200, headers: { 'Content-Type': HTML, 'Cache-Control': 'no-store' } });
+    }
     if (hit) {
       return new Response(hit[0], {
         status: 200,

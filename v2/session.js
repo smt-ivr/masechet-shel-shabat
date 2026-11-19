@@ -6,6 +6,19 @@
 //  בכניסה: טוקנים וסיסמאות ישנים נמחקים מהדפדפן, והשרת מקבל דיווח מה נמצא ונמחק.
 // ============================================================
 
+// ===== הכתובות בימות שהאתר עובד איתן – נטענות מהשרת (הגדרות הניהול) אחרי הכניסה =====
+window.MS_PATHS = {
+    clients_file: 'EnterID/ListAllInformation.ini',
+    points_file: 'Points/Split/points_total.ini',
+    points_report: 'Points/Split/points_total.ymgr',
+    recordings_folder: '1/2/1/Record',
+    exam_folder: '2/1',
+    archive_folder: '2/1/מבחנים-קודמים',
+};
+// msPath('exam_folder') → "2/1"   ·   msIvr('exam_folder', 'examination.ini') → "ivr2:/2/1/examination.ini"
+window.msPath = (key) => String(window.MS_PATHS[key] || '').replace(/^\/+|\/+$/g, '');
+window.msIvr = (key, sub) => 'ivr2:/' + window.msPath(key) + (sub ? '/' + sub : '');
+
 const MsSession = (() => {
     const API = '/masechet/api/';
     const USER_KEY = 'ms_user';
@@ -151,9 +164,14 @@ const MsSession = (() => {
         done = true;
         renderTopBar();
         showSite();
+        await loadPaths();
         resolveReady(u);
         cleanBrowser();
         loadAnnouncement();
+    }
+
+    async function loadPaths() {
+        try { Object.assign(window.MS_PATHS, (await call('GET', 'config', null, 8000)).paths || {}); } catch (e) { /* ברירת המחדל */ }
     }
 
     // ===== הרשאות: מה שאין למשתמש הרשאה אליו מוסתר באתר (והשרת חוסם ממילא) =====

@@ -68,9 +68,7 @@
   .hidden { display:none !important; }
   .perm-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; }
   .ip-row { display:grid; grid-template-columns:1.2fr 1fr auto; gap:8px; margin-bottom:8px; }
-  .path-row { display:grid; grid-template-columns:1.3fr 150px 1.2fr 38px; gap:8px; margin-bottom:8px; align-items:center; }
-  .path-head { font-size:.8rem; color:var(--muted); margin-bottom:4px; }
-  @media (max-width:700px) { .path-row { grid-template-columns:1fr 1fr; } .path-head { display:none; } }
+
   @media (max-width:700px) { .perm-grid { grid-template-columns:1fr; } }
   .empty { color:var(--muted); text-align:center; padding:20px; }
   @media (max-width:700px) {
@@ -170,14 +168,11 @@
         </fieldset>
 
         <fieldset>
-          <legend><i class="fa fa-folder-open"></i> נתיבים מורשים בימות המשיח</legend>
-          <p class="hint" style="margin:0 0 10px">האתר יכול לגשת בימות רק לנתיבים שברשימה. נתיב כולל גם את כל מה שמתחתיו (למשל <span class="ltr">2/1</span> כולל את <span class="ltr">2/1/מבחנים-קודמים</span>). כל נתיב אחר נחסם ונרשם ביומן</p>
-          <div class="path-row path-head"><span>נתיב</span><span>הרשאה</span><span>תיאור</span><span></span></div>
-          <div id="pathRows"></div>
-          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
-            <button type="button" class="secondary small" id="addPathBtn"><i class="fa fa-plus"></i> נתיב</button>
-            <button type="button" class="secondary small" id="resetPathsBtn"><i class="fa fa-undo"></i> שחזור ברירת המחדל</button>
-          </div>
+          <legend><i class="fa fa-folder-open"></i> כתובות במערכת ימות המשיח</legend>
+          <p class="hint" style="margin:0 0 12px">הכתובות שהאתר עובד איתן. אם מעבירים שלוחה או קובץ בימות – מעדכנים כאן, והאתר ממשיך לעבוד.
+            האתר יכול לגשת בימות רק לכתובות האלה (וכל מה שמתחתן); כל כתובת אחרת נחסמת ונרשמת ביומן</p>
+          <div id="pathFields" class="grid"></div>
+          <div style="margin-top:10px"><button type="button" class="secondary small" id="resetPathsBtn"><i class="fa fa-undo"></i> שחזור ברירת המחדל</button></div>
         </fieldset>
 
         <fieldset>
@@ -542,27 +537,21 @@ function secretState(id, set, hint) {
   const el = $(id); el.className = 'secret-state ' + (set ? 'set' : 'unset');
   el.textContent = set ? `מוגדר (${hint})` : 'לא מוגדר';
 }
-function addPathRow(r = { path: '', access: 'read', label: '' }) {
-  const row = document.createElement('div');
-  row.className = 'path-row';
-  row.innerHTML = `<input class="ltr p-path" placeholder="2/1" value="${esc(r.path)}">
-    <select class="p-access"><option value="read">קריאה</option><option value="write">קריאה ושינוי</option></select>
-    <input class="p-label" placeholder="תיאור" value="${esc(r.label)}">
-    <button type="button" class="danger small" title="הסרה"><i class="fa fa-times"></i></button>`;
-  row.querySelector('.p-access').value = r.access === 'write' ? 'write' : 'read';
-  row.querySelector('button').onclick = () => row.remove();
-  $('pathRows').appendChild(row);
-  return row;
+let PATH_FIELDS = [];
+function fillPaths(fields, values) {
+  PATH_FIELDS = fields || [];
+  $('pathFields').innerHTML = PATH_FIELDS.map((f) => `
+    <div${f.hint ? ' class="full"' : ''}>
+      <label class="f" for="path_${f.key}">${esc(f.label)} <span class="tag ${f.access === 'write' ? 'write' : ''}">${f.access === 'write' ? 'קריאה ושינוי' : 'קריאה'}</span></label>
+      <input id="path_${f.key}" class="ltr" data-key="${f.key}" placeholder="${esc(f.default)}" value="${esc((values && values[f.key]) || f.default)}">
+      <div class="hint">${f.type === 'folder' ? 'שלוחה / תיקייה' : 'קובץ'}${f.hint ? ' · ' + esc(f.hint) : ''} · ברירת מחדל: <span class="ltr">${esc(f.default)}</span></div>
+    </div>`).join('');
 }
-function fillPaths(list) {
-  $('pathRows').innerHTML = '';
-  (Array.isArray(list) ? list : []).forEach(addPathRow);
-}
-const readPaths = () => [...document.querySelectorAll('#pathRows .path-row')]
-  .map((r) => ({ path: r.querySelector('.p-path').value.trim(), access: r.querySelector('.p-access').value, label: r.querySelector('.p-label').value.trim() }))
-  .filter((r) => r.path);
-$('addPathBtn').onclick = () => addPathRow().querySelector('input').focus();
-$('resetPathsBtn').onclick = () => { if (settings && confirm('להחזיר את רשימת הנתיבים לברירת המחדל? (השינוי נשמר רק בלחיצה על "שמירת הגדרות")')) fillPaths(settings.yemot_paths_default); };
+const readPaths = () => Object.fromEntries([...document.querySelectorAll('#pathFields input')].map((i) => [i.dataset.key, i.value.trim()]));
+$('resetPathsBtn').onclick = () => {
+  if (!confirm('להחזיר את כל הכתובות לברירת המחדל? (השינוי נשמר רק בלחיצה על "שמירת הגדרות")')) return;
+  PATH_FIELDS.forEach((f) => { $('path_' + f.key).value = f.default; });
+};
 
 function fillSettings(s) {
   settings = s; loaded.settings = true;
@@ -571,8 +560,8 @@ function fillSettings(s) {
   $('sNedKey').value = ''; secretState('sNedKeyState', s.nedarim_api_password_set, s.nedarim_api_password_hint);
   $('sGoogleOn').checked = !!s.google_enabled; $('sGoogleId').value = s.google_client_id || '';
   $('aOn').checked = !!s.announcement_enabled; $('aText').value = s.announcement_text || '';
-  let paths = []; try { paths = JSON.parse(s.yemot_paths || '[]'); } catch { paths = s.yemot_paths_default || []; }
-  fillPaths(paths);
+  let paths = {}; try { paths = JSON.parse(s.yemot_paths || '{}'); } catch { paths = {}; }
+  fillPaths(s.yemot_path_fields, Array.isArray(paths) ? {} : paths);
   $('sResend').value = ''; secretState('sResendState', s.resend_api_key_set, s.resend_api_key_hint);
   $('sFrom').value = s.mail_from || ''; $('sSite').value = s.site_url || '';
   $('wSubject').value = s.welcome_subject || ''; $('wTitle').value = s.welcome_title || '';
