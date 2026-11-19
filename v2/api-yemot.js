@@ -1,16 +1,5 @@
+// כל הפניות עוברות דרך השרת (/masechet/api/yemot/...), שמוסיף את הטוקן מהמסד ובודק הרשאות ונתיבים
 const YemotAPI = {
-    async login(username, password) {
-        const url = `/masechet/api/yemot/Login?username=${username}&password=${password}`;
-        const res = await fetch(url);
-        return await res.json();
-    },
-
-    async checkMFA(token, action) {
-        const url = `/masechet/api/yemot/MFASession?token=${token}&action=${action}`;
-        const res = await fetch(url);
-        return await res.json();
-    },
-
     async fetchBaseData(token) {
         const data = await this.fetchRawBaseDataAPI(token);
         
@@ -29,7 +18,7 @@ const YemotAPI = {
     },
 
     async fetchRawBaseDataAPI(token) {
-        const url = `/masechet/api/yemot/GetTextFile?token=${token}&what=ivr2%3AEnterID%2FListAllInformation.ini`;
+        const url = `/masechet/api/yemot/GetTextFile?what=ivr2%3AEnterID%2FListAllInformation.ini`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('שגיאה בתקשורת מול מערכת ימות (קובץ בסיס)');
         return await res.json();
@@ -37,7 +26,6 @@ const YemotAPI = {
 
     async uploadBaseData(token, contents) {
         const params = new URLSearchParams();
-        params.append('token', token);
         params.append('what', 'ivr2:EnterID/ListAllInformation.ini');
         params.append('contents', contents);
 
@@ -49,7 +37,7 @@ const YemotAPI = {
 
     async fetchPointsData(token) {
         try {
-            const url = `/masechet/api/yemot/GetTextFile?token=${token}&what=ivr2%3A%2FPoints%2FSplit%2Fpoints_total.ini`;
+            const url = `/masechet/api/yemot/GetTextFile?what=ivr2%3A%2FPoints%2FSplit%2Fpoints_total.ini`;
             const res = await fetch(url);
             if (!res.ok) return { error: true, data: {} };
             const data = await res.json();
@@ -79,7 +67,7 @@ const YemotAPI = {
 
     async fetchRecordingsList(token) {
         try {
-            const url = `/masechet/api/yemot/GetIVR2Dir?token=${token}&path=1/2/1/Record`;
+            const url = `/masechet/api/yemot/GetIVR2Dir?path=1/2/1/Record`;
             const res = await fetch(url);
             if (!res.ok) return { error: true, data: {} };
             
@@ -110,7 +98,7 @@ const YemotAPI = {
 
     async fetchExamData(token) {
         try {
-            const url = `/masechet/api/yemot/RenderYMGRFile?token=${token}&wath=ivr2:/2/1/ExaminationLogOK.ymgr&convertType=json&notLoadLang=1`;
+            const url = `/masechet/api/yemot/RenderYMGRFile?wath=ivr2:/2/1/ExaminationLogOK.ymgr&convertType=json&notLoadLang=1`;
             const res = await fetch(url);
             if (!res.ok) {
                 return { error: true, message: 'שגיאה בתקשורת מול שרת ימות (קובץ מבחנים)', data: [] };
@@ -137,7 +125,7 @@ const YemotAPI = {
 
     async fetchPreviousExamsList(token) {
         try {
-            const url = `/masechet/api/yemot/GetIVR2Dir?token=${token}&path=2/1/מבחנים-קודמים`;
+            const url = `/masechet/api/yemot/GetIVR2Dir?path=2/1/מבחנים-קודמים`;
             const res = await fetch(url);
             if (!res.ok) {
                 return { error: true, message: 'שגיאה בתקשורת מול שרת ימות (רשימת מבחנים)', dirs: [] };
@@ -162,7 +150,7 @@ const YemotAPI = {
 
     async fetchHistoricalExamData(token, folderPath) {
         try {
-            const url = `/masechet/api/yemot/RenderYMGRFile?token=${token}&wath=ivr2:${folderPath}/ExaminationLogOK.ymgr&convertType=json&notLoadLang=1`;
+            const url = `/masechet/api/yemot/RenderYMGRFile?wath=ivr2:${folderPath}/ExaminationLogOK.ymgr&convertType=json&notLoadLang=1`;
             const res = await fetch(url);
             if (!res.ok) {
                 return { error: true, message: 'שגיאה בתקשורת מול שרת ימות (קובץ מבחן עבר)', data: [] };

@@ -1,13 +1,14 @@
+// כל הפניות עוברות דרך השרת (/masechet/api/nedarim), שמוסיף את מספר המוסד ומפתח ה-API מהמסד
 const NedarimAPI = {
     async fetchClientList(mosadId, password) {
-        const url = `/masechet/api/nedarim?Action=GetClient_Table&MosadId=${mosadId}&ApiPassword=${password}`;
+        const url = `/masechet/api/nedarim?Action=GetClient_Table`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('שגיאה בתקשורת מול מערכת הסליקה (רשימת לקוחות)');
         return await res.json();
     },
 
     async fetchClientCard(mosadId, password, clientId) {
-        const url = `/masechet/api/nedarim?Action=GetClientCard&MosadId=${mosadId}&ApiPassword=${password}&ClientId=${clientId}`;
+        const url = `/masechet/api/nedarim?Action=GetClientCard&ClientId=${clientId}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('שגיאה בתקשורת מול מערכת הסליקה (כרטיס לקוח)');
         return await res.json();
@@ -16,8 +17,6 @@ const NedarimAPI = {
     async saveClient(mosadId, password, clientData, clientId = null) {
         const params = new URLSearchParams({
             Action: 'SaveClientCard',
-            MosadId: mosadId,
-            ApiPassword: password,
             Zeout: clientData.zeout || '',
             FirstName: clientData.firstName || '',
             FamilyName: clientData.lastName || '',
@@ -43,8 +42,6 @@ const NedarimAPI = {
     async addClientCard(mosadId, password, clientId, magneticCard) {
         const params = new URLSearchParams({
             Action: 'SetClientMagneticCard',
-            MosadId: mosadId,
-            ApiPassword: password,
             ClientId: clientId,
             MagneticCard: magneticCard,
             Remove: 0
@@ -59,8 +56,6 @@ const NedarimAPI = {
     async addTlush(mosadId, password, clientId, amount, expiration, limitedId, comments) {
         const params = new URLSearchParams({
             Action: 'AddTlush',
-            MosadId: mosadId,
-            ApiPassword: password,
             ClientId: clientId,
             Amount: amount
         });
@@ -77,8 +72,6 @@ const NedarimAPI = {
     async prikatTlush(mosadId, password, tlushId) {
         const params = new URLSearchParams({
             Action: 'PrikatTlush',
-            MosadId: mosadId,
-            ApiPassword: password,
             TlushId: tlushId
         });
 
@@ -89,7 +82,7 @@ const NedarimAPI = {
     },
 
     async fetchLimitedStoresList(mosadId, password) {
-        const url = `/masechet/api/nedarim?Action=GetLimitedStoresList&MosadId=${mosadId}&ApiPassword=${password}`;
+        const url = `/masechet/api/nedarim?Action=GetLimitedStoresList`;
         const res = await fetch(url);
         if (!res.ok) throw new Error('שגיאה בתקשורת מול מערכת הסליקה (רשימת קבוצות חנויות)');
         return await res.json();

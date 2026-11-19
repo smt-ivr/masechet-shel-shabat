@@ -4,6 +4,7 @@
 //  ערכים סודיים לא חוזרים לדפדפן – רק האם הם מוגדרים וארבע הספרות האחרונות.
 // ============================================================
 import { badRequest, israelNow } from './http.js';
+import { DEFAULT_PATH_RULES, validateRules } from './yemot-paths.js';
 
 export const DEFAULT_WELCOME = {
   welcome_subject: 'פרטי כניסה למערכת מסכת של שבת',
@@ -30,6 +31,7 @@ const FIELDS = {
   welcome_note: [1000, false],
   announcement_enabled: [1, false],
   announcement_text: [300, false],
+  yemot_paths: [20000, false],
 };
 
 const DEFAULTS = {
@@ -37,6 +39,7 @@ const DEFAULTS = {
   mail_from: 'מסכת של שבת <masechet@smti.uk>',
   site_url: 'https://smti.uk/masechet/',
   announcement_enabled: '1',
+  yemot_paths: JSON.stringify(DEFAULT_PATH_RULES),
   announcement_text: 'הפיתוח של האתר החדש הושלם! אין צורך להשתמש יותר באתר הישן',
   ...DEFAULT_WELCOME,
 };
@@ -65,7 +68,7 @@ export async function getConfig(env) {
 // לדף הניהול – בלי הערכים הסודיים עצמם
 export async function publicSettings(env) {
   const c = await getConfig(env);
-  const out = { defaults: DEFAULT_WELCOME };
+  const out = { defaults: DEFAULT_WELCOME, yemot_paths_default: DEFAULT_PATH_RULES };
   for (const [k, [, secret]] of Object.entries(FIELDS)) {
     if (secret) {
       out[`${k}_set`] = !!c[k];
@@ -78,29 +81,43 @@ export async function publicSettings(env) {
 }
 
 // עדכון: שדה סודי ריק = ללא שינוי; clear: [מפתחות] = מחיקה
+const LABELS = {
+  yemot_token: 'טוקן ימות', nedarim_mosad_id: 'מספר מוסד בנדרים', nedarim_api_password: 'מפתח נדרים',
+  google_enabled: 'כניסה עם Google', google_client_id: 'Google Client ID', resend_api_key: 'מפתח Resend',
+  mail_from: 'שולח המייל', site_url: 'כתובת האתר', welcome_subject: 'נושא מייל הפתיחה', welcome_title: 'כותרת מייל הפתיחה',
+  welcome_body: 'גוף מייל הפתיחה', welcome_button: 'כפתור מייל הפתיחה', welcome_note: 'הערת מייל הפתיחה',
+  announcement_enabled: 'הצגת ההודעה', announcement_text: 'טקסט ההודעה', yemot_paths: 'נתיבים מורשים בימות',
+};
+
+// מחזיר רק את מה שבאמת השתנה – לתיעוד ביומן הפעולות
 export async function updateSettings(env, body) {
   const now = israelNow();
   const stmts = [];
   const changed = [];
+  const { results } = await env.DB.prepare('SELECT key, value FROM ms_settings').all();
+  const saved = Object.fromEntries(results.map((r) => [r.key, r.value]));
   for (const [k, [max, secret]] of Object.entries(FIELDS)) {
     if (body[k] === undefined) continue;
     let v = k === 'google_enabled' || k === 'announcement_enabled' ? (body[k] ? '1' : '0') : String(body[k] ?? '').slice(0, max);
+    if (k === 'yemot_paths') v = JSON.stringify(validateRules(body[k]));
     if (k !== 'welcome_body' && k !== 'welcome_note') v = v.trim();
     if (secret && !v) continue;
     if (k === 'resend_api_key' && !/^re_[\w-]{10,}$/.test(v)) throw badRequest('מפתח Resend אמור להתחיל ב-re_');
     if (k === 'nedarim_mosad_id' && v && !/^\d+$/.test(v)) throw badRequest('מספר מוסד בנדרים חייב להיות מספר');
     if (k === 'site_url' && v && !/^https:\/\//.test(v)) throw badRequest('כתובת האתר חייבת להתחיל ב-https://');
+    const before = saved[k] !== undefined && saved[k] !== null && saved[k] !== '' ? saved[k] : DEFAULTS[k] ?? '';
+    if (v === before) continue;
     stmts.push(
       env.DB.prepare(
         'INSERT INTO ms_settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at',
       ).bind(k, v, now),
     );
-    changed.push(k);
+    changed.push(LABELS[k] || k);
   }
   for (const k of Array.isArray(body.clear) ? body.clear : []) {
     if (FIELDS[k]) {
       stmts.push(env.DB.prepare('DELETE FROM ms_settings WHERE key = ?').bind(k));
-      changed.push(`${k} (נמחק)`);
+      changed.push(`${LABELS[k] || k} (נמחק)`);
     }
   }
   if (stmts.length) await env.DB.batch(stmts);

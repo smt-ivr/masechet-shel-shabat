@@ -10,6 +10,7 @@ import { ApiError, badRequest } from './http.js';
 import { getConfig } from './settings.js';
 import { logAction, safeDetails } from './audit.js';
 import { requirePermission, requireAnyPermission } from './permissions.js';
+import { enforcePaths, parseRules } from './yemot-paths.js';
 
 const YEMOT_BASE = 'https://www.call2all.co.il/ym/api/';
 const NEDARIM_URL = 'https://www.matara.pro/nedarimplus/Mechubad/Reports/ManageReports.aspx';
@@ -110,6 +111,14 @@ export async function proxyYemot(request, env, ctx, method) {
     else requirePermission(ctx, 'exams_manage');
   } catch (err) {
     await logAction(env, request, ctx, { kind, action, target, details: safeDetails(logged), status: 'נחסם: אין הרשאה' });
+    throw err;
+  }
+
+  // נתיבים: רק מה שברשימת הנתיבים המורשים (הגדרות הניהול)
+  try {
+    enforcePaths(method, logged, parseRules(cfg.yemot_paths));
+  } catch (err) {
+    await logAction(env, request, ctx, { kind, action, target, details: safeDetails(logged), status: `נחסם: ${err.message}` });
     throw err;
   }
 

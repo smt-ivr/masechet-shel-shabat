@@ -80,7 +80,7 @@ const CloseExamManager = {
     // הצעת מספר סידורי לתיקייה הבאה (כמו בישן: מוצא את המקסימום ומוסיף 1)
     async suggestNextArchiveFolderName() {
         const token = this.getToken();
-        const apiUrl = `${this.API_GET_DIR}?token=${token}&path=${encodeURIComponent(this.ARCHIVE_BASE_REL)}&orderBy=name&orderDir=asc`;
+        const apiUrl = `${this.API_GET_DIR}?path=${encodeURIComponent(this.ARCHIVE_BASE_REL)}&orderBy=name&orderDir=asc`;
         let maxNum = 0;
         try {
             const response = await fetch(apiUrl);
@@ -206,7 +206,7 @@ const CloseExamManager = {
         // 1) יצירת התיקייה
         let dirOk = false;
         try {
-            const createDirApiUrl = `${this.API_UPDATE_EXT}?token=${token}&path=${encodeURIComponent(targetDirectoryPath)}`;
+            const createDirApiUrl = `${this.API_UPDATE_EXT}?path=${encodeURIComponent(targetDirectoryPath)}`;
             const dirResponse = await fetch(createDirApiUrl);
             const d = await dirResponse.json();
             if (dirResponse.ok && !(d.responseStatus && d.responseStatus !== 'OK' && d.responseStatus !== 'Success' && d.ReturnValue !== 'True' && d.success !== true)) {
@@ -226,7 +226,7 @@ const CloseExamManager = {
             for (const sourceFilePath of toMove) {
                 const fileName = sourceFilePath.substring(sourceFilePath.lastIndexOf('/') + 1);
                 const targetFilePath = `${targetDirectoryPath}/${fileName}`;
-                const url = `${this.API_FILE_ACTION}?token=${token}&action=move&what=${encodeURIComponent(sourceFilePath)}&target=${encodeURIComponent(targetFilePath)}`;
+                const url = `${this.API_FILE_ACTION}?action=move&what=${encodeURIComponent(sourceFilePath)}&target=${encodeURIComponent(targetFilePath)}`;
                 try {
                     const r = await fetch(url);
                     const rd = await r.json();
@@ -242,7 +242,7 @@ const CloseExamManager = {
             }
             // 3) העתקת ExaminationLogOK.ini
             const targetIniPathForCopy = `${targetDirectoryPath}/${iniToCopyName}`;
-            const copyUrl = `${this.API_FILE_ACTION}?token=${token}&action=copy&what=${encodeURIComponent(iniToCopySrc)}&target=${encodeURIComponent(targetIniPathForCopy)}`;
+            const copyUrl = `${this.API_FILE_ACTION}?action=copy&what=${encodeURIComponent(iniToCopySrc)}&target=${encodeURIComponent(targetIniPathForCopy)}`;
             try {
                 const r = await fetch(copyUrl);
                 const rd = await r.json();

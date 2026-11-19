@@ -1163,8 +1163,7 @@ async function apiFetch(url, options = {}) {
         if (!token) throw new Error('Authentication failed. Could not retrieve a new token.');
     }
 
-    const urlWithToken = new URL(url);
-    urlWithToken.searchParams.set('token', token);
+    const urlWithToken = new URL(url); // השרת מוסיף את הטוקן
 
     const response = await fetch(urlWithToken.toString(), options);
     const responseBody = await response.text();
@@ -1188,8 +1187,7 @@ async function apiFetch(url, options = {}) {
         }
         
         console.log('מנסה שוב את הקריאה עם הטוקן החדש...');
-        const newUrlWithToken = new URL(url);
-        newUrlWithToken.searchParams.set('token', newToken);
+        const newUrlWithToken = new URL(url); // השרת מוסיף את הטוקן
         const secondResponse = await fetch(newUrlWithToken.toString(), options);
         
         if (!secondResponse.ok) {

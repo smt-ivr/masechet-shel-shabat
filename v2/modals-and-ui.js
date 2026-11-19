@@ -5,7 +5,7 @@ function showAlert(message) {
 
 function openAudioModal(path, clientName) {
     const token = 'server';
-    const downloadUrl = `/masechet/api/yemot/DownloadFile?token=${token}&path=${path}`;
+    const downloadUrl = `/masechet/api/yemot/DownloadFile?path=${path}`;
     audioClientName.innerHTML = `<i class="fa fa-user-circle-o"></i> לקוח: ${clientName}`;
     audioPlayer.src = downloadUrl;
     audioModal.classList.remove('hidden');
