@@ -296,7 +296,7 @@ const MsSession = (() => {
         if (saved) {
             finish(saved);
             call('GET', 'auth/me', null, 8000)
-                .then((r) => finish(r.user))
+                .then((r) => { applyFilterMode(r.unfiltered); finish(r.user); })
                 .catch((e) => { if (e.status === 401) showLoginAgain('הכניסה פגה — הזינו סיסמה'); });
             setupGoogle(showError);
             return;
@@ -309,7 +309,7 @@ const MsSession = (() => {
         const typing = () => pass.value || !btn.querySelector('.fa-arrow-left');
         (async () => {
             // חיבור קיים בעוגייה (למשל אחרי ניקוי הזיכרון בדפדפן)
-            try { return finish((await call('GET', 'auth/me', null, 8000)).user); } catch (e) { /* לא מחובר */ }
+            try { const me = await call('GET', 'auth/me', null, 8000); applyFilterMode(me.unfiltered); return finish(me.user); } catch (e) { /* לא מחובר */ }
             try {
                 const r = await call('POST', 'auth/login', {}, 8000);
                 if (r.authorized && !typing()) return finish(r.user);
@@ -330,8 +330,63 @@ const MsSession = (() => {
             showLoginAgain('הכניסה פגה — הזינו סיסמה');
         }
         if (res.status === 418 && url && url.includes('/masechet/api/')) checkNetFree(res.clone(), url);
+        const filtered = parseInt(res.headers.get('X-MS-Filtered') || '0', 10);
+        if (filtered > 0) noteFiltered(filtered);
         return res;
     };
+
+    // ===== סינון מילים בשרת: הודעה כשסוננו מילים, ואפשרות להציג טקסט מלא (מחשב בלי נטפרי) =====
+    let filteredTotal = 0;
+    let unfilteredMode = false;
+    function filterBox() {
+        let box = $('msFilterBanner');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'msFilterBanner';
+            box.setAttribute('role', 'status');
+            box.style.cssText = 'position: fixed; bottom: 16px; right: 16px; z-index: 8990; max-width: min(420px, calc(100% - 32px)); border-radius: 8px; padding: 10px 14px; box-shadow: 0 6px 20px rgba(0,0,0,.12); display: none; align-items: flex-start; gap: 10px; font-size: 0.9rem; line-height: 1.5;';
+            document.body.appendChild(box);
+        }
+        return box;
+    }
+    function noteFiltered(n) {
+        if (unfilteredMode) return;
+        filteredTotal += n;
+        const box = filterBox();
+        box.style.background = '#e8f0fe'; box.style.color = '#1a3d7c'; box.style.border = '1px solid #c6d8fb';
+        box.innerHTML = `
+            <i class="fa fa-filter" style="margin-top: 3px;"></i>
+            <div style="flex: 1;">
+                <strong>סוננו ${filteredTotal} מילים לא ראויות מהנתונים</strong>
+                <div style="font-size: 0.82rem;">המילים מוחלפות ב-*** כדי שהדף לא ייחסם בנטפרי.</div>
+                <button type="button" class="btn btn-secondary btn-sm" id="msFilterShowAll" style="margin-top: 6px;"><i class="fa fa-eye"></i> הצג טקסט מלא (למחשב בלי נטפרי)</button>
+            </div>
+            <button type="button" id="msFilterClose" title="סגירה" style="background: none; border: none; color: inherit; cursor: pointer;"><i class="fa fa-times"></i></button>`;
+        box.style.display = 'flex';
+        $('msFilterClose').onclick = () => { box.style.display = 'none'; };
+        $('msFilterShowAll').onclick = () => setFilterMode(true);
+    }
+    function showUnfilteredNotice() {
+        const box = filterBox();
+        box.style.background = '#fff3cd'; box.style.color = '#856404'; box.style.border = '1px solid #ffeeba';
+        box.innerHTML = `
+            <i class="fa fa-eye" style="margin-top: 3px;"></i>
+            <div style="flex: 1;">
+                <strong>מוצג טקסט מלא, בלי סינון מילים</strong>
+                <div style="font-size: 0.82rem;">במחשב עם נטפרי חלק מהנתונים עלולים להיחסם.</div>
+                <button type="button" class="btn btn-secondary btn-sm" id="msFilterBack" style="margin-top: 6px;"><i class="fa fa-filter"></i> חזרה לטקסט מסונן</button>
+            </div>`;
+        box.style.display = 'flex';
+        $('msFilterBack').onclick = () => setFilterMode(false);
+    }
+    async function setFilterMode(on) {
+        try { await call('POST', 'filter/mode', { unfiltered: on }, 8000); } catch (e) { return; }
+        location.reload();
+    }
+    function applyFilterMode(on) {
+        unfilteredMode = !!on;
+        if (unfilteredMode) showUnfilteredNotice();
+    }
 
     // ===== חסימת נטפרי: הודעה ברורה במקום שגיאה כללית, ודיווח ליומן =====
     const netfreeSeen = new Set();
@@ -386,6 +441,8 @@ const MsSession = (() => {
         ready: () => readyPromise,
         user: () => user,
         can,
+        isUnfiltered: () => unfilteredMode,
+        setFilterMode,
         logout,
     };
 })();

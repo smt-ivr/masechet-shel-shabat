@@ -214,7 +214,7 @@ export async function authenticate(request, env) {
   const token = readCookie(request);
   if (!token) throw unauthorized();
   const row = await env.DB.prepare(
-    `SELECT a.*, s.expires_at AS s_expires, s.ip AS s_ip, s.method AS s_method FROM ms_sessions s JOIN ms_accounts a ON a.id = s.account_id
+    `SELECT a.*, s.expires_at AS s_expires, s.ip AS s_ip, s.method AS s_method, s.unfiltered AS s_unfiltered FROM ms_sessions s JOIN ms_accounts a ON a.id = s.account_id
      WHERE s.token_hash = ? AND a.active = 1`,
   ).bind(await sha256Hex(token)).first();
   if (!row || row.s_expires < new Date().toISOString()) throw unauthorized('פג תוקף הכניסה, יש להיכנס מחדש');

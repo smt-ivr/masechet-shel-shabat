@@ -106,6 +106,12 @@ const MIGRATIONS = [
       `UPDATE ms_accounts SET permissions = '["clients_view","clients_edit","nedarim_charge","exams_view","exams_manage","old_site"]'`,
     ],
   },
+  {
+    // סינון מילים: "הצג טקסט מלא" נשמר לחיבור (מחשב) מסוים
+    version: 4,
+    name: 'session_unfiltered',
+    sql: [`ALTER TABLE ms_sessions ADD COLUMN unfiltered INTEGER NOT NULL DEFAULT 0`],
+  },
 ];
 
 let ready = null;
