@@ -112,6 +112,32 @@ const MIGRATIONS = [
     name: 'session_unfiltered',
     sql: [`ALTER TABLE ms_sessions ADD COLUMN unfiltered INTEGER NOT NULL DEFAULT 0`],
   },
+  {
+    // יומן: מאיזה אתר בוצעה הפעולה. הודעות למשתמשים עם אישור קריאה
+    version: 5,
+    name: 'log_site_and_messages',
+    sql: [
+      `ALTER TABLE ms_action_log ADD COLUMN site TEXT`,
+      `CREATE TABLE IF NOT EXISTS ms_messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        body TEXT NOT NULL,
+        important INTEGER NOT NULL DEFAULT 0,
+        audience TEXT NOT NULL DEFAULT 'all',
+        created_by INTEGER,
+        created_by_name TEXT,
+        created_at TEXT NOT NULL
+      )`,
+      `CREATE TABLE IF NOT EXISTS ms_message_recipients (
+        message_id INTEGER NOT NULL,
+        account_id INTEGER NOT NULL,
+        seen_at TEXT,
+        read_at TEXT,
+        PRIMARY KEY (message_id, account_id)
+      )`,
+      `CREATE INDEX IF NOT EXISTS ms_message_recipients_account ON ms_message_recipients(account_id, read_at)`,
+    ],
+  },
 ];
 
 let ready = null;

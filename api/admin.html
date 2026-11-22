@@ -95,6 +95,7 @@
 <div id="app" class="hidden">
   <nav class="tabs" role="tablist">
     <button data-tab="users" class="active"><i class="fa fa-users"></i> משתמשים</button>
+    <button data-tab="messages"><i class="fa fa-envelope"></i> הודעות</button>
     <button data-tab="actions"><i class="fa fa-list"></i> יומן פעולות</button>
     <button data-tab="logins"><i class="fa fa-sign-in"></i> יומן כניסות</button>
     <button data-tab="settings"><i class="fa fa-sliders"></i> הגדרות</button>
@@ -115,6 +116,39 @@
       </div>
     </section>
 
+    <!-- הודעות -->
+    <section id="tab-messages" class="hidden">
+      <form id="msgForm" class="card">
+        <h2>הודעה חדשה</h2>
+        <p class="sub">ההודעה תופיע למשתמשים באתר. אפשר לראות מי ראה ומי קרא</p>
+        <div class="grid">
+          <div class="full"><label class="f" for="mTitle">כותרת</label><input id="mTitle" maxlength="120" required></div>
+          <div class="full"><label class="f" for="mBody">תוכן</label><textarea id="mBody" maxlength="4000" required style="min-height:120px"></textarea></div>
+          <div class="full">
+            <label class="check"><input type="checkbox" id="mImportant"> <b>הודעה חשובה</b> – קופצת על המסך, והמשתמש חייב ללחוץ "קראתי"</label>
+            <div class="hint">הודעה רגילה מופיעה כהודעה קטנה בפינת המסך וברשימת ההודעות באזור האישי</div>
+          </div>
+          <div class="full">
+            <label class="f">נמענים</label>
+            <div style="display:flex; gap:20px; flex-wrap:wrap">
+              <label class="check"><input type="radio" name="mAudience" value="all" checked> כל המשתמשים</label>
+              <label class="check"><input type="radio" name="mAudience" value="selected"> משתמשים מסוימים</label>
+            </div>
+            <div id="mRecipients" class="perm-grid hidden" style="margin-top:10px"></div>
+          </div>
+        </div>
+        <div style="margin-top:14px"><button type="submit" id="mSend"><i class="fa fa-paper-plane"></i> שליחה</button></div>
+        <div class="msg" id="msgMsg"></div>
+      </form>
+      <div class="card">
+        <h2>הודעות שנשלחו</h2>
+        <table>
+          <thead><tr><th>נשלחה</th><th>כותרת</th><th>סוג</th><th>נקראה</th><th></th></tr></thead>
+          <tbody id="msgRows"></tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- יומן פעולות -->
     <section id="tab-actions" class="hidden">
       <div class="card">
@@ -131,11 +165,17 @@
               <option value="netfree">חסימות נטפרי</option>
             </select>
             <select id="fAccount"><option value="">כל המשתמשים</option></select>
+            <select id="fSite">
+              <option value="">כל האתרים</option>
+              <option value="new">אתר חדש</option>
+              <option value="old">אתר ישן</option>
+              <option value="admin">דף הניהול</option>
+            </select>
             <input id="fQuery" placeholder="חיפוש…">
           </div>
         </div>
         <table>
-          <thead><tr><th>זמן</th><th>משתמש</th><th>סוג</th><th>פעולה</th><th>על</th><th>פרטים</th><th>תוצאה</th></tr></thead>
+          <thead><tr><th>זמן</th><th>משתמש</th><th>אתר</th><th>סוג</th><th>פעולה</th><th>על</th><th>פרטים</th><th>תוצאה</th></tr></thead>
           <tbody id="actionsRows"></tbody>
         </table>
         <div class="more"><button class="secondary hidden" id="actionsMore">עוד</button></div>
@@ -280,6 +320,18 @@
   </form>
 </dialog>
 
+<!-- פרטי הודעה -->
+<dialog id="msgDlg" style="width:min(620px, calc(100% - 32px))">
+  <div class="dlg-head"><h3 id="msgDlgTitle">הודעה</h3><button type="button" data-close aria-label="סגירה">×</button></div>
+  <div class="dlg-body">
+    <div id="msgDlgBody" style="white-space:pre-line; background:#f8f9fb; border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:14px"></div>
+    <table>
+      <thead><tr><th>משתמש</th><th>ראה</th><th>קרא</th></tr></thead>
+      <tbody id="msgDlgRows"></tbody>
+    </table>
+  </div>
+</dialog>
+
 <!-- מייל פתיחה -->
 <dialog id="welcomeDlg">
   <form id="welcomeForm" method="dialog">
@@ -342,6 +394,7 @@ document.querySelectorAll('nav.tabs button').forEach((b) => b.addEventListener('
   document.querySelectorAll('main > section').forEach((s) => s.classList.toggle('hidden', s.id !== 'tab-' + b.dataset.tab));
   const t = b.dataset.tab;
   if (t === 'actions') loadActions(true);
+  if (t === 'messages') { renderRecipients(); loadMessages(); }
   if (t === 'logins' && !loaded.logins) loadLogins(true);
   if (t === 'settings' && !loaded.settings) loadSettings();
 }));
@@ -484,8 +537,60 @@ $('welcomeForm').addEventListener('submit', async (e) => {
   $('welcomeSend').disabled = false;
 });
 
+// ===== הודעות =====
+function renderRecipients() {
+  $('mRecipients').innerHTML = accounts.filter((a) => a.active).map((a) => `<label class="check"><input type="checkbox" value="${a.id}"> ${esc(a.name)}</label>`).join('');
+}
+document.querySelectorAll('input[name="mAudience"]').forEach((r) => r.addEventListener('change', () => {
+  $('mRecipients').classList.toggle('hidden', document.querySelector('input[name="mAudience"]:checked').value !== 'selected');
+}));
+async function loadMessages() {
+  const r = await api('GET', 'admin/messages');
+  $('msgRows').innerHTML = r.messages.map((m) => `<tr>
+      <td class="nowrap">${esc(m.created_at)}<div class="details">${esc(m.created_by_name || '')}</div></td>
+      <td><strong>${esc(m.title)}</strong><div class="details">${esc(m.body.slice(0, 90))}${m.body.length > 90 ? '…' : ''}</div></td>
+      <td>${m.important ? '<span class="tag off">חשובה</span>' : '<span class="tag">רגילה</span>'}</td>
+      <td class="nowrap"><span class="tag ${m.read_count === m.total ? 'ok' : ''}">${m.read_count} מתוך ${m.total}</span><div class="details">ראו: ${m.seen_count}</div></td>
+      <td class="actions"><button class="secondary small" data-mview="${m.id}">מי קרא</button><button class="danger small" data-mdel="${m.id}">מחיקה</button></td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty">עוד לא נשלחו הודעות</td></tr>';
+}
+$('msgRows').addEventListener('click', async (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.mview) {
+    const r = await api('GET', 'admin/messages/' + b.dataset.mview);
+    $('msgDlgTitle').textContent = r.message.title + (r.message.important ? ' (חשובה)' : '');
+    $('msgDlgBody').textContent = r.message.body;
+    $('msgDlgRows').innerHTML = r.recipients.map((x) => `<tr><td>${esc(x.name)}</td>
+      <td class="nowrap">${x.seen_at ? esc(x.seen_at) : '<span class="details">—</span>'}</td>
+      <td class="nowrap">${x.read_at ? '<span class="tag ok">' + esc(x.read_at) + '</span>' : '<span class="tag off">טרם נקראה</span>'}</td></tr>`).join('');
+    $('msgDlg').showModal();
+  }
+  if (b.dataset.mdel) {
+    if (!confirm('למחוק את ההודעה? היא תיעלם גם אצל המשתמשים')) return;
+    await api('DELETE', 'admin/messages/' + b.dataset.mdel); loadMessages();
+  }
+});
+$('msgForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const audience = document.querySelector('input[name="mAudience"]:checked').value;
+  const body = {
+    title: $('mTitle').value, body: $('mBody').value, important: $('mImportant').checked, audience,
+    recipients: [...document.querySelectorAll('#mRecipients input:checked')].map((i) => Number(i.value)),
+  };
+  $('mSend').disabled = true;
+  try {
+    const r = await api('POST', 'admin/messages', body);
+    flash('msgMsg', `ההודעה נשלחה ל-${r.recipients} משתמשים`);
+    $('mTitle').value = ''; $('mBody').value = ''; $('mImportant').checked = false;
+    document.querySelectorAll('#mRecipients input').forEach((i) => { i.checked = false; });
+    loadMessages();
+  } catch (err) { flash('msgMsg', err.message, true); }
+  $('mSend').disabled = false;
+});
+
 // ===== יומן פעולות =====
 const KIND = { read: ['קריאה', ''], write: ['שינוי', 'write'], admin: ['ניהול', 'admin'], auth: ['כניסה', 'auth'], cleanup: ['ניקוי דפדפן', 'cleanup'], netfree: ['חסימת נטפרי', 'off'] };
+const SITE = { new: '<span class="tag ok">אתר חדש</span>', old: '<span class="tag write">אתר ישן</span>', admin: '<span class="tag admin">דף הניהול</span>' };
 let actionsOffset = 0;
 function fmtDetails(d) {
   if (!d) return '';
@@ -497,6 +602,7 @@ async function loadActions(reset) {
   const p = new URLSearchParams({ limit: 100, offset: actionsOffset });
   if ($('fKind').value) p.set('kind', $('fKind').value);
   if ($('fAccount').value) p.set('account', $('fAccount').value);
+  if ($('fSite').value) p.set('site', $('fSite').value);
   if ($('fQuery').value.trim()) p.set('q', $('fQuery').value.trim());
   const r = await api('GET', 'admin/action-log?' + p);
   actionsOffset += r.rows.length;
@@ -506,6 +612,7 @@ async function loadActions(reset) {
     return `<tr>
       <td class="nowrap">${esc(x.created_at)}</td>
       <td>${esc(x.account_name || '—')}<div class="details ltr">${esc(x.ip || '')}</div></td>
+      <td>${SITE[x.site] || '<span class="details">—</span>'}</td>
       <td><span class="tag ${cls}">${label}</span></td>
       <td>${esc(x.action)}</td>
       <td class="details">${esc(x.target || '')}</td>
@@ -513,11 +620,11 @@ async function loadActions(reset) {
       <td class="details">${x.status ? `<span class="tag ${okStatus ? 'ok' : 'off'}">${esc(x.status)}</span>` : ''}</td>
     </tr>`;
   }).join(''));
-  if (!actionsOffset) $('actionsRows').innerHTML = '<tr><td colspan="7" class="empty">אין פעולות להצגה</td></tr>';
+  if (!actionsOffset) $('actionsRows').innerHTML = '<tr><td colspan="8" class="empty">אין פעולות להצגה</td></tr>';
   $('actionsMore').classList.toggle('hidden', !r.more);
 }
 let qTimer;
-$('fKind').onchange = $('fAccount').onchange = () => loadActions(true);
+$('fKind').onchange = $('fAccount').onchange = $('fSite').onchange = () => loadActions(true);
 $('fQuery').oninput = () => { clearTimeout(qTimer); qTimer = setTimeout(() => loadActions(true), 350); };
 $('actionsMore').onclick = () => loadActions(false);
 

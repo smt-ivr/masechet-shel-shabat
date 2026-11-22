@@ -21,10 +21,20 @@ export function safeDetails(obj, maxLen = 300) {
   return out;
 }
 
+// מאיזה אתר הגיעה הפנייה (לפי הדף שממנו נשלחה): new / old / admin
+export function siteOf(request) {
+  let path = '';
+  try { path = new URL(request.headers.get('Referer') || '').pathname; } catch { return null; }
+  if (path.startsWith('/masechet/old')) return 'old';
+  if (path.startsWith('/masechet/admin')) return 'admin';
+  if (path.startsWith('/masechet')) return 'new';
+  return null;
+}
+
 export async function logAction(env, request, ctx, { kind, action, target = '', details = null, status = 'ok' }) {
   try {
     await env.DB.prepare(
-      'INSERT INTO ms_action_log (created_at, account_id, account_name, ip, kind, action, target, details, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO ms_action_log (created_at, account_id, account_name, ip, kind, action, target, details, status, site) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     )
       .bind(
         israelNow(),
@@ -36,6 +46,7 @@ export async function logAction(env, request, ctx, { kind, action, target = '', 
         String(target || '').slice(0, 300),
         details ? JSON.stringify(details).slice(0, 4000) : null,
         String(status || '').slice(0, 200),
+        siteOf(request),
       )
       .run();
   } catch (e) {

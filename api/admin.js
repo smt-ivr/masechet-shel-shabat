@@ -8,6 +8,7 @@ import { getConfig, publicSettings, updateSettings, fillTemplate } from './setti
 import { logAction } from './audit.js';
 import { welcomeMail, sendMail, validEmail, mailReady, renderMail } from './mail.js';
 import { PERMISSIONS, cleanPermissions } from './permissions.js';
+import { sendMessage, listMessages, messageDetails, deleteMessage } from './messages.js';
 
 const isIp = (v) =>
   /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/.test(v) || // IPv4
@@ -277,6 +278,8 @@ async function actionLog(env, url) {
   if (kind) { where.push('kind = ?'); vals.push(kind); }
   const account = parseInt(url.searchParams.get('account') || '', 10);
   if (account) { where.push('account_id = ?'); vals.push(account); }
+  const site = url.searchParams.get('site');
+  if (site === 'new' || site === 'old' || site === 'admin') { where.push('site = ?'); vals.push(site); }
   const q = str(url.searchParams.get('q'), 100);
   if (q) { where.push('(action LIKE ? OR target LIKE ? OR details LIKE ? OR account_name LIKE ?)'); vals.push(...Array(4).fill(`%${q}%`)); }
   const { results } = await env.DB.prepare(
@@ -301,6 +304,11 @@ export async function handleAdmin(request, env, ctx, sub, url) {
   if (sub === 'settings/test-mail' && m === 'POST') return testMail(request, env, ctx);
   if (sub === 'settings/preview' && m === 'POST') return previewWelcome(request, env);
   if (sub === 'login-log' && m === 'GET') return loginLog(env, url);
+  if (sub === 'messages' && m === 'GET') return listMessages(env);
+  if (sub === 'messages' && m === 'POST') return sendMessage(request, env, ctx);
+  const msgMatch = sub.match(/^messages\/(\d+)$/);
+  if (msgMatch && m === 'GET') return messageDetails(env, Number(msgMatch[1]));
+  if (msgMatch && m === 'DELETE') return deleteMessage(request, env, ctx, Number(msgMatch[1]));
   if (sub === 'action-log' && m === 'GET') return actionLog(env, url);
   throw notFound('הכתובת לא נמצאה');
 }
