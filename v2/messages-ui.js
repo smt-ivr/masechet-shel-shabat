@@ -242,7 +242,7 @@
     let r;
     try { r = await call('GET', `messages?site=${site}`); } catch (e) { return; } finally { loading = false; }
     // רק אם משהו השתנה – כדי לא להפריע למי שכותב תשובה
-    const sig = JSON.stringify([r.unread, (r.messages || []).map((m) => [m.id, m.read_at, (m.replies || []).length])]);
+    const sig = JSON.stringify([r.unread, (r.messages || []).map((m) => [m.id, m.read_at, m.title, m.body, m.important, m.read_delay, (m.replies || []).length])]);
     if (sig === lastSig && force !== true) return;
     lastSig = sig;
     messages = r.messages || [];

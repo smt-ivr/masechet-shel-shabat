@@ -119,7 +119,7 @@
     <!-- הודעות -->
     <section id="tab-messages" class="hidden">
       <form id="msgForm" class="card">
-        <h2>הודעה חדשה</h2>
+        <h2 id="mHead">הודעה חדשה</h2>
         <p class="sub">ההודעה תופיע למשתמשים באתר. אפשר לראות מי ראה ומי קרא</p>
         <div class="grid">
           <div class="full"><label class="f" for="mTitle">כותרת</label><input id="mTitle" maxlength="120" required></div>
@@ -150,7 +150,11 @@
             <div id="mRecipients" class="perm-grid hidden" style="margin-top:10px"></div>
           </div>
         </div>
-        <div style="margin-top:14px"><button type="submit" id="mSend"><i class="fa fa-paper-plane"></i> שליחה</button></div>
+        <div id="mResetRow" class="hidden" style="margin-top:12px">
+          <label class="check"><input type="checkbox" id="mReset"> <b>להציג שוב לכולם כהודעה חדשה</b></label>
+          <div class="hint">מאפס את "נמסרה" ו"נקראה" – ההודעה תקפוץ / תופיע שוב אצל כל הנמענים. בלי הסימון – רק הטקסט מתעדכן אצלם</div>
+        </div>
+        <div style="margin-top:14px; display:flex; gap:8px"><button type="submit" id="mSend"><i class="fa fa-paper-plane"></i> שליחה</button><button type="button" id="mCancel" class="secondary hidden">ביטול עריכה</button></div>
         <div class="msg" id="msgMsg"></div>
       </form>
       <div class="card">
@@ -594,17 +598,48 @@ async function loadMessages() {
       <td>${m.important ? '<span class="tag off">חשובה</span>' : '<span class="tag">רגילה</span>'}${MSG_SITE[m.target_site] || ''}${m.read_delay ? `<div class="details">קראתי אחרי ${m.read_delay} שנ׳</div>` : ''}</td>
       <td class="nowrap">נמסרה: ${m.seen_count} מתוך ${m.total}<div><span class="tag ${m.read_count === m.total ? 'ok' : ''}">נקראה: ${m.read_count} מתוך ${m.total}</span></div></td>
       <td>${m.reply_count ? `<span class="tag write">${m.reply_count}</span>` : '<span class="details">—</span>'}</td>
-      <td class="actions"><button class="secondary small" data-mview="${m.id}">פרטים ותשובות</button><button class="danger small" data-mdel="${m.id}">מחיקה</button></td>
+      <td class="actions"><button class="secondary small" data-mview="${m.id}">פרטים ותשובות</button><button class="secondary small" data-medit="${m.id}"><i class="fa fa-pencil"></i> עריכה</button><button class="danger small" data-mdel="${m.id}">מחיקה</button></td>
     </tr>`).join('') || '<tr><td colspan="6" class="empty">עוד לא נשלחו הודעות</td></tr>';
 }
 $('msgRows').addEventListener('click', async (e) => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.mview) openMessage(Number(b.dataset.mview));
+  if (b.dataset.medit) editMessage(Number(b.dataset.medit));
   if (b.dataset.mdel) {
     if (!confirm('למחוק את ההודעה? היא תיעלם גם אצל המשתמשים')) return;
     await api('DELETE', 'admin/messages/' + b.dataset.mdel); loadMessages();
   }
 });
+let editMsgId = null;
+function setAudience(v) {
+  document.querySelector(`input[name="mAudience"][value="${v}"]`).checked = true;
+  $('mRecipients').classList.toggle('hidden', v !== 'selected');
+}
+function resetMsgForm() {
+  editMsgId = null;
+  $('mTitle').value = ''; $('mBody').value = ''; $('mImportant').checked = false; $('mDelay').value = '0'; $('mSite').value = 'new';
+  $('mReset').checked = false; setAudience('all');
+  document.querySelectorAll('#mRecipients input').forEach((i) => { i.checked = false; });
+  $('mHead').textContent = 'הודעה חדשה';
+  $('mSend').innerHTML = '<i class="fa fa-paper-plane"></i> שליחה';
+  $('mCancel').classList.add('hidden'); $('mResetRow').classList.add('hidden');
+}
+async function editMessage(id) {
+  const r = await api('GET', 'admin/messages/' + id);
+  const m = r.message;
+  editMsgId = id;
+  $('mTitle').value = m.title; $('mBody').value = m.body; $('mImportant').checked = !!m.important;
+  $('mSite').value = m.target_site || 'new'; $('mDelay').value = String(m.read_delay || 0); $('mReset').checked = false;
+  const ids = new Set(r.recipients.map((x) => String(x.account_id)));
+  document.querySelectorAll('#mRecipients input').forEach((i) => { i.checked = ids.has(i.value); });
+  setAudience(m.audience === 'selected' ? 'selected' : 'all');
+  $('mHead').textContent = 'עריכת הודעה';
+  $('mSend').innerHTML = '<i class="fa fa-save"></i> שמירת שינויים';
+  $('mCancel').classList.remove('hidden'); $('mResetRow').classList.remove('hidden');
+  $('msgForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  $('mTitle').focus();
+}
+$('mCancel').addEventListener('click', resetMsgForm);
 $('msgForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const audience = document.querySelector('input[name="mAudience"]:checked').value;
@@ -612,13 +647,18 @@ $('msgForm').addEventListener('submit', async (e) => {
     title: $('mTitle').value, body: $('mBody').value, important: $('mImportant').checked, audience,
     target_site: $('mSite').value, read_delay: Number($('mDelay').value) || 0,
     recipients: [...document.querySelectorAll('#mRecipients input:checked')].map((i) => Number(i.value)),
+    reset: $('mReset').checked,
   };
   $('mSend').disabled = true;
   try {
-    const r = await api('POST', 'admin/messages', body);
-    flash('msgMsg', `ההודעה נשלחה ל-${r.recipients} משתמשים`);
-    $('mTitle').value = ''; $('mBody').value = ''; $('mImportant').checked = false; $('mDelay').value = '0';
-    document.querySelectorAll('#mRecipients input').forEach((i) => { i.checked = false; });
+    if (editMsgId) {
+      await api('PUT', 'admin/messages/' + editMsgId, body);
+      flash('msgMsg', 'ההודעה עודכנה');
+    } else {
+      const r = await api('POST', 'admin/messages', body);
+      flash('msgMsg', `ההודעה נשלחה ל-${r.recipients} משתמשים`);
+    }
+    resetMsgForm();
     loadMessages();
   } catch (err) { flash('msgMsg', err.message, true); }
   $('mSend').disabled = false;

@@ -8,7 +8,7 @@ import { getConfig, publicSettings, updateSettings, fillTemplate } from './setti
 import { logAction } from './audit.js';
 import { welcomeMail, sendMail, validEmail, mailReady, renderMail } from './mail.js';
 import { PERMISSIONS, cleanPermissions } from './permissions.js';
-import { sendMessage, listMessages, messageDetails, deleteMessage, adminReply } from './messages.js';
+import { sendMessage, listMessages, messageDetails, deleteMessage, adminReply, updateMessage } from './messages.js';
 
 const isIp = (v) =>
   /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/.test(v) || // IPv4
@@ -308,6 +308,7 @@ export async function handleAdmin(request, env, ctx, sub, url) {
   if (sub === 'messages' && m === 'POST') return sendMessage(request, env, ctx);
   const msgMatch = sub.match(/^messages\/(\d+)$/);
   if (msgMatch && m === 'GET') return messageDetails(env, Number(msgMatch[1]));
+  if (msgMatch && m === 'PUT') return updateMessage(request, env, ctx, Number(msgMatch[1]));
   if (msgMatch && m === 'DELETE') return deleteMessage(request, env, ctx, Number(msgMatch[1]));
   const replyMatch = sub.match(/^messages\/(\d+)\/reply$/);
   if (replyMatch && m === 'POST') return adminReply(request, env, ctx, Number(replyMatch[1]));

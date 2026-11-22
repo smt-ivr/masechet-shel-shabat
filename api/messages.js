@@ -64,6 +64,60 @@ export async function sendMessage(request, env, ctx) {
   return json({ id, recipients: recipients.length });
 }
 
+// עריכת הודעה קיימת: כותרת, תוכן, סוג, אתר, השהיה ונמענים.
+// reset = להציג שוב לכולם כהודעה חדשה (מאפס "נמסרה" ו"נקראה")
+export async function updateMessage(request, env, ctx, id) {
+  const old = await env.DB.prepare('SELECT * FROM ms_messages WHERE id = ?').bind(id).first();
+  if (!old) throw notFound('ההודעה לא נמצאה');
+  const b = await readJson(request);
+  const title = str(b.title, 120);
+  const body = String(b.body ?? '').trim().slice(0, 4000);
+  if (!title) throw badRequest('חסרה כותרת להודעה');
+  if (!body) throw badRequest('חסר תוכן להודעה');
+  const important = b.important ? 1 : 0;
+  const audience = b.audience === 'selected' ? 'selected' : 'all';
+  const targetSite = SITES.includes(b.target_site) ? b.target_site : 'new';
+  const readDelay = Math.min(Math.max(parseInt(b.read_delay, 10) || 0, 0), 300);
+
+  let wanted;
+  if (audience === 'all') {
+    const { results } = await env.DB.prepare('SELECT id FROM ms_accounts WHERE active = 1').all();
+    wanted = results.map((r) => r.id);
+  } else {
+    const ids = [...new Set((Array.isArray(b.recipients) ? b.recipients : []).map(Number).filter((n) => n > 0))];
+    if (!ids.length) throw badRequest('לא נבחרו נמענים');
+    const { results } = await env.DB.prepare(`SELECT id FROM ms_accounts WHERE id IN (${ids.map(() => '?').join(',')})`).bind(...ids).all();
+    wanted = results.map((r) => r.id);
+    if (!wanted.length) throw badRequest('הנמענים שנבחרו לא נמצאו');
+  }
+  const { results: cur } = await env.DB.prepare('SELECT account_id FROM ms_message_recipients WHERE message_id = ?').bind(id).all();
+  const have = new Set(cur.map((r) => r.account_id));
+  const add = wanted.filter((a) => !have.has(a));
+  // "כל המשתמשים" רק מוסיף – לא מוריד מי שכבר קיבל
+  const remove = audience === 'selected' ? [...have].filter((a) => !wanted.includes(a)) : [];
+
+  const stmts = [
+    env.DB.prepare('UPDATE ms_messages SET title = ?, body = ?, important = ?, audience = ?, target_site = ?, read_delay = ? WHERE id = ?')
+      .bind(title, body, important, audience, targetSite, readDelay, id),
+    ...add.map((a) => env.DB.prepare('INSERT INTO ms_message_recipients (message_id, account_id) VALUES (?, ?)').bind(id, a)),
+    ...remove.map((a) => env.DB.prepare('DELETE FROM ms_message_recipients WHERE message_id = ? AND account_id = ?').bind(id, a)),
+  ];
+  if (b.reset) stmts.push(env.DB.prepare('UPDATE ms_message_recipients SET seen_at = NULL, seen_site = NULL, read_at = NULL, read_site = NULL WHERE message_id = ?').bind(id));
+  await env.DB.batch(stmts);
+
+  const changes = {};
+  if (old.title !== title) changes['כותרת'] = `${old.title} ← ${title}`;
+  if (old.body !== body) changes['תוכן'] = 'עודכן';
+  if (!!old.important !== !!important) changes['סוג'] = important ? 'חשובה (קופצת)' : 'רגילה';
+  if (old.target_site !== targetSite) changes['מוצגת ב'] = SITE_NAMES[targetSite];
+  if (old.read_delay !== readDelay) changes['השהיה לפני קראתי'] = readDelay ? `${readDelay} שניות` : 'אין';
+  if (add.length) changes['נמענים שנוספו'] = String(add.length);
+  if (remove.length) changes['נמענים שהוסרו'] = String(remove.length);
+  if (b.reset) changes['הוצגה שוב לכולם'] = 'כן';
+  await logAction(env, request, ctx, { kind: 'admin', action: 'עריכת הודעה', target: title, details: Object.keys(changes).length ? changes : { שינויים: 'אין' } });
+  return json({ updated: true, recipients: audience === "all" ? have.size + add.length : wanted.length });
+}
+
 export async function listMessages(env) {
   const { results } = await env.DB.prepare(
     `SELECT m.*, COUNT(r.account_id) AS total,
