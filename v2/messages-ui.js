@@ -104,7 +104,7 @@
 
   async function markRead(id) {
     try { await call('POST', `messages/${id}/read`); } catch (e) { /* ננסה שוב */ }
-    await load();
+    await load(true);
   }
 
   async function sendReply(id, textarea, btn) {
@@ -114,7 +114,7 @@
     try {
       await call('POST', `messages/${id}/reply`, { body });
       textarea.value = '';
-      await load();
+      await load(true);
       if ($('msm-list')) renderList(id);
       // התשובה מופיעה מיד גם בחלון הקופץ
       const m = messages.find((x) => x.id === id);
@@ -234,9 +234,17 @@
     }
   }
 
-  async function load() {
+  let loading = false;
+  let lastSig = '';
+  async function load(force) {
+    if (loading && force !== true) return;
+    loading = true;
     let r;
-    try { r = await call('GET', `messages?site=${site}`); } catch (e) { return; }
+    try { r = await call('GET', `messages?site=${site}`); } catch (e) { return; } finally { loading = false; }
+    // רק אם משהו השתנה – כדי לא להפריע למי שכותב תשובה
+    const sig = JSON.stringify([r.unread, (r.messages || []).map((m) => [m.id, m.read_at, (m.replies || []).length])]);
+    if (sig === lastSig && force !== true) return;
+    lastSig = sig;
     messages = r.messages || [];
     paintBadge(r.unread || 0);
     const imp = messages.find((m) => m.important && !m.read_at && !popupShown.has(m.id));
@@ -262,11 +270,13 @@
         floatingBtn.onclick = () => openList();
         document.body.appendChild(floatingBtn);
       }
-      load();
-      setInterval(load, 90000); // הודעות חדשות נבדקות כל דקה וחצי
+      load(true);
+      // הודעות חדשות נבדקות כל 5 שניות, רק כשהדף פתוח לפני המשתמש
+      setInterval(() => { if (!document.hidden) load(); }, 5000);
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
     },
     open: openList,
     messages: () => messages,
-    reload: load,
+    reload: () => load(true),
   };
 })();
