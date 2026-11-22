@@ -9,6 +9,8 @@
 // ============================================================
 import { badRequest, notFound, readJson, str, json, israelNow } from './http.js';
 import { logAction, siteOf } from './audit.js';
+import { getConfig } from './settings.js';
+import { sendMail, mailReady, validEmail } from './mail.js';
 
 const SITES = ['new', 'old', 'both'];
 const SITE_NAMES = { new: 'אתר חדש', old: 'אתר ישן', both: 'שני האתרים' };
@@ -186,6 +188,32 @@ export async function userReply(request, env, ctx, id) {
     env.DB.prepare('UPDATE ms_message_recipients SET read_at = COALESCE(read_at, ?), read_site = COALESCE(read_site, ?), seen_at = COALESCE(seen_at, ?), seen_site = COALESCE(seen_site, ?) WHERE message_id = ? AND account_id = ?')
       .bind(now, site, now, site, id, ctx.account.id),
   ]);
-  await logAction(env, request, ctx, { kind: 'auth', action: 'תשובה להודעה', target: r.title, details: { תשובה: body } });
+  const mail = await notifyAdmins(env, { title: r.title, from: ctx.account.display_name, body, site });
+  await logAction(env, request, ctx, { kind: 'auth', action: 'תשובה להודעה', target: r.title, details: { תשובה: body, 'מייל למנהל': mail } });
   return json({ replied: true });
+}
+
+// מייל לכל המנהלים הפעילים על תשובה שהתקבלה. כשל בשליחה לא מפיל את התשובה עצמה
+async function notifyAdmins(env, { title, from, body, site }) {
+  try {
+    const cfg = await getConfig(env);
+    if (!mailReady(cfg)) return 'לא נשלח – המייל לא הוגדר';
+    const { results } = await env.DB.prepare("SELECT email FROM ms_accounts WHERE is_admin = 1 AND active = 1 AND email IS NOT NULL AND email != ''").all();
+    const to = [...new Set(results.map((a) => a.email.trim().toLowerCase()).filter(validEmail))];
+    if (!to.length) return 'לא נשלח – אין למנהל כתובת מייל';
+    const admin = (cfg.site_url || 'https://smti.uk/masechet/').replace(/\/?$/, '/') + 'admin';
+    await Promise.all(to.map((addr) => sendMail(cfg, {
+      to: addr,
+      subject: `תשובה חדשה מ${from}: ${title}`,
+      title: 'התקבלה תשובה להודעה',
+      preheader: `${from} ענה על ההודעה "${title}"`,
+      paragraphs: [body],
+      details: [['מאת', from], ['על ההודעה', title], ['נשלחה מ', SITE_NAMES[site] || site], ['זמן', israelNow()]],
+      button: { label: 'לצפייה ולתשובה בדף הניהול', url: admin },
+    })));
+    return `נשלח (${to.length})`;
+  } catch (e) {
+    console.error('[reply mail]', e);
+    return 'השליחה נכשלה';
+  }
 }
