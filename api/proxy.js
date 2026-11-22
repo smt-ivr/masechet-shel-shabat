@@ -11,7 +11,6 @@ import { getConfig } from './settings.js';
 import { logAction, safeDetails } from './audit.js';
 import { requirePermission, requireAnyPermission } from './permissions.js';
 import { enforcePaths, getPaths, rulesFromPaths, fixDoublePrefix } from './yemot-paths.js';
-import { makeFilter, maskJsonText, restoreLines, MASK } from './word-filter.js';
 
 const YEMOT_BASE = 'https://www.call2all.co.il/ym/api/';
 const NEDARIM_URL = 'https://www.matara.pro/nedarimplus/Mechubad/Reports/ManageReports.aspx';
@@ -130,20 +129,6 @@ export async function proxyYemot(request, env, ctx, method) {
     throw err;
   }
 
-  // סינון מילים פעיל (אם הוגדרו מילים, והחיבור לא ביקש טקסט מלא)
-  const filter = ctx.account.s_unfiltered ? null : makeFilter(cfg.filter_words);
-
-  // שמירת קובץ שהוצג מסונן: שורות שלא נערכו מוחזרות לטקסט המקורי
-  if (filter && method === 'UploadTextFile' && init.body instanceof URLSearchParams && (init.body.get('contents') || '').includes(MASK)) {
-    const origRes = await fetch(`${YEMOT_BASE}GetTextFile?${new URLSearchParams({ token: cfg.yemot_token, what: init.body.get('what') || '' })}`);
-    const orig = await origRes.json().catch(() => null);
-    if (orig && orig.responseStatus === 'OK' && typeof orig.contents === 'string') {
-      const r = restoreLines(filter, init.body.get('contents'), orig.contents);
-      init.body.set('contents', r.text);
-      if (r.restored) logged['שורות מסוננות ששוחזרו'] = String(r.restored);
-    }
-  }
-
   const upstream = await fetch(`${YEMOT_BASE}${method}?${query.toString()}`, init);
   const contentType = upstream.headers.get('content-type') || '';
 
@@ -161,7 +146,7 @@ export async function proxyYemot(request, env, ctx, method) {
     return new Response(upstream.body, { status: upstream.status, headers });
   }
 
-  let text = await upstream.text();
+  const text = await upstream.text();
   let status = String(upstream.status);
   try {
     const data = JSON.parse(text);
@@ -171,13 +156,10 @@ export async function proxyYemot(request, env, ctx, method) {
   if (kind === 'write' || (await shouldLogRead(env, ctx, action, target))) {
     await logAction(env, request, ctx, { kind, action, target, details: safeDetails(logged), status });
   }
-  const headers = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
-  if (filter) {
-    const r = maskJsonText(filter, text);
-    text = r.text;
-    if (r.count) headers['X-MS-Filtered'] = String(r.count);
-  }
-  return new Response(text, { status: upstream.status, headers });
+  return new Response(text, {
+    status: upstream.status,
+    headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+  });
 }
 
 export async function proxyNedarim(request, env, ctx) {
@@ -201,11 +183,6 @@ export async function proxyNedarim(request, env, ctx) {
   }
 
   const cfg = await getConfig(env);
-  const filter = ctx.account.s_unfiltered ? null : makeFilter(cfg.filter_words);
-  // שמירה עם שדה מסונן (***) הייתה מוחקת את הטקסט המקורי – חוסמים
-  if (filter && kind === 'write' && [...params].some(([k, v]) => !['MosadId', 'ApiPassword'].includes(k) && String(v).includes(MASK))) {
-    throw badRequest('באחד השדות יש מילה מסוננת (***). ערכו את השדה, או עברו ל"הצג טקסט מלא" במחשב בלי נטפרי');
-  }
   if (!cfg.nedarim_mosad_id || !cfg.nedarim_api_password) {
     throw new ApiError(503, 'nedarim_not_configured', 'פרטי נדרים פלוס לא הוגדרו. מנהל המערכת צריך להגדיר אותם בדף הניהול');
   }
@@ -215,7 +192,7 @@ export async function proxyNedarim(request, env, ctx) {
   params.set('ApiPassword', cfg.nedarim_api_password);
 
   const upstream = await fetch(`${NEDARIM_URL}?${params.toString()}`);
-  let text = await upstream.text();
+  const text = await upstream.text();
 
   let status = String(upstream.status);
   try {
@@ -229,13 +206,10 @@ export async function proxyNedarim(request, env, ctx) {
   if (kind === 'write' || (await shouldLogRead(env, ctx, action, target))) {
     await logAction(env, request, ctx, { kind, action, target, details: safeDetails(logged), status });
   }
-  const headers = { 'Content-Type': upstream.headers.get('content-type') || 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
-  if (filter) {
-    const r = maskJsonText(filter, text);
-    text = r.text;
-    if (r.count) headers['X-MS-Filtered'] = String(r.count);
-  }
-  return new Response(text, { status: upstream.status, headers });
+  return new Response(text, {
+    status: upstream.status,
+    headers: { 'Content-Type': upstream.headers.get('content-type') || 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+  });
 }
 
 // בדיקת חיבור לשני השירותים (לחלון ההגדרות באתר)

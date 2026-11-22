@@ -39,13 +39,6 @@ const SettingsManager = {
                         <div id="infoMessages" style="margin-top: 8px; max-height: 260px; overflow: auto;"></div>
                     </div>
 
-                    <div style="${box} display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
-                        <div>
-                            <strong style="font-size: 0.95rem; color: var(--text-main);">סינון מילים:</strong>
-                            <div id="infoFilterMode" style="margin-top: 4px; color: var(--text-muted); font-size: 0.9rem;"></div>
-                        </div>
-                        <button id="infoFilterToggle" class="btn btn-secondary btn-sm" style="height: 35px;"></button>
-                    </div>
 
                 </div>
                 <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; background: #f8f9fa; border-top: 1px solid var(--border-light);">
@@ -87,17 +80,6 @@ const SettingsManager = {
         });
     },
 
-    renderFilterMode() {
-        if (typeof MsSession === 'undefined') return;
-        const off = MsSession.isUnfiltered();
-        document.getElementById('infoFilterMode').textContent = off
-            ? 'מוצג טקסט מלא בחיבור הזה (למחשב בלי נטפרי)'
-            : 'פעיל – מילים לא ראויות מוחלפות ב-*** (מתאים לנטפרי)';
-        const btn = document.getElementById('infoFilterToggle');
-        btn.innerHTML = off ? '<i class="fa fa-filter"></i> חזרה לטקסט מסונן' : '<i class="fa fa-eye"></i> הצג טקסט מלא';
-        btn.onclick = () => MsSession.setFilterMode(!off);
-    },
-
     renderMessages() {
         const el = document.getElementById('infoMessages');
         if (!el || typeof MsSession === 'undefined') return;
@@ -125,7 +107,6 @@ const SettingsManager = {
         if (toast) toast.style.display = 'none'; // ההודעות מוצגות כאן
         this.renderUser();
         this.renderMessages();
-        this.renderFilterMode();
         document.getElementById(this.modalId).classList.remove('hidden');
         // בדיקת חיבור חיה בעת פתיחת החלון
         this.checkStatusLive();

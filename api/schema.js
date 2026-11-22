@@ -138,6 +138,12 @@ const MIGRATIONS = [
       `CREATE INDEX IF NOT EXISTS ms_message_recipients_account ON ms_message_recipients(account_id, read_at)`,
     ],
   },
+  {
+    // סינון המילים הוסר – העמודה כבר לא בשימוש
+    version: 6,
+    name: 'drop_session_unfiltered',
+    sql: [`ALTER TABLE ms_sessions DROP COLUMN unfiltered`],
+  },
 ];
 
 let ready = null;

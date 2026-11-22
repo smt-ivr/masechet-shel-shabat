@@ -217,15 +217,6 @@
         </fieldset>
 
         <fieldset>
-          <legend><i class="fa fa-filter"></i> סינון מילים</legend>
-          <label class="f" for="sFilterWords">מילים לסינון (מילה או ביטוי בכל שורה)</label>
-          <textarea id="sFilterWords" style="min-height:110px"></textarea>
-          <div class="hint">כל מופע של מילה מהרשימה, בכל נתון שמגיע מימות ומנדרים, מוחלף ב-*** – כדי שסינון התוכן של נטפרי לא יחסום את הדף.
-            הסינון לא תלוי באותיות גדולות/קטנות, ותופס גם מילה בתוך מילה. משתמש במחשב בלי נטפרי יכול לבחור "הצג טקסט מלא".
-            בשמירת קובץ, שורות שלא נערכו נשמרות עם הטקסט המקורי</div>
-        </fieldset>
-
-        <fieldset>
           <legend><i class="fa fa-credit-card"></i> נדרים פלוס</legend>
           <div class="grid">
             <div><label class="f" for="sMosad">מספר מוסד</label><input id="sMosad" class="ltr" inputmode="numeric"></div>
@@ -677,7 +668,6 @@ function fillSettings(s) {
   $('sNedKey').value = ''; secretState('sNedKeyState', s.nedarim_api_password_set, s.nedarim_api_password_hint);
   $('sGoogleOn').checked = !!s.google_enabled; $('sGoogleId').value = s.google_client_id || '';
   $('aOn').checked = !!s.announcement_enabled; $('aText').value = s.announcement_text || '';
-  $('sFilterWords').value = s.filter_words || '';
   let paths = {}; try { paths = JSON.parse(s.yemot_paths || '{}'); } catch { paths = {}; }
   fillPaths(s.yemot_path_fields, Array.isArray(paths) ? {} : paths);
   $('sResend').value = ''; secretState('sResendState', s.resend_api_key_set, s.resend_api_key_hint);
@@ -696,7 +686,6 @@ $('settingsForm').addEventListener('submit', async (e) => {
       yemot_token: $('sYemot').value, nedarim_mosad_id: $('sMosad').value, nedarim_api_password: $('sNedKey').value,
       google_enabled: $('sGoogleOn').checked, google_client_id: $('sGoogleId').value,
       announcement_enabled: $('aOn').checked, announcement_text: $('aText').value,
-      filter_words: $('sFilterWords').value,
       yemot_paths: readPaths(),
       resend_api_key: $('sResend').value, mail_from: $('sFrom').value, site_url: $('sSite').value, ...welcomeFields(),
     };

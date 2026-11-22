@@ -32,7 +32,6 @@ const FIELDS = {
   announcement_enabled: [1, false],
   announcement_text: [300, false],
   yemot_paths: [20000, false],
-  filter_words: [5000, false],
 };
 
 const DEFAULTS = {
@@ -87,7 +86,7 @@ const LABELS = {
   google_enabled: 'כניסה עם Google', google_client_id: 'Google Client ID', resend_api_key: 'מפתח Resend',
   mail_from: 'שולח המייל', site_url: 'כתובת האתר', welcome_subject: 'נושא מייל הפתיחה', welcome_title: 'כותרת מייל הפתיחה',
   welcome_body: 'גוף מייל הפתיחה', welcome_button: 'כפתור מייל הפתיחה', welcome_note: 'הערת מייל הפתיחה',
-  announcement_enabled: 'הצגת ההודעה', announcement_text: 'טקסט ההודעה', yemot_paths: 'כתובות במערכת ימות', filter_words: 'מילים לסינון',
+  announcement_enabled: 'הצגת ההודעה', announcement_text: 'טקסט ההודעה', yemot_paths: 'כתובות במערכת ימות',
 };
 
 // מחזיר רק את מה שבאמת השתנה – לתיעוד ביומן הפעולות
@@ -101,8 +100,7 @@ export async function updateSettings(env, body) {
     if (body[k] === undefined) continue;
     let v = k === 'google_enabled' || k === 'announcement_enabled' ? (body[k] ? '1' : '0') : String(body[k] ?? '').slice(0, max);
     if (k === 'yemot_paths') v = JSON.stringify(validatePaths(body[k]));
-    if (k !== 'welcome_body' && k !== 'welcome_note' && k !== 'filter_words') v = v.trim();
-    if (k === 'filter_words') v = v.split(/\n/).map((w) => w.trim()).filter(Boolean).join('\n');
+    if (k !== 'welcome_body' && k !== 'welcome_note') v = v.trim();
     if (secret && !v) continue;
     if (k === 'resend_api_key' && !/^re_[\w-]{10,}$/.test(v)) throw badRequest('מפתח Resend אמור להתחיל ב-re_');
     if (k === 'nedarim_mosad_id' && v && !/^\d+$/.test(v)) throw badRequest('מספר מוסד בנדרים חייב להיות מספר');

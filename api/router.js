@@ -64,15 +64,7 @@ export async function handleApi(request, env, path) {
 
     const ctx = await authenticate(request, env);
 
-    if (path === 'auth/me' && m === 'GET') return json({ user: publicAccount(ctx.account), ip: clientIp(request), unfiltered: !!ctx.account.s_unfiltered });
-    // סינון מילים: הצגת טקסט מלא / מסונן לחיבור הזה (מחשב בלי נטפרי)
-    if (path === 'filter/mode' && m === 'POST') {
-      const b = await readJson(request).catch(() => ({}));
-      const on = !!b.unfiltered;
-      await env.DB.prepare('UPDATE ms_sessions SET unfiltered = ? WHERE token_hash = ?').bind(on ? 1 : 0, ctx.sessionHash).run();
-      await logAction(env, request, ctx, { kind: 'auth', action: on ? 'הצגת טקסט מלא (בלי סינון מילים)' : 'חזרה לטקסט מסונן' });
-      return json({ unfiltered: on });
-    }
+    if (path === 'auth/me' && m === 'GET') return json({ user: publicAccount(ctx.account), ip: clientIp(request) });
     if (path === 'status' && m === 'GET') return json(await connectionStatus(env));
     // הכתובות בימות שהאתר עובד איתן (נערכות בהגדרות הניהול)
     if (path === 'config' && m === 'GET') return json({ paths: getPaths((await getConfig(env)).yemot_paths) });
