@@ -10,7 +10,7 @@ import { ApiError, badRequest } from './http.js';
 import { getConfig } from './settings.js';
 import { logAction, safeDetails } from './audit.js';
 import { requirePermission, requireAnyPermission } from './permissions.js';
-import { enforcePaths, getPaths, rulesFromPaths } from './yemot-paths.js';
+import { enforcePaths, getPaths, rulesFromPaths, fixDoublePrefix } from './yemot-paths.js';
 import { makeFilter, maskJsonText, restoreLines, MASK } from './word-filter.js';
 
 const YEMOT_BASE = 'https://www.call2all.co.il/ym/api/';
@@ -100,6 +100,13 @@ export async function proxyYemot(request, env, ctx, method) {
   }
   const range = request.headers.get('Range');
   if (range) init.headers.Range = range;
+
+  // קידומת כפולה (ivr2:/ivr2:...) מתוקנת לפני הבדיקה והשליחה לימות
+  for (const key of ['what', 'wath', 'path', 'target']) {
+    if (query.has(key)) { const v = fixDoublePrefix(query.get(key)); query.set(key, v); logged[key] = v; }
+    if (init.body instanceof URLSearchParams && init.body.has(key)) { const v = fixDoublePrefix(init.body.get(key)); init.body.set(key, v); logged[key] = v; }
+    if (init.body instanceof FormData && typeof init.body.get(key) === 'string') { const v = fixDoublePrefix(init.body.get(key)); init.body.set(key, v); logged[key] = v; }
+  }
 
   const action = YEMOT_NAMES[method] || method;
   const target = yemotTarget(logged);

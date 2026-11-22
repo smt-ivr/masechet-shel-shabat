@@ -22,7 +22,8 @@ export const DEFAULT_PATHS = Object.fromEntries(PATH_FIELDS.map((f) => [f.key, f
 export function normalizePath(raw) {
   let p = String(raw ?? '').trim();
   try { p = decodeURIComponent(p); } catch { /* כבר מפוענח */ }
-  p = p.replace(/\\/g, '/').replace(/^ivr2:/i, '').replace(/\/{2,}/g, '/').replace(/^\/+|\/+$/g, '');
+  // גם קידומת כפולה (האתר הישן שולח לפעמים "ivr2:/ivr2:2/1/...")
+  p = p.replace(/\\/g, '/').replace(/^(\/*ivr2:)+/i, '').replace(/\/{2,}/g, '/').replace(/^\/+|\/+$/g, '');
   if (p.split('/').some((s) => s === '..' || s === '.')) return null;
   return p;
 }
@@ -88,6 +89,12 @@ function requirements(method, params) {
     default: break;
   }
   return req;
+}
+
+// "ivr2:/ivr2:2/1/x" → "ivr2:/2/1/x" (מה שנשלח לימות). ערך בלי קידומת נשאר כמו שהוא
+export function fixDoublePrefix(raw) {
+  const s = String(raw ?? '');
+  return /^\/*ivr2:\/*ivr2:/i.test(s) ? 'ivr2:/' + s.replace(/^(\/*ivr2:)+\/*/i, '') : s;
 }
 
 // זורק שגיאה אם אחת הכתובות לא מורשית
