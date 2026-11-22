@@ -36,7 +36,7 @@ const SettingsManager = {
 
                     <div style="${box}">
                         <strong style="font-size: 0.95rem; color: var(--text-main);"><i class="fa fa-envelope"></i> הודעות:</strong>
-                        <div id="infoMessages" style="margin-top: 8px; max-height: 260px; overflow: auto;"></div>
+                        <div id="infoMessages" style="margin-top: 8px;"></div>
                     </div>
 
 
@@ -82,28 +82,17 @@ const SettingsManager = {
 
     renderMessages() {
         const el = document.getElementById('infoMessages');
-        if (!el || typeof MsSession === 'undefined') return;
-        const esc = MsSession.escHtml;
-        const list = MsSession.messages();
-        if (!list.length) { el.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem;">אין הודעות</div>'; return; }
-        const openIds = new Set([...el.querySelectorAll('details[open]')].map((d) => d.dataset.id)); // נשארות פתוחות אחרי רענון
-        el.innerHTML = list.map((m) => `
-            <details style="border: 1px solid var(--border-light); border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; background: ${m.read_at ? '#fff' : '#f4f8ff'};" data-id="${m.id}" ${!m.read_at ? 'data-unread="1"' : ''} ${openIds.has(String(m.id)) ? 'open' : ''}>
-                <summary style="cursor: pointer; display: flex; justify-content: space-between; gap: 10px; align-items: center;">
-                    <span style="${m.read_at ? '' : 'font-weight: 600;'}">${m.important ? '<i class="fa fa-exclamation-circle" style="color: #dc3545;"></i> ' : ''}${esc(m.title)}</span>
-                    <span style="color: var(--text-muted); font-size: 0.8rem; white-space: nowrap;">${esc(m.created_at)}</span>
-                </summary>
-                <div style="white-space: pre-line; margin-top: 8px; font-size: 0.95rem; line-height: 1.6;">${esc(m.body)}</div>
-                <div style="margin-top: 6px; color: var(--text-muted); font-size: 0.8rem;">${esc(m.created_by_name || '')}${m.read_at ? ' · נקראה ' + esc(m.read_at) : ''}</div>
-            </details>`).join('');
-        // פתיחת הודעה = קריאה
-        el.querySelectorAll('details[data-unread]').forEach((d) => d.addEventListener('toggle', () => {
-            if (d.open && d.dataset.unread) { delete d.dataset.unread; MsSession.markRead(Number(d.dataset.id)); }
-        }, { once: true }));
+        if (!el || !window.MsMessages) return;
+        const list = MsMessages.messages();
+        const unread = list.filter((m) => !m.read_at).length;
+        el.innerHTML = `<div style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span style="color: var(--text-muted); font-size: 0.9rem;">${list.length ? `${list.length} הודעות${unread ? `, ${unread} לא נקראו` : ''}` : 'אין הודעות'}</span>
+            <button type="button" class="btn btn-primary btn-sm" id="infoOpenMessages"><i class="fa fa-envelope-open"></i> הצג הודעות</button></div>`;
+        document.getElementById('infoOpenMessages').onclick = () => { this.closeModal(); MsMessages.open(); };
     },
 
     openModal() {
-        const toast = document.getElementById('msMsgToast');
+        const toast = document.getElementById('msm-toast');
         if (toast) toast.style.display = 'none'; // ההודעות מוצגות כאן
         this.renderUser();
         this.renderMessages();
@@ -159,4 +148,5 @@ window.updateSettingsStatus = function(statusText, isSuccess) {
 
 document.addEventListener('DOMContentLoaded', () => {
     SettingsManager.init();
+    if (window.MsMessages) MsMessages.onChange = () => SettingsManager.renderMessages();
 });

@@ -144,6 +144,28 @@ const MIGRATIONS = [
     name: 'drop_session_unfiltered',
     sql: [`ALTER TABLE ms_sessions DROP COLUMN unfiltered`],
   },
+  {
+    // הודעות: באיזה אתר מוצגות, השהיה לפני "קראתי", מאיזה אתר נמסרה ונקראה, ותשובות
+    version: 7,
+    name: 'messages_site_delay_replies',
+    sql: [
+      `ALTER TABLE ms_messages ADD COLUMN target_site TEXT NOT NULL DEFAULT 'new'`,
+      `ALTER TABLE ms_messages ADD COLUMN read_delay INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE ms_message_recipients ADD COLUMN seen_site TEXT`,
+      `ALTER TABLE ms_message_recipients ADD COLUMN read_site TEXT`,
+      `CREATE TABLE IF NOT EXISTS ms_message_replies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        message_id INTEGER NOT NULL,
+        account_id INTEGER NOT NULL,
+        sender TEXT NOT NULL CHECK (sender IN ('user', 'admin')),
+        author_name TEXT,
+        body TEXT NOT NULL,
+        site TEXT,
+        created_at TEXT NOT NULL
+      )`,
+      `CREATE INDEX IF NOT EXISTS ms_message_replies_msg ON ms_message_replies(message_id, account_id)`,
+    ],
+  },
 ];
 
 let ready = null;

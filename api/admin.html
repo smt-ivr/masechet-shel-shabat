@@ -126,7 +126,20 @@
           <div class="full"><label class="f" for="mBody">תוכן</label><textarea id="mBody" maxlength="4000" required style="min-height:120px"></textarea></div>
           <div class="full">
             <label class="check"><input type="checkbox" id="mImportant"> <b>הודעה חשובה</b> – קופצת על המסך, והמשתמש חייב ללחוץ "קראתי"</label>
-            <div class="hint">הודעה רגילה מופיעה כהודעה קטנה בפינת המסך וברשימת ההודעות באזור האישי</div>
+            <div class="hint">הודעה רגילה מופיעה כהודעה קטנה בפינת המסך וברשימת ההודעות</div>
+          </div>
+          <div>
+            <label class="f" for="mSite">איפה תוצג ההודעה</label>
+            <select id="mSite">
+              <option value="new">באתר החדש</option>
+              <option value="old">באתר הישן</option>
+              <option value="both">בשני האתרים</option>
+            </select>
+          </div>
+          <div>
+            <label class="f" for="mDelay">אפשר ללחוץ "קראתי" אחרי (שניות)</label>
+            <input id="mDelay" type="number" min="0" max="300" value="0" class="ltr">
+            <div class="hint">0 = מיד. עד אז הכפתור נעול ומוצגת ספירה לאחור</div>
           </div>
           <div class="full">
             <label class="f">נמענים</label>
@@ -143,7 +156,7 @@
       <div class="card">
         <h2>הודעות שנשלחו</h2>
         <table>
-          <thead><tr><th>נשלחה</th><th>כותרת</th><th>סוג</th><th>נקראה</th><th></th></tr></thead>
+          <thead><tr><th>נשלחה</th><th>כותרת</th><th>סוג</th><th>נמסרה / נקראה</th><th>תשובות</th><th></th></tr></thead>
           <tbody id="msgRows"></tbody>
         </table>
       </div>
@@ -317,7 +330,7 @@
   <div class="dlg-body">
     <div id="msgDlgBody" style="white-space:pre-line; background:#f8f9fb; border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:14px"></div>
     <table>
-      <thead><tr><th>משתמש</th><th>ראה</th><th>קרא</th></tr></thead>
+      <thead><tr><th>משתמש</th><th>נמסרה</th><th>קרא</th></tr></thead>
       <tbody id="msgDlgRows"></tbody>
     </table>
   </div>
@@ -535,27 +548,58 @@ function renderRecipients() {
 document.querySelectorAll('input[name="mAudience"]').forEach((r) => r.addEventListener('change', () => {
   $('mRecipients').classList.toggle('hidden', document.querySelector('input[name="mAudience"]:checked').value !== 'selected');
 }));
+const MSG_SITE = { new: ' <span class="tag ok">אתר חדש</span>', old: ' <span class="tag write">אתר ישן</span>', both: ' <span class="tag">שני האתרים</span>' };
+const SITE_LABEL = { new: 'אתר חדש', old: 'אתר ישן', admin: 'דף הניהול' };
+const whenSite = (t, s) => t ? `<span class="tag ok">${esc(t)}</span>${s ? `<div class="details">${esc(SITE_LABEL[s] || s)}</div>` : ''}` : '';
+let openMsgId = null;
+async function openMessage(id) {
+  openMsgId = id;
+  const r = await api('GET', 'admin/messages/' + id);
+  $('msgDlgTitle').textContent = r.message.title + (r.message.important ? ' (חשובה)' : '');
+  $('msgDlgBody').textContent = r.message.body;
+  $('msgDlgRows').innerHTML = r.recipients.map((x) => `<tr>
+      <td><strong>${esc(x.name)}</strong></td>
+      <td class="nowrap">${x.seen_at ? whenSite(x.seen_at, x.seen_site) : '<span class="tag off">טרם נמסרה</span>'}</td>
+      <td class="nowrap">${x.read_at ? whenSite(x.read_at, x.read_site) : '<span class="tag off">טרם נקראה</span>'}</td>
+    </tr>
+    <tr><td colspan="3" style="border-top:none; padding-top:0">
+      ${x.replies.map((y) => `<div style="margin:4px 0; padding:6px 10px; border-radius:8px; background:${y.sender === 'admin' ? '#eef2f8' : '#fff7e6'}; ${y.sender === 'admin' ? 'margin-right:30px' : 'margin-left:30px'}">
+        <div class="details">${esc(y.sender === 'admin' ? 'מנהל: ' + (y.author_name || '') : (y.author_name || x.name))} · ${esc(y.created_at)}${y.site && y.sender === 'user' ? ' · ' + esc(SITE_LABEL[y.site] || y.site) : ''}</div>
+        <div style="white-space:pre-line">${esc(y.body)}</div></div>`).join('')}
+      <div style="display:flex; gap:6px; margin-top:6px">
+        <input class="reply-in" data-acc="${x.account_id}" placeholder="השב ל${esc(x.name)}…" style="flex:1">
+        <button class="secondary small" data-reply="${x.account_id}"><i class="fa fa-reply"></i> השב</button>
+      </div>
+    </td></tr>`).join('');
+  if (!$('msgDlg').open) $('msgDlg').showModal();
+}
+$('msgDlgRows').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-reply]'); if (!b) return;
+  const input = document.querySelector(`.reply-in[data-acc="${b.dataset.reply}"]`);
+  if (!input.value.trim()) return input.focus();
+  b.disabled = true;
+  try { await api('POST', `admin/messages/${openMsgId}/reply`, { account_id: Number(b.dataset.reply), body: input.value }); await openMessage(openMsgId); loadMessages(); }
+  catch (err) { alert(err.message); }
+  b.disabled = false;
+});
+$('msgDlgRows').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.classList.contains('reply-in')) { e.preventDefault(); document.querySelector(`button[data-reply="${e.target.dataset.acc}"]`).click(); }
+});
+
 async function loadMessages() {
   const r = await api('GET', 'admin/messages');
   $('msgRows').innerHTML = r.messages.map((m) => `<tr>
       <td class="nowrap">${esc(m.created_at)}<div class="details">${esc(m.created_by_name || '')}</div></td>
       <td><strong>${esc(m.title)}</strong><div class="details">${esc(m.body.slice(0, 90))}${m.body.length > 90 ? '…' : ''}</div></td>
-      <td>${m.important ? '<span class="tag off">חשובה</span>' : '<span class="tag">רגילה</span>'}</td>
-      <td class="nowrap"><span class="tag ${m.read_count === m.total ? 'ok' : ''}">${m.read_count} מתוך ${m.total}</span><div class="details">ראו: ${m.seen_count}</div></td>
-      <td class="actions"><button class="secondary small" data-mview="${m.id}">מי קרא</button><button class="danger small" data-mdel="${m.id}">מחיקה</button></td>
-    </tr>`).join('') || '<tr><td colspan="5" class="empty">עוד לא נשלחו הודעות</td></tr>';
+      <td>${m.important ? '<span class="tag off">חשובה</span>' : '<span class="tag">רגילה</span>'}${MSG_SITE[m.target_site] || ''}${m.read_delay ? `<div class="details">קראתי אחרי ${m.read_delay} שנ׳</div>` : ''}</td>
+      <td class="nowrap">נמסרה: ${m.seen_count} מתוך ${m.total}<div><span class="tag ${m.read_count === m.total ? 'ok' : ''}">נקראה: ${m.read_count} מתוך ${m.total}</span></div></td>
+      <td>${m.reply_count ? `<span class="tag write">${m.reply_count}</span>` : '<span class="details">—</span>'}</td>
+      <td class="actions"><button class="secondary small" data-mview="${m.id}">פרטים ותשובות</button><button class="danger small" data-mdel="${m.id}">מחיקה</button></td>
+    </tr>`).join('') || '<tr><td colspan="6" class="empty">עוד לא נשלחו הודעות</td></tr>';
 }
 $('msgRows').addEventListener('click', async (e) => {
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.mview) {
-    const r = await api('GET', 'admin/messages/' + b.dataset.mview);
-    $('msgDlgTitle').textContent = r.message.title + (r.message.important ? ' (חשובה)' : '');
-    $('msgDlgBody').textContent = r.message.body;
-    $('msgDlgRows').innerHTML = r.recipients.map((x) => `<tr><td>${esc(x.name)}</td>
-      <td class="nowrap">${x.seen_at ? esc(x.seen_at) : '<span class="details">—</span>'}</td>
-      <td class="nowrap">${x.read_at ? '<span class="tag ok">' + esc(x.read_at) + '</span>' : '<span class="tag off">טרם נקראה</span>'}</td></tr>`).join('');
-    $('msgDlg').showModal();
-  }
+  if (b.dataset.mview) openMessage(Number(b.dataset.mview));
   if (b.dataset.mdel) {
     if (!confirm('למחוק את ההודעה? היא תיעלם גם אצל המשתמשים')) return;
     await api('DELETE', 'admin/messages/' + b.dataset.mdel); loadMessages();
@@ -566,13 +610,14 @@ $('msgForm').addEventListener('submit', async (e) => {
   const audience = document.querySelector('input[name="mAudience"]:checked').value;
   const body = {
     title: $('mTitle').value, body: $('mBody').value, important: $('mImportant').checked, audience,
+    target_site: $('mSite').value, read_delay: Number($('mDelay').value) || 0,
     recipients: [...document.querySelectorAll('#mRecipients input:checked')].map((i) => Number(i.value)),
   };
   $('mSend').disabled = true;
   try {
     const r = await api('POST', 'admin/messages', body);
     flash('msgMsg', `ההודעה נשלחה ל-${r.recipients} משתמשים`);
-    $('mTitle').value = ''; $('mBody').value = ''; $('mImportant').checked = false;
+    $('mTitle').value = ''; $('mBody').value = ''; $('mImportant').checked = false; $('mDelay').value = '0';
     document.querySelectorAll('#mRecipients input').forEach((i) => { i.checked = false; });
     loadMessages();
   } catch (err) { flash('msgMsg', err.message, true); }

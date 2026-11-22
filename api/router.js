@@ -12,7 +12,7 @@ import { handleAdmin } from './admin.js';
 import { logAction } from './audit.js';
 import { getConfig } from './settings.js';
 import { getPaths } from './yemot-paths.js';
-import { myMessages, markSeen, markRead } from './messages.js';
+import { myMessages, markRead, userReply } from './messages.js';
 import { sha256Hex } from './auth.js';
 
 // מפתחות שהאתר הישן שמר בדפדפן (טוקנים וסיסמאות) – נמחקים ומדווחים
@@ -83,10 +83,13 @@ export async function handleApi(request, env, path) {
       return json({ logged: true });
     }
     // הודעות מהמנהל
-    if (path === 'messages' && m === 'GET') return await myMessages(env, ctx);
-    if (path === 'messages/seen' && m === 'POST') return await markSeen(request, env, ctx);
-    const readMatch = path.match(/^messages\/(\d+)\/read$/);
-    if (readMatch && m === 'POST') return await markRead(request, env, ctx, Number(readMatch[1]));
+    if (path === 'messages' && m === 'GET') return await myMessages(request, env, ctx);
+    const msgAction = path.match(/^messages\/(\d+)\/(read|reply)$/);
+    if (msgAction && m === 'POST') {
+      return msgAction[2] === 'read'
+        ? await markRead(request, env, ctx, Number(msgAction[1]))
+        : await userReply(request, env, ctx, Number(msgAction[1]));
+    }
     if (path.startsWith('yemot/')) return await proxyYemot(request, env, ctx, path.slice('yemot/'.length));
     if (path === 'nedarim' && m === 'GET') return await proxyNedarim(request, env, ctx);
     if (path.startsWith('admin/')) return await handleAdmin(request, env, ctx, path.slice('admin/'.length), url);

@@ -168,96 +168,12 @@ const MsSession = (() => {
         resolveReady(u);
         cleanBrowser();
         loadAnnouncement();
-        loadMessages();
-        setInterval(loadMessages, 90000); // הודעות חדשות נבדקות כל דקה וחצי
+        // הודעות מהמנהל (messages-ui.js): המספר שלא נקראו על "אזור אישי"
+        if (window.MsMessages) MsMessages.init({ site: 'new', badge: $('msMsgBadge') });
     }
 
     async function loadPaths() {
         try { Object.assign(window.MS_PATHS, (await call('GET', 'config', null, 8000)).paths || {}); } catch (e) { /* ברירת המחדל */ }
-    }
-
-    // ===== הודעות מהמנהל =====
-    let messages = [];
-    const shownToasts = new Set();
-    const shownPopups = new Set();
-    const escHtml = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-    async function loadMessages() {
-        let r;
-        try { r = await call('GET', 'messages', null, 8000); } catch (e) { return; }
-        messages = r.messages || [];
-        const badge = $('msMsgBadge');
-        if (badge) {
-            badge.textContent = r.unread > 9 ? '9+' : String(r.unread);
-            badge.style.display = r.unread ? '' : 'none';
-        }
-        const unseen = messages.filter((m) => !m.seen_at && !m.read_at).map((m) => m.id);
-        if (unseen.length) call('POST', 'messages/seen', { ids: unseen }, 8000).catch(() => {});
-        // הודעה חשובה שלא נקראה – קופצת
-        const important = messages.find((m) => m.important && !m.read_at && !shownPopups.has(m.id));
-        if (important) showImportant(important);
-        // הודעה רגילה חדשה – הודעה קטנה בפינה
-        const fresh = messages.filter((m) => !m.important && !m.read_at && !m.seen_at && !shownToasts.has(m.id));
-        if (fresh.length) showToast(fresh);
-        if (typeof SettingsManager !== 'undefined' && SettingsManager.renderMessages) SettingsManager.renderMessages();
-    }
-
-    async function markRead(id) {
-        try { await call('POST', `messages/${id}/read`, null, 8000); } catch (e) { /* ננסה שוב בפעם הבאה */ }
-        await loadMessages();
-    }
-
-    function showImportant(m) {
-        shownPopups.add(m.id);
-        let box = $('msImportantMsg');
-        if (!box) {
-            box = document.createElement('div');
-            box.id = 'msImportantMsg';
-            box.className = 'modal-overlay';
-            box.style.zIndex = '9500';
-            document.body.appendChild(box);
-        }
-        box.innerHTML = `
-            <div class="modal-content" style="max-width: 520px; width: 95%;" role="alertdialog" aria-labelledby="msImpTitle">
-                <div class="modal-header" style="background: #fff3cd; border-bottom: 1px solid #ffeeba;">
-                    <h2 id="msImpTitle" style="font-size: 1.2rem; color: #856404;"><i class="fa fa-exclamation-circle"></i> ${escHtml(m.title)}</h2>
-                </div>
-                <div class="modal-body" style="padding: 22px 24px; white-space: pre-line; font-size: 1rem; line-height: 1.7;">${escHtml(m.body)}</div>
-                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 12px; background: #f8f9fa; border-top: 1px solid var(--border-light);">
-                    <span style="color: var(--text-muted); font-size: 0.85rem;">${escHtml(m.created_by_name || '')} · ${escHtml(m.created_at)}</span>
-                    <button type="button" class="btn btn-primary" id="msImpRead" style="padding: 8px 24px;"><i class="fa fa-check"></i> קראתי</button>
-                </div>
-            </div>`;
-        box.classList.remove('hidden');
-        $('msImpRead').onclick = async () => {
-            $('msImpRead').disabled = true;
-            box.classList.add('hidden');
-            await markRead(m.id);
-        };
-    }
-
-    function showToast(list) {
-        list.forEach((m) => shownToasts.add(m.id));
-        let box = $('msMsgToast');
-        if (!box) {
-            box = document.createElement('div');
-            box.id = 'msMsgToast';
-            box.setAttribute('role', 'status');
-            box.style.cssText = 'position: fixed; top: 84px; left: 16px; z-index: 8995; max-width: min(380px, calc(100% - 32px)); background: #fff; color: var(--text-main); border: 1px solid var(--border-light); border-right: 4px solid var(--primary-color); border-radius: 8px; padding: 12px 14px; box-shadow: 0 8px 24px rgba(0,0,0,.14); display: flex; gap: 10px; align-items: flex-start;';
-            document.body.appendChild(box);
-        }
-        const m = list[0];
-        box.innerHTML = `
-            <i class="fa fa-envelope" style="color: var(--primary-color); margin-top: 3px;"></i>
-            <div style="flex: 1; min-width: 0;">
-                <strong>${list.length > 1 ? `${list.length} הודעות חדשות` : 'הודעה חדשה'}</strong>
-                <div style="font-size: 0.9rem; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(m.title)}</div>
-                <button type="button" class="btn btn-primary btn-sm" id="msToastOpen" style="margin-top: 8px;"><i class="fa fa-envelope-open"></i> הצג</button>
-            </div>
-            <button type="button" id="msToastClose" title="סגירה" style="background: none; border: none; color: var(--text-muted); cursor: pointer;"><i class="fa fa-times"></i></button>`;
-        box.style.display = 'flex';
-        $('msToastClose').onclick = () => { box.style.display = 'none'; };
-        $('msToastOpen').onclick = () => { box.style.display = 'none'; const b = $('openSettingsBtn'); if (b) b.click(); };
     }
 
     // ===== הרשאות: מה שאין למשתמש הרשאה אליו מוסתר באתר (והשרת חוסם ממילא) =====
@@ -473,9 +389,6 @@ const MsSession = (() => {
         ready: () => readyPromise,
         user: () => user,
         can,
-        messages: () => messages,
-        markRead,
-        escHtml,
         logout,
     };
 })();
