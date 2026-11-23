@@ -14,6 +14,7 @@ import { getConfig } from './settings.js';
 import { getPaths } from './yemot-paths.js';
 import { myMessages, markRead, userReply } from './messages.js';
 import { sha256Hex } from './auth.js';
+import { reportBlock } from './netfree.js';
 
 // מפתחות שהאתר הישן שמר בדפדפן (טוקנים וסיסמאות) – נמחקים ומדווחים
 const KNOWN_BROWSER_KEYS = [
@@ -61,6 +62,8 @@ export async function handleApi(request, env, path) {
     if (path === 'auth/google' && m === 'POST') return await loginGoogle(request, env);
     if (path === 'auth/options' && m === 'GET') return await loginOptions(env);
     if (path === 'auth/logout' && m === 'POST') return await logout(request, env);
+    // חסימת נטפרי בדפדפן המשתמש – גם בלי כניסה (מסך הכניסה עצמו יכול להיחסם)
+    if (path === 'client/netfree-block' && m === 'POST') return await reportBlock(request, env);
 
     const ctx = await authenticate(request, env);
 
@@ -72,16 +75,6 @@ export async function handleApi(request, env, path) {
     if (path === 'announcement/dismiss' && m === 'POST') return await announcement(request, env, ctx, 'dismiss');
     if (path === 'announcement/restore' && m === 'POST') return await announcement(request, env, ctx, 'restore');
     if (path === 'client/browser-cleanup' && m === 'POST') return await browserCleanup(request, env, ctx);
-    // חסימה של נטפרי בדפדפן המשתמש – נרשמת ביומן כדי שהמנהל יראה מה נחסם
-    if (path === 'client/netfree-block' && m === 'POST') {
-      const b = await readJson(request).catch(() => ({}));
-      await logAction(env, request, ctx, {
-        kind: 'netfree', action: 'חסימת נטפרי', target: str(b.target, 200) || str(b.action, 60),
-        details: { פעולה: str(b.action, 60), סיבה: str(b.reason, 40) === 'badwords' ? 'סינון מילים' : str(b.reason, 40) },
-        status: 'נחסם בנטפרי',
-      });
-      return json({ logged: true });
-    }
     // הודעות מהמנהל
     if (path === 'messages' && m === 'GET') return await myMessages(request, env, ctx);
     const msgAction = path.match(/^messages\/(\d+)\/(read|reply)$/);

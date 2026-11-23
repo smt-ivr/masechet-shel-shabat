@@ -2,6 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script src="/masechet/netfree-watch.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex">
 <title>ניהול – מסכת של שבת</title>
@@ -98,6 +99,7 @@
     <button data-tab="messages"><i class="fa fa-envelope"></i> הודעות</button>
     <button data-tab="actions"><i class="fa fa-list"></i> יומן פעולות</button>
     <button data-tab="logins"><i class="fa fa-sign-in"></i> יומן כניסות</button>
+    <button data-tab="netfree"><i class="fa fa-ban"></i> נטפרי <span id="nfBadge" class="tag off" style="display:none; margin:0 4px 0 0"></span></button>
     <button data-tab="settings"><i class="fa fa-sliders"></i> הגדרות</button>
   </nav>
   <main>
@@ -209,6 +211,38 @@
           <tbody id="loginsRows"></tbody>
         </table>
         <div class="more"><button class="secondary hidden" id="loginsMore">עוד</button></div>
+      </div>
+    </section>
+
+    <!-- חסימות נטפרי -->
+    <section id="tab-netfree" class="hidden">
+      <div class="card">
+        <div class="toolbar">
+          <div><h2>חסימות נטפרי</h2><p class="sub">כל חסימה של נטפרי בכל האתר – אתר חדש, אתר ישן, דף הניהול ומסך הכניסה. כולל קבצים וספריות שנחסמו, גם אצל מי שעוד לא נכנס למערכת</p></div>
+          <div class="filters">
+            <select id="nfSite">
+              <option value="">כל האתרים</option>
+              <option value="new">אתר חדש</option>
+              <option value="old">אתר ישן</option>
+              <option value="admin">דף הניהול</option>
+            </select>
+            <select id="nfAccount"><option value="">כל המשתמשים</option><option value="none">לא מחוברים</option></select>
+            <select id="nfConf">
+              <option value="">הכול</option>
+              <option value="1">חסימה ודאית</option>
+              <option value="0">לא נטען (ייתכן נטפרי)</option>
+            </select>
+            <input id="nfQuery" placeholder="חיפוש…">
+            <button type="button" class="secondary small" id="nfRefresh"><i class="fa fa-refresh"></i> רענון</button>
+          </div>
+        </div>
+        <div id="nfSummary" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px"></div>
+        <div id="nfTop" class="details" style="margin-bottom:12px"></div>
+        <table>
+          <thead><tr><th>זמן</th><th>משתמש</th><th>אתר</th><th>מה נחסם</th><th>סיבה</th><th>סוג</th><th>IP</th><th></th></tr></thead>
+          <tbody id="nfRows"></tbody>
+        </table>
+        <div class="more"><button class="secondary hidden" id="nfMore">עוד</button></div>
       </div>
     </section>
 
@@ -404,6 +438,7 @@ document.querySelectorAll('nav.tabs button').forEach((b) => b.addEventListener('
   if (t === 'actions') loadActions(true);
   if (t === 'messages') { renderRecipients(); loadMessages(); }
   if (t === 'logins' && !loaded.logins) loadLogins(true);
+  if (t === 'netfree') loadNetFree(true);
   if (t === 'settings' && !loaded.settings) loadSettings();
 }));
 
@@ -437,6 +472,9 @@ async function loadUsers() {
     </tr>`;
   }).join('') || '<tr><td colspan="5" class="empty">אין משתמשים</td></tr>';
   $('fAccount').innerHTML = '<option value="">כל המשתמשים</option>' + accounts.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+  const nfa = $('nfAccount').value;
+  $('nfAccount').innerHTML = '<option value="">כל המשתמשים</option><option value="none">לא מחוברים</option>' + accounts.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+  $('nfAccount').value = nfa;
 }
 
 function addIpRow(ip = '', label = '') {
@@ -725,6 +763,59 @@ async function loadLogins(reset) {
 }
 $('loginsMore').onclick = () => loadLogins(false);
 
+// ===== חסימות נטפרי =====
+let nfOffset = 0;
+const NF_SITE = { new: '<span class="tag ok">אתר חדש</span>', old: '<span class="tag write">אתר ישן</span>', admin: '<span class="tag admin">דף הניהול</span>' };
+const NF_SOURCE = { api: 'בקשה לשרת', fetch: 'בקשה', xhr: 'בקשה', resource: 'קובץ', script: 'קובץ סקריפט', style: 'קובץ עיצוב', image: 'תמונה', page: 'דף' };
+let nfSeen = 0;
+try { nfSeen = Number(localStorage.getItem('ms_nf_seen')) || 0; } catch (e) { /* ignore */ }
+function nfMarkSeen(last) {
+  if (last > nfSeen) { nfSeen = last; try { localStorage.setItem('ms_nf_seen', String(last)); } catch (e) { /* ignore */ } }
+  $('nfBadge').style.display = 'none';
+}
+async function nfCheck() {
+  try {
+    const r = await api('GET', 'admin/netfree/count?since=' + nfSeen);
+    const onTab = !$('tab-netfree').classList.contains('hidden');
+    if (onTab && r.count) { loadNetFree(true); return; }
+    $('nfBadge').textContent = r.count > 99 ? '99+' : String(r.count);
+    $('nfBadge').style.display = r.count ? '' : 'none';
+  } catch (e) { /* ignore */ }
+}
+async function loadNetFree(reset) {
+  if (reset) { nfOffset = 0; $('nfRows').innerHTML = ''; }
+  const p = new URLSearchParams({ limit: 100, offset: nfOffset });
+  if ($('nfSite').value) p.set('site', $('nfSite').value);
+  if ($('nfAccount').value) p.set('account', $('nfAccount').value);
+  if ($('nfConf').value) p.set('confirmed', $('nfConf').value);
+  if ($('nfQuery').value.trim()) p.set('q', $('nfQuery').value.trim());
+  const r = await api('GET', 'admin/netfree?' + p);
+  if (reset) {
+    const s = r.summary;
+    const box = (n, label, cls) => `<div style="flex:1; min-width:120px; padding:10px 14px; border:1px solid var(--border); border-radius:10px; background:${cls}"><div style="font-size:1.5rem; font-weight:700">${n}</div><div class="details">${label}</div></div>`;
+    $('nfSummary').innerHTML = box(s.day, 'ב-24 השעות האחרונות', s.day ? '#fde7e7' : '#f8f9fb') + box(s.week, 'בשבוע האחרון', '#f8f9fb') + box(s.total, 'סך הכול', '#f8f9fb');
+    $('nfTop').innerHTML = s.top.length ? '<b>הכי הרבה נחסם השבוע:</b> ' + s.top.map((t) => `<span class="tag off" dir="ltr">${esc(t.item)}</span> ×${t.n}`).join(' · ') : '';
+    if (r.rows.length) nfMarkSeen(Math.max(...r.rows.map((x) => x.id)));
+  }
+  nfOffset += r.rows.length;
+  $('nfRows').insertAdjacentHTML('beforeend', r.rows.map((x) => `<tr>
+    <td class="nowrap">${esc(x.created_at)}</td>
+    <td>${x.account_name ? esc(x.account_name) : '<span class="details">לא מחובר</span>'}</td>
+    <td>${NF_SITE[x.site] || esc(x.site || '')}</td>
+    <td><strong dir="ltr" style="word-break:break-all">${esc(x.what || '')}</strong>${x.url && x.url !== x.what ? `<div class="details" dir="ltr" style="word-break:break-all">${esc(x.url)}</div>` : ''}${x.page ? `<div class="details">בדף: <span dir="ltr">${esc(x.page)}</span></div>` : ''}</td>
+    <td>${x.confirmed ? `<span class="tag off">${esc(x.reason_name || 'נחסם')}</span>` : '<span class="tag write">לא נטען (ייתכן נטפרי)</span>'}</td>
+    <td class="nowrap">${esc(NF_SOURCE[x.source] || x.source || '')}</td>
+    <td class="ltr nowrap">${esc(x.ip || '')}<div class="details">${esc((x.user_agent || '').replace(/^Mozilla\/5\.0 /, '').slice(0, 50))}</div></td>
+    <td>${x.block_url ? `<a href="${esc(x.block_url)}" target="_blank" rel="noopener" class="details">דיווח לנטפרי</a>` : ''}</td></tr>`).join(''));
+  if (!nfOffset) $('nfRows').innerHTML = '<tr><td colspan="8" class="empty">לא נרשמו חסימות 👍</td></tr>';
+  $('nfMore').classList.toggle('hidden', !r.more);
+}
+let nfTimer;
+$('nfSite').onchange = $('nfAccount').onchange = $('nfConf').onchange = () => loadNetFree(true);
+$('nfQuery').oninput = () => { clearTimeout(nfTimer); nfTimer = setTimeout(() => loadNetFree(true), 350); };
+$('nfRefresh').onclick = () => loadNetFree(true);
+$('nfMore').onclick = () => loadNetFree(false);
+
 // ===== הגדרות =====
 function secretState(id, set, hint) {
   const el = $(id); el.className = 'secret-state ' + (set ? 'set' : 'unset');
@@ -799,6 +890,7 @@ $('previewBtn').onclick = async () => {
     $('who').textContent = 'מחובר: ' + me.name;
     $('gate').classList.add('hidden'); $('app').classList.remove('hidden');
     await loadUsers();
+    nfCheck(); setInterval(nfCheck, 30000); // חסימות חדשות – מספר על הלשונית
   } catch (err) {
     if (err.status !== 401) gate(err.message, true);
     else gate('יש להיכנס למערכת כדי לנהל.', true);

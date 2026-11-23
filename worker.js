@@ -22,6 +22,7 @@ import v2TableManager from './v2/table-manager.js';
 import v2ClientCard from './v2/client-card.js';
 import v2Session from './v2/session.js';
 import v2MessagesUi from './v2/messages-ui.js';
+import v2NetFreeWatch from './v2/netfree-watch.js';
 import v2LoginCss from './v2/login.css';
 import v2SettingsManager from './v2/settings-manager.js';
 
@@ -71,6 +72,7 @@ const ROUTES = {
   '/masechet/client-card.js':       [v2ClientCard,       JS],
   '/masechet/session.js':           [v2Session,          JS],
   '/masechet/messages-ui.js':       [v2MessagesUi,       JS],
+  '/masechet/netfree-watch.js':     [v2NetFreeWatch,     JS],
   '/masechet/login.css':            [v2LoginCss,         CSS],
   '/masechet/settings-manager.js':  [v2SettingsManager,  JS],
 
@@ -129,6 +131,8 @@ export default {
         .replace(/const DEFAULT_YMGR_PATH = '[^']*';/, `const DEFAULT_YMGR_PATH = ${q(p.exam_folder + '/ExaminationLogOK.ymgr')};`)
         .replace(/const DEFAULT_BROWSE_PATH = '[^']*';/, `const DEFAULT_BROWSE_PATH = ${q(p.archive_folder)};`)
         .replace(/const DEFAULT_POINTS_REPORT_PATH = '[^']*';/, `const DEFAULT_POINTS_REPORT_PATH = ${q(p.points_report)};`)
+        // זיהוי חסימות נטפרי – ראשון בדף
+        .replace(/<head[^>]*>/i, (h) => `${h}<script src="/masechet/netfree-watch.js"></script>`)
         // הודעות מהמנהל גם באתר הישן (כפתור צף)
         .replace(/<\/body>/i, '<script src="/masechet/messages-ui.js"></script><script>MsMessages.init({ site: "old", floating: true });</script></body>');
       return new Response(html, { status: 200, headers: { 'Content-Type': HTML, 'Cache-Control': 'no-store' } });

@@ -8,6 +8,7 @@ import { getConfig, publicSettings, updateSettings, fillTemplate } from './setti
 import { logAction } from './audit.js';
 import { welcomeMail, sendMail, validEmail, mailReady, renderMail } from './mail.js';
 import { PERMISSIONS, cleanPermissions } from './permissions.js';
+import { netfreeLog, netfreeCount } from './netfree.js';
 import { sendMessage, listMessages, messageDetails, deleteMessage, adminReply, updateMessage } from './messages.js';
 
 const isIp = (v) =>
@@ -313,5 +314,7 @@ export async function handleAdmin(request, env, ctx, sub, url) {
   const replyMatch = sub.match(/^messages\/(\d+)\/reply$/);
   if (replyMatch && m === 'POST') return adminReply(request, env, ctx, Number(replyMatch[1]));
   if (sub === 'action-log' && m === 'GET') return actionLog(env, url);
+  if (sub === 'netfree' && m === 'GET') return netfreeLog(env, url);
+  if (sub === 'netfree/count' && m === 'GET') return netfreeCount(env, url.searchParams.get('since'));
   throw notFound('הכתובת לא נמצאה');
 }

@@ -166,6 +166,35 @@ const MIGRATIONS = [
       `CREATE INDEX IF NOT EXISTS ms_message_replies_msg ON ms_message_replies(message_id, account_id)`,
     ],
   },
+  {
+    // יומן חסימות נטפרי מכל האתר (חדש, ישן, ניהול, מסך כניסה) – כולל קבצים וספריות שנחסמו
+    version: 8,
+    name: 'netfree_log',
+    sql: [
+      `CREATE TABLE IF NOT EXISTS ms_netfree_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        created_at TEXT NOT NULL,
+        account_id INTEGER,
+        account_name TEXT,
+        ip TEXT,
+        site TEXT,
+        page TEXT,
+        source TEXT,
+        url TEXT,
+        what TEXT,
+        reason TEXT,
+        block_url TEXT,
+        confirmed INTEGER NOT NULL DEFAULT 1,
+        user_agent TEXT
+      )`,
+      `CREATE INDEX IF NOT EXISTS ms_netfree_log_time ON ms_netfree_log(created_at)`,
+      `CREATE INDEX IF NOT EXISTS ms_netfree_log_ip ON ms_netfree_log(ip, created_at)`,
+      // חסימות שכבר נרשמו ביומן הפעולות עוברות גם ליומן החדש
+      `INSERT INTO ms_netfree_log (created_at, account_id, account_name, ip, site, source, url, what, reason, confirmed)
+       SELECT created_at, account_id, account_name, ip, site, 'api', json_extract(details, '$.פעולה'), target, json_extract(details, '$.סיבה'), 1
+       FROM ms_action_log WHERE kind = 'netfree'`,
+    ],
+  },
 ];
 
 let ready = null;

@@ -56,10 +56,11 @@ export const str = (v, max = 200) => String(v ?? '').trim().slice(0, max);
 export const clientIp = (request) => request.headers.get('cf-connecting-ip') || '';
 
 // זמן ישראל לתצוגה: 2026-11-18 14:05:09
-export function israelNow() {
+// offsetMs: הזזה במילישניות (למשל -86400000 = לפני יממה)
+export function israelNow(offsetMs = 0) {
   return new Intl.DateTimeFormat('sv-SE', {
     timeZone: 'Asia/Jerusalem',
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', second: '2-digit',
-  }).format(new Date());
+  }).format(new Date(Date.now() + offsetMs));
 }
