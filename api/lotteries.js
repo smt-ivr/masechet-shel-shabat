@@ -44,6 +44,15 @@ function cleanWinner(w, i) {
   };
 }
 
+// שלבי פרסים: [{ count, amount }]
+function cleanTiers(v) {
+  let list = v;
+  if (typeof list === 'string') { try { list = JSON.parse(list); } catch { list = []; } }
+  return (Array.isArray(list) ? list : []).slice(0, 20)
+    .map((t) => ({ count: Math.round(num(t?.count, 0, 500)), amount: num(t?.amount, 0, 100000) }))
+    .filter((t) => t.count > 0);
+}
+
 function cleanLottery(b) {
   const title = str(b.title, 120);
   if (!title) throw badRequest('חסר שם להגרלה');
@@ -62,6 +71,7 @@ function cleanLottery(b) {
     prize_limited_id: str(b.prize_limited_id, 20),
     prize_comment: str(b.prize_comment, 200),
     notes: str(b.notes, 1000),
+    prize_tiers: JSON.stringify(cleanTiers(b.prize_tiers)),
   };
 }
 
@@ -69,7 +79,7 @@ async function loadLottery(env, id) {
   const l = await env.DB.prepare('SELECT * FROM ms_lotteries WHERE id = ?').bind(id).first();
   if (!l) throw notFound('ההגרלה לא נמצאה');
   const { results } = await env.DB.prepare('SELECT * FROM ms_lottery_winners WHERE lottery_id = ? ORDER BY position, id').bind(id).all();
-  return { ...l, statuses: JSON.parse(l.statuses || '[]'), exclude_previous: !!l.exclude_previous, winners: results };
+  return { ...l, statuses: JSON.parse(l.statuses || '[]'), prize_tiers: cleanTiers(l.prize_tiers), exclude_previous: !!l.exclude_previous, winners: results };
 }
 
 const amountOf = (l, w) => (w.prize_amount !== null && w.prize_amount !== undefined ? Number(w.prize_amount) : Number(l.prize_amount)) || 0;
@@ -86,7 +96,7 @@ async function listLotteries(env, url) {
      FROM ms_lotteries l LEFT JOIN ms_lottery_winners w ON w.lottery_id = l.id
      ${where} GROUP BY l.id ORDER BY l.id DESC LIMIT 300`,
   ).bind(...(exam ? [examKey(exam)] : [])).all();
-  return json({ lotteries: results.map((l) => ({ ...l, statuses: JSON.parse(l.statuses || '[]'), loaded: l.loaded || 0, failed: l.failed || 0, total_amount: l.total_amount || 0 })) });
+  return json({ lotteries: results.map((l) => ({ ...l, statuses: JSON.parse(l.statuses || '[]'), prize_tiers: cleanTiers(l.prize_tiers), loaded: l.loaded || 0, failed: l.failed || 0, total_amount: l.total_amount || 0 })) });
 }
 
 // ===== יצירה =====
@@ -98,9 +108,9 @@ async function createLottery(request, env, ctx) {
   if (!winners.length) throw badRequest('אין זוכים לשמירה');
   const now = israelNow();
   const r = await env.DB.prepare(
-    `INSERT INTO ms_lotteries (exam_key, exam_name, title, statuses, min_score, exclude_previous, pool_size, prize_amount, prize_expiration, prize_limited_id, prize_comment, notes, created_by, created_by_name, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-  ).bind(key, l.exam_name, l.title, l.statuses, l.min_score, l.exclude_previous, l.pool_size, l.prize_amount, l.prize_expiration, l.prize_limited_id, l.prize_comment, l.notes, ctx.account.id, ctx.account.display_name, now).run();
+    `INSERT INTO ms_lotteries (exam_key, exam_name, title, statuses, min_score, exclude_previous, pool_size, prize_amount, prize_expiration, prize_limited_id, prize_comment, notes, prize_tiers, created_by, created_by_name, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+  ).bind(key, l.exam_name, l.title, l.statuses, l.min_score, l.exclude_previous, l.pool_size, l.prize_amount, l.prize_expiration, l.prize_limited_id, l.prize_comment, l.notes, l.prize_tiers, ctx.account.id, ctx.account.display_name, now).run();
   const id = r.meta.last_row_id;
   await insertWinners(env, id, winners);
   await logAction(env, request, ctx, {
@@ -122,10 +132,10 @@ function insertWinners(env, id, winners) {
 async function updateLottery(request, env, ctx, id) {
   const old = await loadLottery(env, id);
   const b = await readJson(request);
-  const l = cleanLottery({ ...old, ...b, statuses: b.statuses ?? old.statuses });
+  const l = cleanLottery({ ...old, ...b, statuses: b.statuses ?? old.statuses, prize_tiers: b.prize_tiers ?? old.prize_tiers });
   const stmts = [env.DB.prepare(
-    `UPDATE ms_lotteries SET title = ?, exam_name = ?, statuses = ?, min_score = ?, exclude_previous = ?, pool_size = ?, prize_amount = ?, prize_expiration = ?, prize_limited_id = ?, prize_comment = ?, notes = ?, updated_at = ? WHERE id = ?`,
-  ).bind(l.title, l.exam_name, l.statuses, l.min_score, l.exclude_previous, l.pool_size, l.prize_amount, l.prize_expiration, l.prize_limited_id, l.prize_comment, l.notes, israelNow(), id)];
+    `UPDATE ms_lotteries SET title = ?, exam_name = ?, statuses = ?, min_score = ?, exclude_previous = ?, pool_size = ?, prize_amount = ?, prize_expiration = ?, prize_limited_id = ?, prize_comment = ?, notes = ?, prize_tiers = ?, updated_at = ? WHERE id = ?`,
+  ).bind(l.title, l.exam_name, l.statuses, l.min_score, l.exclude_previous, l.pool_size, l.prize_amount, l.prize_expiration, l.prize_limited_id, l.prize_comment, l.notes, l.prize_tiers, israelNow(), id)];
   const changes = {};
   if (old.title !== l.title) changes['שם'] = `${old.title} ← ${l.title}`;
   if (Number(old.prize_amount) !== l.prize_amount) changes['סכום לזוכה'] = `${old.prize_amount} ← ${l.prize_amount}`;
@@ -281,8 +291,58 @@ async function relink(request, env, ctx) {
   return json({ moved: n });
 }
 
+// ===== תבניות להגרלה השבועית =====
+function cleanTemplateItems(items) {
+  return (Array.isArray(items) ? items : []).slice(0, 30).map((it) => ({
+    title: str(it?.title, 120),
+    statuses: [...new Set((Array.isArray(it?.statuses) ? it.statuses : []).map((x) => str(x, 20)))].slice(0, 30),
+    min_score: Math.round(num(it?.min_score, 0, 1000)),
+    only_nedarim: !!it?.only_nedarim,
+    tiers: cleanTiers(it?.tiers),
+  })).filter((it) => it.title && it.tiers.length);
+}
+
+async function listTemplates(env) {
+  const { results } = await env.DB.prepare('SELECT * FROM ms_lottery_templates ORDER BY name').all();
+  return json({ templates: results.map((t) => ({ ...t, items: JSON.parse(t.items || '[]'), settings: JSON.parse(t.settings || '{}') })) });
+}
+
+async function saveTemplate(request, env, ctx, id) {
+  const b = await readJson(request);
+  const name = str(b.name, 80);
+  if (!name) throw badRequest('חסר שם לתבנית');
+  const items = cleanTemplateItems(b.items);
+  if (!items.length) throw badRequest('אין בתבנית הגרלות (לכל הגרלה צריך שם וכמות זוכים)');
+  const settings = JSON.stringify({ exclude_previous: b.settings?.exclude_previous !== false, prize_limited_id: str(b.settings?.prize_limited_id, 20), prize_comment: str(b.settings?.prize_comment, 200), expiration_days: Math.round(num(b.settings?.expiration_days, 0, 3650)) });
+  const now = israelNow();
+  if (id) {
+    const r = await env.DB.prepare('UPDATE ms_lottery_templates SET name = ?, items = ?, settings = ?, updated_at = ? WHERE id = ?').bind(name, JSON.stringify(items), settings, now, id).run();
+    if (!r.meta.changes) throw notFound('התבנית לא נמצאה');
+  } else {
+    id = (await env.DB.prepare('INSERT INTO ms_lottery_templates (name, items, settings, created_by_name, created_at) VALUES (?, ?, ?, ?, ?)').bind(name, JSON.stringify(items), settings, ctx.account.display_name, now).run()).meta.last_row_id;
+  }
+  await logAction(env, request, ctx, { kind: 'write', action: 'שמירת תבנית הגרלות', target: name, details: { הגרלות: items.map((i) => `${i.title}: ${i.tiers.map((t) => `${t.count}×${t.amount}`).join(' + ')}`).join(' · ') } });
+  return json({ id });
+}
+
+async function deleteTemplate(request, env, ctx, id) {
+  const t = await env.DB.prepare('SELECT name FROM ms_lottery_templates WHERE id = ?').bind(id).first();
+  if (!t) throw notFound('התבנית לא נמצאה');
+  await env.DB.prepare('DELETE FROM ms_lottery_templates WHERE id = ?').bind(id).run();
+  await logAction(env, request, ctx, { kind: 'write', action: 'מחיקת תבנית הגרלות', target: t.name });
+  return json({ deleted: true });
+}
+
 export async function handleLotteries(request, env, ctx, sub, url) {
   const m = request.method;
+  const tm = sub.match(/^templates(?:\/(\d+))?$/);
+  if (tm) {
+    if (m === 'GET' && !tm[1]) { requireAnyPermission(ctx, ['exams_view', 'exams_manage']); return listTemplates(env); }
+    requirePermission(ctx, 'exams_manage');
+    if (m === 'POST' && !tm[1]) return saveTemplate(request, env, ctx, null);
+    if (m === 'PUT' && tm[1]) return saveTemplate(request, env, ctx, Number(tm[1]));
+    if (m === 'DELETE' && tm[1]) return deleteTemplate(request, env, ctx, Number(tm[1]));
+  }
   const idm = sub.match(/^(\d+)$/);
   const loadm = sub.match(/^(\d+)\/load$/);
   const unm = sub.match(/^(\d+)\/winners\/(\d+)\/unload$/);

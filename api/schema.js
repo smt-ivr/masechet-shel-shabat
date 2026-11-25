@@ -246,6 +246,23 @@ const MIGRATIONS = [
       `CREATE INDEX IF NOT EXISTS ms_lottery_winners_lottery ON ms_lottery_winners(lottery_id)`,
     ],
   },
+  {
+    // שלבי פרסים בהגרלה (למשל 2 זוכים × 100 ועוד 5 × 50) ותבניות להגרלה השבועית
+    version: 10,
+    name: 'lottery_tiers_templates',
+    sql: [
+      `ALTER TABLE ms_lotteries ADD COLUMN prize_tiers TEXT`,
+      `CREATE TABLE IF NOT EXISTS ms_lottery_templates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        items TEXT NOT NULL DEFAULT '[]',
+        settings TEXT,
+        created_by_name TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT
+      )`,
+    ],
+  },
 ];
 
 let ready = null;
