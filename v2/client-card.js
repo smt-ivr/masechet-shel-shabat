@@ -79,6 +79,15 @@ function isValidDateFormat(dateStr) {
 function smartImport(sourceId, targetId, isYemotPhone = false) {
     let sourceVal = document.getElementById(sourceId).value.trim();
     if (isYemotPhone) sourceVal = sourceVal.replace(/[^0-9]/g, '');
+    // סטטוס: בימות מספר, בנדרים שם – מתרגמים בין השניים
+    if (targetId === 'yemotStatus' && sourceVal !== "") {
+        const code = msStatusCode(sourceVal);
+        const sel = document.getElementById('yemotStatus');
+        sel.innerHTML = msStatusOptions(code);
+        sel.dispatchEvent(new Event('input'));
+        return;
+    }
+    if (sourceId === 'yemotStatus') sourceVal = msStatusName(sourceVal);
     if (sourceVal !== "") {
         document.getElementById(targetId).value = sourceVal;
         document.getElementById(targetId).dispatchEvent(new Event('input'));
@@ -155,7 +164,7 @@ async function openClientCard(zeout) {
     document.getElementById('yemotLastName').value = clientData.lastName || '';
     document.getElementById('yemotPhone1').value = clientData.phone1 || '';
     document.getElementById('yemotPhone2').value = clientData.phone2 || '';
-    document.getElementById('yemotStatus').value = clientData.yemotStatus || '';
+    document.getElementById('yemotStatus').innerHTML = msStatusOptions(clientData.yemotStatus || '');
     
     const pointsTabBtn = document.querySelector('.tab-btn[data-tab="points"]');
     if (window.isPointsDisabled) {
@@ -653,6 +662,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const yemotInputs = ['yemotFirstName', 'yemotLastName', 'yemotPhone1', 'yemotPhone2', 'yemotStatus'];
     yemotInputs.forEach(id => {
+        document.getElementById(id).addEventListener(id === 'yemotStatus' ? 'change' : 'input', function() {
+            document.getElementById('saveYemotBtn').classList.add('pulse-primary');
+        });
         document.getElementById(id).addEventListener('input', function() {
             if (id === 'yemotPhone1' || id === 'yemotPhone2') this.value = this.value.replace(/[^0-9]/g, ''); 
             document.getElementById('saveYemotBtn').classList.add('pulse-primary');

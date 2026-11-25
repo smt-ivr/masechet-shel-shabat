@@ -1,5 +1,27 @@
 const ExamsManager = {
     lastExamData: null,
+    history: null,   // מבחן קודם שמוצג כרגע: { path, name, data }
+    _winnersLoading: {},
+
+    // המבחן שמוצג כרגע (לשיוך ההגרלות)
+    viewKey() { return this.history ? LotteryManager.normKey(this.history.path) : 'current'; },
+
+    // ציור מחדש של מה שמוצג (מבחן פעיל או קודם) – למשל אחרי הגרלה או שינוי סטטוס
+    refreshView() {
+        if (this.history) this.render({ error: false, data: this.history.data }, false, false, true, this.history.name);
+        else this.reRender();
+    },
+
+    // הזוכים בהגרלות של המבחן – לסימון 🏆
+    ensureWinners(key) {
+        if (typeof LotteryManager === 'undefined' || LotteryManager.winnersByExam[key] || this._winnersLoading[key]) return;
+        if (document.documentElement.classList.contains('ms-no-exams_view') && document.documentElement.classList.contains('ms-no-exams_manage')) return;
+        this._winnersLoading[key] = true;
+        LotteryManager.api('GET', '?exam=' + encodeURIComponent(key)).then((r) => {
+            LotteryManager.list = r.lotteries || [];
+            LotteryManager.cacheWinners(key);
+        }).catch(() => {}).finally(() => { this._winnersLoading[key] = false; });
+    },
 
     // בזמן טעינה מציגים את אותו מבנה (סיכום, כפתורים, כותרות הטבלה) עם ספינרים –
     // כך ששום דבר לא קופץ כשהנתונים מגיעים
@@ -8,6 +30,7 @@ const ExamsManager = {
     },
 
     reRender() {
+        this.history = null;
         if (this.lastExamData) {
             this.render({ error: false, noExam: false, data: this.lastExamData }, true, false, false, '');
         }
@@ -21,7 +44,7 @@ const ExamsManager = {
         if (!clientInfo) return;
 
         const fullName = clientInfo.firstName ? `${clientInfo.firstName} ${clientInfo.lastName}` : 'לא קיים במערכת';
-        const status = clientInfo.yemotStatus || '-';
+        const status = msStatusName(clientInfo.yemotStatus) || '-';
 
         const rows = table.querySelectorAll('tbody tr');
         rows.forEach(tr => {
@@ -51,7 +74,11 @@ const ExamsManager = {
 
         let isError = result && result.error;
         let noExam = result && result.noExam;
+        if (!isHistory && !isLoading) this.history = null;
         let examData = isLoading ? [] : (isHistory ? ((result && result.data) ? result.data : []) : (this.lastExamData || []));
+        const viewKey = isHistory && this.history ? LotteryManager.normKey(this.history.path) : 'current';
+        const winners = (typeof LotteryManager !== 'undefined' && LotteryManager.winnersByExam[viewKey]) || {};
+        if (!isLoading && examData.length) this.ensureWinners(viewKey);
         let errorMsg = isError ? result.message : '';
 
         let totalExams = examData.length;
@@ -81,7 +108,8 @@ const ExamsManager = {
                 } else {
                     const clientInfo = globalClientsMap[zeout] || {};
                     fullName = clientInfo.firstName ? `${clientInfo.firstName} ${clientInfo.lastName}` : (exam.ValName || 'לא קיים במערכת');
-                    status = clientInfo.yemotStatus || '-';
+                    status = typeof StatusManager !== 'undefined' ? StatusManager.badge(clientInfo.yemotStatus) : (msStatusName(clientInfo.yemotStatus) || '-');
+                    if (winners[zeout]) fullName += ` <span title="זכה: ${winners[zeout].join(', ').replace(/"/g, '&quot;')}" style="cursor:help;">🏆</span>`;
                     idClickHtml = zeout ? `<a href="#" onclick="openClientCard('${zeout}'); return false;" style="color: var(--primary-color); font-weight: 600; text-decoration: underline; cursor: pointer;">${zeout}</a>` : '-';
                 }
 
@@ -107,7 +135,7 @@ const ExamsManager = {
                     <tr>
                         <td class="text-center" style="color:var(--text-muted);">${index + 1}</td>
                         <td class="text-center">${idClickHtml}</td>
-                        <td class="text-center" title="${clientsLoading ? 'בטעינה...' : fullName}" style="font-weight: 500; white-space: nowrap; max-width: 130px; overflow: hidden; text-overflow: ellipsis;">${fullName}</td>
+                        <td class="text-center" title="${clientsLoading ? 'בטעינה...' : String(fullName).replace(/<[^>]*>/g, '').replace(/"/g, '&quot;')}" style="font-weight: 500; white-space: nowrap; max-width: 130px; overflow: hidden; text-overflow: ellipsis;">${fullName}</td>
                         <td class="text-center" style="font-size: 0.9rem; white-space: nowrap; max-width: 100px; overflow: hidden; text-overflow: ellipsis;">${status}</td>
                         <td class="text-center" dir="ltr" style="font-size: 0.9rem;">${phone}</td>
                         <td class="text-center" style="color: var(--text-muted); font-size: 0.85rem;">${exam.Date}</td>
@@ -194,12 +222,14 @@ const ExamsManager = {
                 <div style="background: #fff3cd; color: #856404; padding: 6px 15px; border-radius: 20px; border: 1px solid #ffeeba; font-weight: 500; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
                     <i class="fa fa-history"></i> מציג מבחן קודם: ${historyTitle}
                 </div>
+                <button class="btn btn-primary btn-sm" ${disableActiveButtons} onclick="LotteryManager.open()"><i class="fa fa-trophy"></i> הגרלות${Object.keys(winners).length ? ` (${Object.keys(winners).length} זוכים)` : ''}</button>
+                <button class="btn btn-secondary btn-sm" onclick="QuestionsViewer.open(ExamsManager.history.path, ExamsManager.history.name)"><i class="fa fa-volume-up"></i> שאלות המבחן</button>
                 <button class="btn btn-primary btn-sm" onclick="ExamsManager.reRender()"><i class="fa fa-arrow-right"></i> חזור למבחן הפעיל</button>
             </div>
         ` : `
             <div class="actions-wrapper" style="margin-right: auto; gap: 8px;">
                 <button class="btn btn-secondary btn-sm" disabled title="פיצ'ר בפיתוח"><i class="fa fa-pencil"></i> עריכת קובץ (בפיתוח)</button>
-                <button class="btn btn-primary btn-sm" ${disableActiveButtons} onclick="if(typeof LotteryManager!=='undefined') LotteryManager.open()"><i class="fa fa-trophy"></i> ביצוע הגרלה</button>
+                <button class="btn btn-primary btn-sm" ${disableActiveButtons} onclick="if(typeof LotteryManager!=='undefined') LotteryManager.open()"><i class="fa fa-trophy"></i> הגרלות${Object.keys(winners).length ? ` (${Object.keys(winners).length} זוכים)` : ''}</button>
                 <button class="btn btn-primary btn-sm" ${disableActiveButtons} onclick="if(typeof CloseExamManager!=='undefined') CloseExamManager.run()"><i class="fa fa-stop-circle"></i> סגירת מבחן</button>
                 
                 <span style="border-left: 1px solid var(--border-color); height: 24px; margin: 0 4px;"></span>

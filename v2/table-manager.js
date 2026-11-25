@@ -53,8 +53,12 @@ function populateStatusFilter() {
         if (c.yemotStatus) statuses.add(c.yemotStatus);
     });
     let html = `<div class="filter-option ${window.activeFilters.status === '' ? 'selected' : ''}" onclick="setFilter('status', '', this)">הכל</div>`;
-    Array.from(statuses).sort().forEach(s => {
-        html += `<div class="filter-option ${window.activeFilters.status === s ? 'selected' : ''}" onclick="setFilter('status', '${s}', this)">${s}</div>`;
+    // קודם הסטטוסים המוגדרים (לפי הסדר), ואחריהם ערכים אחרים שנמצאו בקובץ
+    const known = (window.MS_STATUSES || []).map(s => s.code);
+    const all = [...known.filter(c => statuses.has(c)), ...Array.from(statuses).filter(c => !known.includes(c)).sort()];
+    all.forEach(s => {
+        const safe = String(s).replace(/'/g, "\\'");
+        html += `<div class="filter-option ${window.activeFilters.status === s ? 'selected' : ''}" onclick="setFilter('status', '${safe}', this)">${msStatusName(s)}</div>`;
     });
     menu.innerHTML = html;
 }
@@ -202,7 +206,7 @@ function renderTable(dataArray) {
             <td class="text-center" title="${row.lastName}">${row.lastName}</td>
             <td class="text-center" dir="ltr">${row.phone1}</td>
             <td class="text-center" dir="ltr">${row.phone2 || '-'}</td>
-            <td class="text-center" title="${row.yemotStatus}">${row.yemotStatus}</td>
+            <td class="text-center td-status" title="לחצו לשינוי הסטטוס">${typeof StatusManager !== 'undefined' ? StatusManager.badge(row.yemotStatus) : msStatusName(row.yemotStatus)}</td>
             <td class="text-center td-audio"></td>
             <td class="text-center td-nedarim-badge"></td>
             <td class="text-center td-nedarim-balance" dir="ltr" style="font-weight:bold; color:var(--primary-color);"></td>
@@ -210,6 +214,12 @@ function renderTable(dataArray) {
         `;
         
         tr.querySelector('.checkbox-col').addEventListener('click', e => e.stopPropagation());
+        tr.querySelector('.td-status').addEventListener('click', e => {
+            if (typeof StatusManager === 'undefined' || document.documentElement.classList.contains('ms-no-clients_edit')) return;
+            e.stopPropagation();
+            StatusManager.openPicker(e.currentTarget, [row.zeout]);
+        });
+        tr.querySelector('.row-checkbox').addEventListener('change', () => { if (typeof StatusManager !== 'undefined') StatusManager.updateBulkBar(); });
         tr.addEventListener('click', () => {
             if (typeof openClientCard === 'function') openClientCard(row.zeout);
         });
@@ -224,6 +234,7 @@ function renderTable(dataArray) {
     }
     
     selectAllCheckbox.checked = false;
+    if (typeof StatusManager !== 'undefined') StatusManager.updateBulkBar();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -243,5 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     selectAllCheckbox.addEventListener('change', (e) => {
         document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = e.target.checked);
+        if (typeof StatusManager !== 'undefined') StatusManager.updateBulkBar();
     });
 });

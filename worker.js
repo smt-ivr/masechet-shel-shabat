@@ -23,6 +23,8 @@ import v2ClientCard from './v2/client-card.js';
 import v2Session from './v2/session.js';
 import v2MessagesUi from './v2/messages-ui.js';
 import v2NetFreeWatch from './v2/netfree-watch.js';
+import v2StatusManager from './v2/status-manager.js';
+import v2QuestionsViewer from './v2/questions-viewer.js';
 import v2LoginCss from './v2/login.css';
 import v2SettingsManager from './v2/settings-manager.js';
 
@@ -73,6 +75,8 @@ const ROUTES = {
   '/masechet/session.js':           [v2Session,          JS],
   '/masechet/messages-ui.js':       [v2MessagesUi,       JS],
   '/masechet/netfree-watch.js':     [v2NetFreeWatch,     JS],
+  '/masechet/status-manager.js':    [v2StatusManager,    JS],
+  '/masechet/questions-viewer.js':  [v2QuestionsViewer,  JS],
   '/masechet/login.css':            [v2LoginCss,         CSS],
   '/masechet/settings-manager.js':  [v2SettingsManager,  JS],
 

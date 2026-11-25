@@ -195,6 +195,57 @@ const MIGRATIONS = [
        FROM ms_action_log WHERE kind = 'netfree'`,
     ],
   },
+  {
+    // הגרלות: כל הגרלה משויכת למבחן (פעיל או קודם), הזוכים נשמרים עם כל הפרטים ומצב הטעינה בנדרים
+    version: 9,
+    name: 'lotteries',
+    sql: [
+      `CREATE TABLE IF NOT EXISTS ms_lotteries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        exam_key TEXT NOT NULL,
+        exam_name TEXT,
+        title TEXT NOT NULL,
+        statuses TEXT NOT NULL DEFAULT '[]',
+        min_score INTEGER NOT NULL DEFAULT 0,
+        exclude_previous INTEGER NOT NULL DEFAULT 1,
+        pool_size INTEGER NOT NULL DEFAULT 0,
+        prize_amount REAL NOT NULL DEFAULT 0,
+        prize_expiration TEXT,
+        prize_limited_id TEXT,
+        prize_comment TEXT,
+        notes TEXT,
+        created_by INTEGER,
+        created_by_name TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT
+      )`,
+      `CREATE INDEX IF NOT EXISTS ms_lotteries_exam ON ms_lotteries(exam_key)`,
+      `CREATE TABLE IF NOT EXISTS ms_lottery_winners (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lottery_id INTEGER NOT NULL,
+        position INTEGER NOT NULL DEFAULT 1,
+        zeout TEXT NOT NULL,
+        name TEXT,
+        status_code TEXT,
+        phone TEXT,
+        phone2 TEXT,
+        exam_phone TEXT,
+        score INTEGER,
+        points TEXT,
+        exam_date TEXT,
+        city TEXT,
+        prize_amount REAL,
+        load_status TEXT NOT NULL DEFAULT 'none',
+        load_message TEXT,
+        tlush_id TEXT,
+        nedarim_client_id TEXT,
+        loaded_at TEXT,
+        loaded_by TEXT,
+        notes TEXT
+      )`,
+      `CREATE INDEX IF NOT EXISTS ms_lottery_winners_lottery ON ms_lottery_winners(lottery_id)`,
+    ],
+  },
 ];
 
 let ready = null;

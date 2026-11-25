@@ -6,6 +6,38 @@
 import { badRequest, israelNow } from './http.js';
 import { DEFAULT_PATHS, PATH_FIELDS, validatePaths } from './yemot-paths.js';
 
+// סטטוס הלקוח בקובץ ימות הוא מספר. כאן השם של כל מספר
+export const DEFAULT_STATUSES = [
+  { code: '1', name: 'תלמוד תורה' },
+  { code: '2', name: 'ישיבה קטנה' },
+  { code: '3', name: 'ישיבה גדולה' },
+  { code: '4', name: 'אברכים ונשואים' },
+];
+
+export function validateStatuses(input) {
+  let list = input;
+  if (typeof list === 'string') { try { list = JSON.parse(list); } catch { throw badRequest('רשימת הסטטוסים אינה תקינה'); } }
+  if (!Array.isArray(list)) throw badRequest('רשימת הסטטוסים אינה תקינה');
+  const out = [];
+  const seen = new Set();
+  for (const it of list) {
+    const code = String(it?.code ?? '').trim().replace(/,/g, '');
+    const name = String(it?.name ?? '').trim().slice(0, 60);
+    if (!code && !name) continue;
+    if (!/^[\w\u0590-\u05FF-]{1,10}$/.test(code)) throw badRequest(`קוד סטטוס לא תקין: ${code || '(ריק)'}`);
+    if (!name) throw badRequest(`חסר שם לסטטוס ${code}`);
+    if (seen.has(code)) throw badRequest(`הקוד ${code} מופיע פעמיים`);
+    seen.add(code);
+    out.push({ code, name });
+  }
+  if (!out.length) throw badRequest('צריך לפחות סטטוס אחד');
+  return out.slice(0, 30);
+}
+
+export function getStatuses(raw) {
+  try { return validateStatuses(raw); } catch { return DEFAULT_STATUSES; }
+}
+
 export const DEFAULT_WELCOME = {
   welcome_subject: 'פרטי כניסה למערכת מסכת של שבת',
   welcome_title: 'נפתח לכם חשבון במערכת מסכת של שבת',
@@ -32,6 +64,7 @@ const FIELDS = {
   announcement_enabled: [1, false],
   announcement_text: [300, false],
   yemot_paths: [20000, false],
+  client_statuses: [2000, false],
 };
 
 const DEFAULTS = {
@@ -40,6 +73,7 @@ const DEFAULTS = {
   site_url: 'https://smti.uk/masechet/',
   announcement_enabled: '1',
   yemot_paths: JSON.stringify(DEFAULT_PATHS),
+  client_statuses: JSON.stringify(DEFAULT_STATUSES),
   announcement_text: 'הפיתוח של האתר החדש הושלם! אין צורך להשתמש יותר באתר הישן',
   ...DEFAULT_WELCOME,
 };
@@ -86,7 +120,7 @@ const LABELS = {
   google_enabled: 'כניסה עם Google', google_client_id: 'Google Client ID', resend_api_key: 'מפתח Resend',
   mail_from: 'שולח המייל', site_url: 'כתובת האתר', welcome_subject: 'נושא מייל הפתיחה', welcome_title: 'כותרת מייל הפתיחה',
   welcome_body: 'גוף מייל הפתיחה', welcome_button: 'כפתור מייל הפתיחה', welcome_note: 'הערת מייל הפתיחה',
-  announcement_enabled: 'הצגת ההודעה', announcement_text: 'טקסט ההודעה', yemot_paths: 'כתובות במערכת ימות',
+  announcement_enabled: 'הצגת ההודעה', announcement_text: 'טקסט ההודעה', yemot_paths: 'כתובות במערכת ימות', client_statuses: 'סטטוסים של לקוחות',
 };
 
 // מחזיר רק את מה שבאמת השתנה – לתיעוד ביומן הפעולות
@@ -100,6 +134,7 @@ export async function updateSettings(env, body) {
     if (body[k] === undefined) continue;
     let v = k === 'google_enabled' || k === 'announcement_enabled' ? (body[k] ? '1' : '0') : String(body[k] ?? '').slice(0, max);
     if (k === 'yemot_paths') v = JSON.stringify(validatePaths(body[k]));
+    if (k === 'client_statuses') v = JSON.stringify(validateStatuses(body[k]));
     if (k !== 'welcome_body' && k !== 'welcome_note') v = v.trim();
     if (secret && !v) continue;
     if (k === 'resend_api_key' && !/^re_[\w-]{10,}$/.test(v)) throw badRequest('מפתח Resend אמור להתחיל ב-re_');

@@ -268,6 +268,13 @@
         </fieldset>
 
         <fieldset>
+          <legend><i class="fa fa-tags"></i> סטטוסים של לקוחות</legend>
+          <p class="hint" style="margin:0 0 12px">בקובץ הלקוחות בימות הסטטוס נשמר כמספר. כאן השם של כל מספר – כך הוא מוצג באתר, ובוחרים אותו מרשימה בלי להקליד</p>
+          <div id="statusRows"></div>
+          <div style="margin-top:10px"><button type="button" class="secondary small" id="addStatusBtn"><i class="fa fa-plus"></i> הוספת סטטוס</button></div>
+        </fieldset>
+
+        <fieldset>
           <legend><i class="fa fa-credit-card"></i> נדרים פלוס</legend>
           <div class="grid">
             <div><label class="f" for="sMosad">מספר מוסד</label><input id="sMosad" class="ltr" inputmode="numeric"></div>
@@ -837,6 +844,17 @@ $('resetPathsBtn').onclick = () => {
   PATH_FIELDS.forEach((f) => { $('path_' + f.key).value = f.default; });
 };
 
+function statusRow(code = '', name = '') {
+  const d = document.createElement('div');
+  d.className = 'ip-row';
+  d.style.cssText = 'display:flex; gap:8px; margin-bottom:6px; align-items:center';
+  d.innerHTML = `<input class="st-code ltr" style="width:80px" placeholder="מספר" value="${esc(code)}"><input class="st-name" style="flex:1" placeholder="שם הסטטוס" value="${esc(name)}"><button type="button" class="secondary small" title="הסרה">×</button>`;
+  d.querySelector('button').onclick = () => d.remove();
+  $('statusRows').appendChild(d);
+}
+$('addStatusBtn').onclick = () => statusRow(String($('statusRows').children.length + 1), '');
+const readStatuses = () => [...document.querySelectorAll('#statusRows > div')].map((d) => ({ code: d.querySelector('.st-code').value.trim(), name: d.querySelector('.st-name').value.trim() })).filter((x) => x.code || x.name);
+
 function fillSettings(s) {
   settings = s; loaded.settings = true;
   $('sYemot').value = ''; secretState('sYemotState', s.yemot_token_set, s.yemot_token_hint);
@@ -846,6 +864,8 @@ function fillSettings(s) {
   $('aOn').checked = !!s.announcement_enabled; $('aText').value = s.announcement_text || '';
   let paths = {}; try { paths = JSON.parse(s.yemot_paths || '{}'); } catch { paths = {}; }
   fillPaths(s.yemot_path_fields, Array.isArray(paths) ? {} : paths);
+  let sts = []; try { sts = JSON.parse(s.client_statuses || '[]'); } catch { sts = []; }
+  $('statusRows').innerHTML = ''; sts.forEach((x) => statusRow(x.code, x.name));
   $('sResend').value = ''; secretState('sResendState', s.resend_api_key_set, s.resend_api_key_hint);
   $('sFrom').value = s.mail_from || ''; $('sSite').value = s.site_url || '';
   $('wSubject').value = s.welcome_subject || ''; $('wTitle').value = s.welcome_title || '';
@@ -862,7 +882,7 @@ $('settingsForm').addEventListener('submit', async (e) => {
       yemot_token: $('sYemot').value, nedarim_mosad_id: $('sMosad').value, nedarim_api_password: $('sNedKey').value,
       google_enabled: $('sGoogleOn').checked, google_client_id: $('sGoogleId').value,
       announcement_enabled: $('aOn').checked, announcement_text: $('aText').value,
-      yemot_paths: readPaths(),
+      yemot_paths: readPaths(), client_statuses: readStatuses(),
       resend_api_key: $('sResend').value, mail_from: $('sFrom').value, site_url: $('sSite').value, ...welcomeFields(),
     };
     fillSettings(await api('PUT', 'admin/settings', body));

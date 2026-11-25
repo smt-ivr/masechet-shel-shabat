@@ -18,6 +18,34 @@ window.MS_PATHS = {
 // msPath('exam_folder') → "2/1"   ·   msIvr('exam_folder', 'examination.ini') → "ivr2:/2/1/examination.ini"
 window.msPath = (key) => String(window.MS_PATHS[key] || '').replace(/^\/+|\/+$/g, '');
 window.msIvr = (key, sub) => 'ivr2:/' + window.msPath(key) + (sub ? '/' + sub : '');
+// סטטוס הלקוח: בקובץ ימות שמור מספר, באתר מוצג השם (נערך בהגדרות הניהול)
+window.MS_STATUSES = [
+    { code: '1', name: 'תלמוד תורה' },
+    { code: '2', name: 'ישיבה קטנה' },
+    { code: '3', name: 'ישיבה גדולה' },
+    { code: '4', name: 'אברכים ונשואים' },
+];
+window.msStatusName = (code) => {
+    const c = String(code == null ? '' : code).trim();
+    if (!c) return '';
+    const s = window.MS_STATUSES.find((x) => x.code === c || x.name === c);
+    return s ? s.name : c;
+};
+// קוד מתוך קוד או שם (למשל בייבוא מנדרים, ששם נשמר שם)
+window.msStatusCode = (v) => {
+    const c = String(v == null ? '' : v).trim();
+    const s = window.MS_STATUSES.find((x) => x.code === c || x.name === c);
+    return s ? s.code : c;
+};
+// בחירת סטטוס: רשימה נפתחת במקום הקלדה
+window.msStatusOptions = (current, emptyLabel = 'ללא סטטוס') => {
+    const esc = (t) => String(t).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+    const cur = String(current == null ? '' : current).trim();
+    let html = `<option value="">${esc(emptyLabel)}</option>`;
+    window.MS_STATUSES.forEach((s) => { html += `<option value="${esc(s.code)}"${s.code === cur ? ' selected' : ''}>${esc(s.code)} · ${esc(s.name)}</option>`; });
+    if (cur && !window.MS_STATUSES.some((s) => s.code === cur)) html += `<option value="${esc(cur)}" selected>${esc(cur)} (לא מוגדר)</option>`;
+    return html;
+};
 
 const MsSession = (() => {
     const API = '/masechet/api/';
@@ -173,7 +201,12 @@ const MsSession = (() => {
     }
 
     async function loadPaths() {
-        try { Object.assign(window.MS_PATHS, (await call('GET', 'config', null, 8000)).paths || {}); } catch (e) { /* ברירת המחדל */ }
+        try {
+            const cfg = await call('GET', 'config', null, 8000);
+            Object.assign(window.MS_PATHS, cfg.paths || {});
+            if (Array.isArray(cfg.statuses) && cfg.statuses.length) window.MS_STATUSES = cfg.statuses;
+            document.dispatchEvent(new Event('ms-config'));
+        } catch (e) { /* ברירת המחדל */ }
     }
 
     // ===== הרשאות: מה שאין למשתמש הרשאה אליו מוסתר באתר (והשרת חוסם ממילא) =====

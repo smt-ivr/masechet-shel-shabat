@@ -10,11 +10,12 @@ import { login, loginGoogle, loginOptions, logout, authenticate, publicAccount }
 import { proxyYemot, proxyNedarim, connectionStatus } from './proxy.js';
 import { handleAdmin } from './admin.js';
 import { logAction } from './audit.js';
-import { getConfig } from './settings.js';
+import { getConfig, getStatuses } from './settings.js';
 import { getPaths } from './yemot-paths.js';
 import { myMessages, markRead, userReply } from './messages.js';
 import { sha256Hex } from './auth.js';
 import { reportBlock } from './netfree.js';
+import { handleLotteries } from './lotteries.js';
 
 // מפתחות שהאתר הישן שמר בדפדפן (טוקנים וסיסמאות) – נמחקים ומדווחים
 const KNOWN_BROWSER_KEYS = [
@@ -70,7 +71,12 @@ export async function handleApi(request, env, path) {
     if (path === 'auth/me' && m === 'GET') return json({ user: publicAccount(ctx.account), ip: clientIp(request) });
     if (path === 'status' && m === 'GET') return json(await connectionStatus(env));
     // הכתובות בימות שהאתר עובד איתן (נערכות בהגדרות הניהול)
-    if (path === 'config' && m === 'GET') return json({ paths: getPaths((await getConfig(env)).yemot_paths) });
+    if (path === 'config' && m === 'GET') {
+      const cfg = await getConfig(env);
+      return json({ paths: getPaths(cfg.yemot_paths), statuses: getStatuses(cfg.client_statuses) });
+    }
+    // הגרלות
+    if (path === 'lotteries' || path.startsWith('lotteries/')) return await handleLotteries(request, env, ctx, path.slice('lotteries'.length).replace(/^\//, ''), url);
     if (path === 'announcement' && m === 'GET') return await announcement(request, env, ctx);
     if (path === 'announcement/dismiss' && m === 'POST') return await announcement(request, env, ctx, 'dismiss');
     if (path === 'announcement/restore' && m === 'POST') return await announcement(request, env, ctx, 'restore');

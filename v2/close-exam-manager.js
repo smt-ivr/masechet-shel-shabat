@@ -212,6 +212,12 @@ const CloseExamManager = {
             if (dirResponse.ok && !(d.responseStatus && d.responseStatus !== 'OK' && d.responseStatus !== 'Success' && d.ReturnValue !== 'True' && d.success !== true)) {
                 dirOk = true;
                 rows.push({ name: `תיקייה: ${sanitizedFolderName}`, ok: true, note: 'נוצרה' });
+                // ההגרלות של המבחן הפעיל עוברות איתו למבחן בארכיון
+                try {
+                    const lr = await fetch('/masechet/api/lotteries/relink', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ to: `${this.ARCHIVE_BASE_REL}/${sanitizedFolderName}`, name: sanitizedFolderName }) });
+                    const ld = await lr.json();
+                    if (ld.ok && ld.data.moved) rows.push({ name: `הגרלות (${ld.data.moved})`, ok: true, note: 'שויכו למבחן שנסגר' });
+                } catch (e) { /* לא מונע את סגירת המבחן */ }
             } else {
                 let msg = d.message || d.description || `שגיאה ${dirResponse.status}`;
                 if (d.error) msg += ` (${d.error})`;

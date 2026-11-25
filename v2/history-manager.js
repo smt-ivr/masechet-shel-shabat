@@ -109,6 +109,8 @@ const HistoryManager = {
 
         try {
             const res = await YemotAPI.fetchHistoricalExamData(token, folderPath);
+            // המבחן הקודם שמוצג – לשיוך הגרלות ולשמיעת השאלות שלו
+            ExamsManager.history = { path: folderPath, name: examName, data: (res && res.data) || [] };
             
             // קריאה לפונקציית הציור של ExamsManager עם פלאג שזה מבחן היסטורי
             // זה ישאיר את הקובץ החי בזיכרון, אבל יצייר את ההיסטוריה על המסך
